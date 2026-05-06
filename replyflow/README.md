@@ -107,6 +107,13 @@ supabase/migrations/001_initial_schema.sql
 
 ### 4. Rodar localmente
 
+**Opção A — Script automatizado (recomendado):**
+```powershell
+.\dev.ps1
+```
+O script verifica Node.js, cria `.env.local`, instala dependências, verifica porta 3000 e abre o navegador automaticamente.
+
+**Opção B — Manual:**
 ```bash
 npm run dev
 # http://localhost:3000
@@ -133,8 +140,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 5 — Estrutura do Projeto | ✅ Concluída |
 | Etapa 6 — Sprint 1 (Fundação) | ✅ Concluída |
 | Etapa 6 — Sprint 2 (Auth + Dashboard) | ✅ Concluída |
-| Etapa 6 — Sprint 3 (Publicação + Alertas) | 🔄 Em andamento |
-| Etapa 6 — Sprint 4 (Landing + Polimento) | ⏳ Pendente |
+| Etapa 6 — Sprint 3 (Publicação + Alertas) | ✅ Concluída |
+| Etapa 6 — Sprint 4 (Landing + Polimento) | ✅ Concluída |
 
 ---
 
@@ -144,14 +151,17 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 |----------|--------|-----------|
 | `/api/reviews` | GET | Listar reviews com filtros |
 | `/api/reviews/[id]/generate` | POST | Gerar resposta com IA |
-| `/api/reviews/[id]/publish` | POST | Publicar resposta no Google |
+| `/api/reviews/[id]/publish` | POST | Publicar resposta no Google (GMB real) |
+| `/api/reviews/[id]/ignore` | POST | Ignorar review |
+| `/api/onboarding` | POST | Criar organização e primeiro local |
 | `/api/webhooks/stripe` | POST | Webhook de eventos Stripe |
-| `/api/cron/fetch-reviews` | GET | Cron job (a cada 30min) |
+| `/api/cron/fetch-reviews` | GET | Cron job — busca reviews via GMB API (30min) |
 | `/api/auth/callback` | GET | Callback OAuth Supabase |
 | `/api/google/auth` | GET | Iniciar OAuth Google My Business |
 | `/api/google/callback` | GET | Callback OAuth Google |
-| `/api/reviews/[id]/ignore` | POST | Ignorar review |
-| `/api/onboarding` | POST | Criar organização e primeiro local |
+| `/api/billing/checkout` | POST | Criar Checkout Session Stripe |
+| `/api/billing/portal` | POST | Redirecionar para Portal Stripe |
+| `/api/settings` | PATCH | Atualizar nome da empresa e perfil |
 
 ---
 

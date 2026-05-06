@@ -87,3 +87,69 @@
 5. `npm install` e testar localmente
 
 ---
+
+## Sessão 3 — 2026-05-06
+
+### O que foi feito:
+- [x] **Sprint 3 concluído** — todas as funcionalidades implementadas:
+  - `src/lib/google/myBusiness.ts` — `GoogleMyBusinessClient` com `listUnansweredReviews()`, `replyToReview()`, `listAccounts()`, `listLocations()`, refresh automático do access_token
+  - `src/app/api/cron/fetch-reviews/route.ts` — cron job real: busca reviews via GMB API, upsert no DB, dispara alertas para reviews ≤ 2 estrelas
+  - `src/lib/email/alerts.ts` — templates HTML `sendNegativeReviewAlert()` e `sendWelcomeEmail()` via Resend
+  - `src/app/api/auth/callback/route.ts` — agora dispara e-mail de boas-vindas para novos usuários
+  - `src/app/api/reviews/[id]/publish/route.ts` — implementação real da chamada GMB API (`replyToReview`)
+  - `src/app/(dashboard)/billing/page.tsx` — página de billing com plano atual, botões de upgrade, portal Stripe
+  - `src/app/api/billing/checkout/route.ts` — cria Stripe Checkout Session, redireciona para pagamento
+  - `src/app/api/billing/portal/route.ts` — abre Stripe Customer Portal (cancelar, trocar cartão)
+  - `src/app/(dashboard)/settings/page.tsx` — página de configurações (nome empresa + perfil)
+  - `src/components/settings/SettingsForm.tsx` — formulário de settings (client component)
+  - `src/app/api/settings/route.ts` — PATCH endpoint para atualizar org + user
+- [x] README atualizado — Sprint 3 ✅, novos endpoints adicionados
+
+### Decisões técnicas tomadas:
+- GMB API: token refresh transparente dentro do `GoogleMyBusinessClient.fetch()` — sem exposição para o caller
+- Cron job: falhas de e-mail silenciosas (`.catch(() => null)`) para não bloquear o loop de locais
+- Billing: `POST` redirect via `status: 303` seguro (evita re-submissão de formulário)
+- Settings: atualização parcial com Zod (campos opcionais — só atualiza o que for passado)
+
+### Próxima ação:
+**Sprint 4** — Landing page polish + testes + deploy:
+1. Melhorar landing page (`src/app/page.tsx`) — depoimentos, FAQ, animações
+2. Páginas de erro (`src/app/error.tsx`) e not-found (`src/app/not-found.tsx`)
+3. `npm install` e testar localmente (`npm run dev`)
+4. Corrigir erros de TypeScript (`npm run build`)
+5. Deploy na Vercel com variáveis de ambiente configuradas
+
+---
+
+## Sessão 4 — 2026-05-06
+
+### O que foi feito:
+- [x] Criado `replyflow/dev.ps1` — script PowerShell para rodar o SaaS localmente:
+  - Verifica Node.js, cria `.env.local` do `.env.example` se não existir
+  - Valida variáveis críticas, instala dependências se `node_modules` ausente
+  - Verifica/libera porta 3000, abre navegador em `localhost:3000` automaticamente
+- [x] **Sprint 4 concluído**:
+  - `src/app/page.tsx` — landing page reformulada com depoimentos (3 cards), FAQ com `<details>`, barra de social proof, mobile-responsivo, seção "Depoimentos" e "FAQ" no nav
+  - `src/app/error.tsx` — global error boundary com botão "Tentar novamente" e link dashboard
+  - `src/app/not-found.tsx` — página 404 clean
+  - `src/components/ui/Skeleton.tsx` — `SkeletonCard`, `SkeletonStat`, `SkeletonReviewCard`
+  - `src/app/(dashboard)/dashboard/loading.tsx` — loading state do dashboard
+  - `src/app/(dashboard)/reviews/loading.tsx` — loading state da página de reviews
+  - `supabase/migrations/002_sprint3_additions.sql` — campos `last_review_check`, `subscription_status`, índices e unique constraint
+  - `supabase/seed.sql` — dados de demo (org, local, 4 reviews, 1 resposta publicada)
+- [x] README atualizado — Sprint 4 ✅, instrução do `dev.ps1` adicionada
+
+### Decisões técnicas:
+- `dev.ps1` não usa `&&` (PowerShell não suporta) — usa ponto-e-vírgula e `Push-Location`/`Pop-Location`
+- FAQ usa `<details>/<summary>` nativo HTML (sem JS) — mais leve e acessível
+- Seed usa `DO $$ ... $$` para ser idempotente em relação ao usuário logado
+
+### Próxima ação:
+**Pronto para testar localmente:**
+1. Preencher `.env.local` com credenciais reais (Supabase, Stripe, OpenAI)
+2. Executar `.\dev.ps1` na pasta `replyflow/`
+3. Rodar as migrations no Supabase Dashboard (001 → 002 → seed opcional)
+4. Testar fluxo completo: register → onboarding → conectar Google → reviews
+5. Deploy na Vercel quando validado
+
+---

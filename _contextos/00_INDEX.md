@@ -22,5 +22,5 @@
 ## Onde Parei
 > Atualizar sempre antes de encerrar sessão.
 
-**Última ação:** Sprint 2 concluído. Auth, onboarding, dashboard, reviews UI, Google OAuth implementados.
+**Última ação:** Sprint 4 concluído. Landing polida (depoimentos + FAQ), páginas de erro, loading skeletons, migrations SQL, seed de demo, script `dev.ps1` para rodar localmente. Projeto pronto para testes e deploy.
 **Próxima ação:** Sprint 3 — Google My Business API real (fetch reviews + publicar), alertas e-mail, página Billing.

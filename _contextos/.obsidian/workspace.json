@@ -162,8 +162,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -178,12 +177,12 @@
   },
   "active": "b23ea5e27215c9c8",
   "lastOpenFiles": [
+    "01_ETAPA1_DEFINICAO_ESTRATEGICA.md",
     "07_REGRAS_PROJETO.md",
     "05_ETAPA5_ESTRUTURA_PROJETO.md",
     "04_ETAPA4_MVP.md",
     "03_ETAPA3_ARQUITETURA_TECNICA.md",
     "02_ETAPA2_MODELO_DE_NEGOCIO.md",
-    "06_DIARIO_EXECUCAO.md",
-    "01_ETAPA1_DEFINICAO_ESTRATEGICA.md"
+    "06_DIARIO_EXECUCAO.md"
   ]
 }

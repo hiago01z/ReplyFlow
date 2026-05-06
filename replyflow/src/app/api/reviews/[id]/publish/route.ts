@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { GoogleMyBusinessClient } from '@/lib/google/myBusiness'
 import { z } from 'zod'
 
 const publishSchema = z.object({
@@ -50,9 +51,22 @@ export async function POST(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // TODO: Publicar no Google My Business via API
-  // const gmb = new GoogleMyBusinessClient(review.location.google_access_token)
-  // await gmb.replyToReview(review.external_id, parsed.data.responseContent)
+  // Publicar no Google My Business
+  if (
+    review.platform === 'google' &&
+    review.external_id &&
+    review.location.google_access_token &&
+    review.location.google_location_name
+  ) {
+    const gmb = new GoogleMyBusinessClient({
+      accessToken: review.location.google_access_token,
+      refreshToken: review.location.google_refresh_token ?? null,
+      locationName: review.location.google_location_name,
+    })
+
+    const reviewName = `${review.location.google_location_name}/reviews/${review.external_id}`
+    await gmb.replyToReview(reviewName, parsed.data.responseContent)
+  }
 
   const now = new Date().toISOString()
 
