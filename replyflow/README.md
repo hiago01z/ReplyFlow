@@ -132,8 +132,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 4 — MVP | ✅ Concluída |
 | Etapa 5 — Estrutura do Projeto | ✅ Concluída |
 | Etapa 6 — Sprint 1 (Fundação) | ✅ Concluída |
-| Etapa 6 — Sprint 2 (Auth + Dashboard) | 🔄 Em andamento |
-| Etapa 6 — Sprint 3 (Publicação + Alertas) | ⏳ Pendente |
+| Etapa 6 — Sprint 2 (Auth + Dashboard) | ✅ Concluída |
+| Etapa 6 — Sprint 3 (Publicação + Alertas) | 🔄 Em andamento |
 | Etapa 6 — Sprint 4 (Landing + Polimento) | ⏳ Pendente |
 
 ---
@@ -150,6 +150,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/auth/callback` | GET | Callback OAuth Supabase |
 | `/api/google/auth` | GET | Iniciar OAuth Google My Business |
 | `/api/google/callback` | GET | Callback OAuth Google |
+| `/api/reviews/[id]/ignore` | POST | Ignorar review |
+| `/api/onboarding` | POST | Criar organização e primeiro local |
 
 ---
 
@@ -166,7 +168,7 @@ Todo o planejamento estratégico e técnico está documentado em `_contextos/`:
 | `04_ETAPA4_MVP.md` | Features MVP, sprint plan |
 | `05_ETAPA5_ESTRUTURA_PROJETO.md` | Pastas, padrões, setup |
 | `06_DIARIO_EXECUCAO.md` | Log sessão a sessão |
-| `07_REGRAS_PROJETO.md` | Regras e convenções obrigatórias |
+| `07_REGRAS_PROJETO.md` | **Regras obrigatórias — leia sempre** (README, padrões, segurança) |
 
 ---
 

@@ -22,5 +22,5 @@
 ## Onde Parei
 > Atualizar sempre antes de encerrar sessão.
 
-**Última ação:** Etapas 2-5 concluídas. Estrutura base do projeto criada em `replyflow/`.
-**Próxima ação:** Sprint 2 — Integração Google My Business OAuth + Dashboard de Reviews (UI).
+**Última ação:** Sprint 2 concluído. Auth, onboarding, dashboard, reviews UI, Google OAuth implementados.
+**Próxima ação:** Sprint 3 — Google My Business API real (fetch reviews + publicar), alertas e-mail, página Billing.

@@ -47,3 +47,43 @@
 5. Instalar dependências e testar rodando localmente
 
 ---
+
+## Sessão 2 — 2026-05-06
+
+### O que foi feito:
+- [x] Criado `replyflow/README.md` — documentação completa do projeto
+- [x] Criado `_contextos/07_REGRAS_PROJETO.md` — regras obrigatórias (README, diário, padrões, segurança)
+- [x] Atualizado `00_INDEX.md` com novo contexto `07_REGRAS_PROJETO.md`
+- [x] **Sprint 2 concluído** — todas as funcionalidades implementadas:
+  - `src/app/(auth)/layout.tsx` — layout das páginas de auth
+  - `src/app/(auth)/login/page.tsx` — login com email + Google OAuth
+  - `src/app/(auth)/register/page.tsx` — cadastro com email + Google OAuth
+  - `src/app/api/auth/callback/route.ts` — cria organização automaticamente para novos usuários OAuth
+  - `src/app/onboarding/page.tsx` — fluxo de onboarding em 3 etapas (empresa → local → nicho/tom)
+  - `src/app/api/onboarding/route.ts` — API para criar organização + primeiro local
+  - `src/app/(dashboard)/layout.tsx` — layout com sidebar, verificação de auth e organização
+  - `src/components/layout/Sidebar.tsx` — sidebar com navegação, badge de plano, logout
+  - `src/app/(dashboard)/dashboard/page.tsx` — visão geral com métricas (pendentes, publicados, negativos)
+  - `src/app/(dashboard)/reviews/page.tsx` — listagem com filtros (status, rating, local)
+  - `src/components/reviews/ReviewList.tsx` — lista com filtros e paginação
+  - `src/components/reviews/ReviewCard.tsx` — card expansível com geração de IA e publicação
+  - `src/app/(dashboard)/locations/page.tsx` — gerenciar locais + botão de conectar Google
+  - `src/app/api/reviews/[id]/ignore/route.ts` — ignorar review
+  - `src/app/api/google/auth/route.ts` — iniciar OAuth Google My Business
+  - `src/app/api/google/callback/route.ts` — callback OAuth, salva tokens no local
+- [x] README atualizado com novos endpoints e sprints
+
+### Decisões técnicas tomadas:
+- Onboarding redireciona para `/onboarding` automaticamente para novos usuários OAuth (detectado no callback)
+- Google OAuth salva `access_token` e `refresh_token` diretamente na tabela `locations` (isolamento por local)
+- `ReviewCard` usa client-side fetch para gerar/publicar sem recarregar a página inteira (`router.refresh()` atualiza Server Components)
+
+### Próxima ação:
+**Sprint 3** — Publicação real + Alertas:
+1. `lib/google/myBusiness.ts` — wrapper da Google My Business API para buscar e publicar reviews
+2. Implementar o cron job real (`/api/cron/fetch-reviews`)
+3. Alertas por e-mail via Resend (review negativo recebido)
+4. Página de Billing com integração Stripe Checkout
+5. `npm install` e testar localmente
+
+---

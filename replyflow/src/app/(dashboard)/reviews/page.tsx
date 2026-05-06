@@ -1,0 +1,81 @@
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
+import { ReviewList } from "@/components/reviews/ReviewList";
+
+interface ReviewsPageProps {
+  searchParams: Promise<{ status?: string; rating?: string; locationId?: string; page?: string }>;
+}
+
+export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
+  const params = await searchParams;
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const serviceClient = createServiceClient();
+
+  const { data: userRecord } = await serviceClient
+    .from("users")
+    .select("organization_id")
+    .eq("id", user!.id)
+    .single();
+
+  const { data: locations } = await serviceClient
+    .from("locations")
+    .select("id, name")
+    .eq("organization_id", userRecord!.organization_id)
+    .eq("active", true);
+
+  const locationIds = (locations ?? []).map((l) => l.id);
+
+  if (locationIds.length === 0) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">Reviews</h1>
+        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
+          <div className="text-4xl mb-3">⭐</div>
+          <p className="text-gray-500">Nenhum local ativo. Adicione um local primeiro.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const page = parseInt(params.page ?? "1");
+  const pageSize = 20;
+
+  let query = serviceClient
+    .from("reviews")
+    .select("*, location:locations(id, name, niche), response:responses(*)", { count: "exact" })
+    .in("location_id", params.locationId ? [params.locationId] : locationIds)
+    .order("platform_published_at", { ascending: false })
+    .range((page - 1) * pageSize, page * pageSize - 1);
+
+  if (params.status) query = query.eq("status", params.status);
+  if (params.rating) query = query.eq("rating", parseInt(params.rating));
+
+  const { data: reviews, count } = await query;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Reviews</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            {count ?? 0} review{(count ?? 0) !== 1 ? "s" : ""} encontrado{(count ?? 0) !== 1 ? "s" : ""}
+          </p>
+        </div>
+      </div>
+
+      <ReviewList
+        reviews={reviews ?? []}
+        locations={locations ?? []}
+        total={count ?? 0}
+        page={page}
+        pageSize={pageSize}
+        currentFilters={{
+          status: params.status,
+          rating: params.rating,
+          locationId: params.locationId,
+        }}
+      />
+    </div>
+  );
+}
