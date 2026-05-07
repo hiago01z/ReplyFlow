@@ -10,7 +10,13 @@ import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import type { Review } from "@/types";
 
-interface ReviewCardProps { review: Review; highlighted?: boolean }
+interface ReviewCardProps {
+  review: Review;
+  highlighted?: boolean;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+}
 
 const STATUS_CONFIG: Record<string, { label: string; color: "amber" | "blue" | "teal" | "green" | "gray" }> = {
   pending:   { label: "Pendente",  color: "amber" },
@@ -39,7 +45,13 @@ function Stars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) 
   );
 }
 
-export function ReviewCard({ review, highlighted = false }: ReviewCardProps) {
+export function ReviewCard({
+  review,
+  highlighted = false,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
+}: ReviewCardProps) {
   const router = useRouter();
   const { success, error: toastError, info } = useToast();
   const [responseText, setResponseText] = useState(review.response?.content ?? "");
@@ -162,6 +174,26 @@ export function ReviewCard({ review, highlighted = false }: ReviewCardProps) {
         className="w-full text-left px-5 py-4 flex items-start justify-between gap-4 hover:bg-gray-50/60 transition-colors"
       >
         <div className="flex items-start gap-3 min-w-0">
+          {/* Bulk select checkbox */}
+          {selectable && (
+            <div
+              role="checkbox"
+              aria-checked={selected}
+              onClick={(e) => { e.stopPropagation(); onToggleSelect?.(); }}
+              className={cn(
+                "mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 cursor-pointer transition-colors",
+                selected
+                  ? "bg-indigo-600 border-indigo-600"
+                  : "border-gray-300 bg-white hover:border-indigo-400",
+              )}
+            >
+              {selected && (
+                <svg viewBox="0 0 12 12" className="w-3 h-3 text-white fill-none stroke-white stroke-2">
+                  <polyline points="2,6 5,9 10,3" />
+                </svg>
+              )}
+            </div>
+          )}
           {/* Avatar */}
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">
             {(review.author_name?.[0] ?? "?").toUpperCase()}
