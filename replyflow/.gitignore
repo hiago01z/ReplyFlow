@@ -24,3 +24,14 @@ Thumbs.db
 # Supabase local
 supabase/.branches
 supabase/.temp
+
+# Dropbox conflict copies (never commit these)
+*\ (Cópia\ em\ conflito\ de\ *).ts
+*\ (Cópia\ em\ conflito\ de\ *).tsx
+*\ (Cópia\ em\ conflito\ de\ *).js
+*\ (Cópia\ em\ conflito\ de\ *).json
+*\ (Cópia\ em\ conflito\ de\ *).sql
+*\ (Cópia\ em\ conflito\ de\ *).md
+*\ (Cópia\ em\ conflito\ de\ *).css
+*\ (Copy\ conflicted\ copy\ of\ *
+*\ (Selective\ Sync\ Conflict)*

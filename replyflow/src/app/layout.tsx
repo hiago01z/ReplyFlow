@@ -6,10 +6,26 @@ import { themeScript } from "@/components/ui/ThemeToggle";
 
 const inter = Inter({ subsets: ["latin"] });
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-sigma-ruddy.vercel.app";
+
 export const metadata: Metadata = {
-  title: "ReplyFlow — Sua reputação no piloto automático",
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: "ReplyFlow — Sua reputação no piloto automático",
+    template: "%s | ReplyFlow",
+  },
   description:
     "ReplyFlow responde todos os seus reviews no Google com IA personalizada — em segundos, no tom certo, sem você precisar fazer nada.",
+  keywords: [
+    "responder reviews google",
+    "gerenciar avaliações google",
+    "reputação online",
+    "google meu negócio",
+    "inteligência artificial reviews",
+    "automação respostas google",
+  ],
+  authors: [{ name: "ReplyFlow" }],
+  creator: "ReplyFlow",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -18,9 +34,38 @@ export const metadata: Metadata = {
     apple: "/icon.svg",
   },
   openGraph: {
-    title: "ReplyFlow",
-    description: "Sua reputação no piloto automático.",
+    type: "website",
+    locale: "pt_BR",
+    url: APP_URL,
+    siteName: "ReplyFlow",
+    title: "ReplyFlow — Sua reputação no piloto automático",
+    description:
+      "Responda avaliações do Google com IA em segundos. Aumente sua nota, fidelize clientes e economize horas toda semana.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ReplyFlow — Respostas automáticas para reviews do Google",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ReplyFlow — Sua reputação no piloto automático",
+    description: "Responda reviews do Google com IA personalizada. Automático, natural e em segundos.",
     images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { GoogleMyBusinessClient } from '@/lib/google/myBusiness'
+import { rateLimit } from '@/lib/ratelimit'
 import { z } from 'zod'
 
 const publishSchema = z.object({
@@ -19,6 +20,15 @@ export async function POST(
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // ── Rate limit: 60 publicações por minuto por usuário ─────────────────────
+  const rl = await rateLimit(`rl:publish:${user.id}`, 60, 60)
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'rate_limit', message: 'Muitas requisições. Aguarde um momento.' },
+      { status: 429 }
+    )
   }
 
   const body = await request.json()

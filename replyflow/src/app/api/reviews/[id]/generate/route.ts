@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { generateReviewResponse } from '@/lib/openai/generateResponse'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimit } from '@/lib/ratelimit'
 import { PLAN_LIMITS } from '@/types'
 import type { Location, Plan } from '@/types'
 
@@ -16,6 +17,21 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // ── Rate limit: 30 gerações por minuto por usuário ────────────────────────
+  const rl = await rateLimit(`rl:generate:${user.id}`, 30, 60)
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'rate_limit', message: 'Muitas requisições. Aguarde um momento.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)),
+          'X-RateLimit-Remaining': String(rl.remaining),
+        },
+      }
+    )
   }
 
   const serviceClient = createServiceClient()
