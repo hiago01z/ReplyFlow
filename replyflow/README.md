@@ -155,6 +155,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 14 (Dashboard Sparkline + TS/deps fixes) | ✅ Concluída |
 | Etapa 6 — Sprint 15 (Alert email settings + Review highlight) | ✅ Concluída |
 | Etapa 6 — Sprint 16 (Busca por texto + Export CSV) | ✅ Concluída |
+| Etapa 6 — Sprint 17 (Upgrade banner + Location sync status) | ✅ Concluída |
 
 ---
 
