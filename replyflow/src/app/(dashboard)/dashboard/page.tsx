@@ -38,6 +38,16 @@ export default async function DashboardPage() {
     ? Math.round(((totalPublished ?? 0) / totalTotal) * 100)
     : 0;
 
+  // Detectar se há reviews de demo carregados
+  const { count: demoCount } = locationIds.length > 0
+    ? await serviceClient
+        .from("reviews")
+        .select("id", { count: "exact", head: true })
+        .in("location_id", locationIds)
+        .like("external_id", "demo_%")
+    : { count: 0 };
+  const hasDemo = (demoCount ?? 0) > 0;
+
   const orgName = (userRecord?.organization as unknown as { name: string } | null)?.name ?? "sua empresa";
 
   const stats = [
@@ -179,9 +189,12 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      {/* Demo banner — só aparece quando não há reviews ainda */}
+      {/* Demo banner — carregar quando não há reviews, remover quando há demo */}
       {locationIds.length > 0 && (totalTotal === 0 || totalTotal === null) && (
         <DemoSeedButton />
+      )}
+      {locationIds.length > 0 && (totalTotal ?? 0) > 0 && hasDemo && (
+        <DemoSeedButton hasDemo />
       )}
 
       {/* CTA card */}
