@@ -3,9 +3,9 @@ import type { LocationNiche, LocationTone } from '@/types'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-// Modelo configurável via env var — padrão gpt-4o-mini (barato e rápido)
-// Para usar gpt-4.1-mini: defina OPENAI_MODEL=gpt-4.1-mini no .env.local
-const OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4o-mini'
+// Modelo configurável via env var — padrão gpt-4.1-mini (mais novo, mais barato)
+// Alternativas: gpt-4o-mini, gpt-4o, gpt-4.1-nano
+const OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4.1-mini'
 
 interface GenerateResponseParams {
   reviewContent: string

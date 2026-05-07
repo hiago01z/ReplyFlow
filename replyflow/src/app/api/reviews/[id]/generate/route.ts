@@ -170,7 +170,7 @@ export async function POST(
       .from('responses')
       .update({
         content,
-        ai_model: 'gpt-4o-mini',
+        ai_model: process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
         tokens_used: tokensUsed,
         updated_at: new Date().toISOString(),
       })
@@ -186,7 +186,7 @@ export async function POST(
       .insert({
         review_id: id,
         content,
-        ai_model: 'gpt-4o-mini',
+        ai_model: process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
         tokens_used: tokensUsed,
       })
       .select()
