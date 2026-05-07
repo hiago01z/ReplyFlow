@@ -24,7 +24,7 @@ export function DemoSeedButton({ hasDemo = false }: DemoSeedButtonProps) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       success("Dados de demo carregados!", `${data.inserted ?? 6} reviews de exemplo foram adicionados.`);
-      router.refresh();
+      setTimeout(() => window.location.reload(), 800);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Tente novamente.";
       error("Erro ao carregar demo", msg);
@@ -39,10 +39,10 @@ export function DemoSeedButton({ hasDemo = false }: DemoSeedButtonProps) {
       const res = await fetch("/api/demo/seed", { method: "DELETE" });
       if (!res.ok) throw new Error();
       success("Demo removido!", "Os reviews de demonstração foram apagados.");
-      router.refresh();
+      // Reload completo para garantir que todos os Server Components atualizam
+      setTimeout(() => window.location.reload(), 800);
     } catch {
       error("Erro ao remover demo", "Tente novamente.");
-    } finally {
       setLoading(false);
     }
   }
