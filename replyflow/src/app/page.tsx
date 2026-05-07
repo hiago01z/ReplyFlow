@@ -26,7 +26,7 @@ const TESTIMONIALS = [
     city: "Curitiba, PR",
     avatar: "PC",
     rating: 5,
-    text: "O tom das respostas ficou exatamente como a gente queria — animado e acolhedor. Vários clientes comentaram que ficaram impressionados com a atenção que damos para cada feedback.",
+    text: "O tom das respostas ficou exatamente como a gente queria. Vários clientes comentaram que ficaram impressionados com a atenção que damos para cada feedback.",
   },
 ];
 
