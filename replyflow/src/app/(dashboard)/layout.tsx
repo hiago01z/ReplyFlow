@@ -30,7 +30,7 @@ export default async function DashboardLayout({
         plan={userRecord.organization?.plan ?? "free"}
       />
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 pt-20 md:pt-8 pb-8">
           {children}
         </div>
       </main>
