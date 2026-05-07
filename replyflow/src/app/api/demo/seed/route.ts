@@ -79,6 +79,8 @@ export async function POST() {
     return NextResponse.json({ error: "No organization found" }, { status: 400 });
   }
 
+  const orgPrefix = userRecord.organization_id.slice(0, 8); // prefixo único por org
+
   const { data: location } = await serviceClient
     .from("locations").select("id")
     .eq("organization_id", userRecord.organization_id)
@@ -88,23 +90,27 @@ export async function POST() {
     return NextResponse.json({ error: "No location found. Complete onboarding first." }, { status: 400 });
   }
 
-  // Verificar se já existe
+  // Verificar se já existe para esta org
   const { count } = await serviceClient
     .from("reviews").select("id", { count: "exact", head: true })
     .eq("location_id", location.id)
-    .like("external_id", "demo_%");
+    .like("external_id", `demo_${orgPrefix}_%`);
 
   if ((count ?? 0) > 0) {
     return NextResponse.json({ message: "Demo data already exists", count });
   }
 
-  // Inserir reviews
+  // Inserir reviews com external_id único por organização
   for (const r of DEMO_REVIEWS) {
     const { published_response, ...reviewData } = r;
+    const uniqueReviewData = {
+      ...reviewData,
+      external_id: reviewData.external_id.replace("demo_", `demo_${orgPrefix}_`),
+    };
 
     const { data: inserted, error: reviewErr } = await serviceClient
       .from("reviews")
-      .insert({ ...reviewData, location_id: location.id })
+      .insert({ ...uniqueReviewData, location_id: location.id })
       .select("id")
       .single();
 
@@ -141,6 +147,7 @@ export async function DELETE() {
     .eq("organization_id", userRecord.organization_id).limit(1).single();
   if (!location) return NextResponse.json({ error: "No location" }, { status: 400 });
 
+  // Remove todos os reviews de demo deste local (qualquer prefixo de org)
   await serviceClient.from("reviews").delete()
     .eq("location_id", location.id).like("external_id", "demo_%");
 
