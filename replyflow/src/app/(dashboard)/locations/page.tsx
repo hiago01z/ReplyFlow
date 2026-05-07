@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { MapPin, Plus, CheckCircle2, Wifi, Settings2 } from "lucide-react";
 
@@ -100,9 +99,13 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                       Conectar Google
                     </a>
                   )}
-                  <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                  <Link
+                    href={`/locations/${loc.id}`}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                    title="Editar local"
+                  >
                     <Settings2 size={15} />
-                  </button>
+                  </Link>
                 </div>
               </div>
             );
