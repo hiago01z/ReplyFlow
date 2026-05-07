@@ -259,9 +259,9 @@ async function autoPublishReview({
   const { data: response } = await serviceClient
     .from('responses')
     .insert({
-      review_id:  reviewId,
+      review_id:   reviewId,
       content,
-      ai_model:   'gpt-4o-mini',
+      ai_model:    process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
       tokens_used: tokensUsed,
     })
     .select('id')
@@ -272,8 +272,12 @@ async function autoPublishReview({
   }
 
   // 3. Publicar no Google My Business
-  const reviewName = `${location.google_location_name}/reviews/${externalId}`
-  await gmb.replyToReview(reviewName, content)
+  // Reviews de demo (external_id começa com "demo") não existem no GMB — pular chamada real
+  const isDemo = externalId.startsWith('demo')
+  if (!isDemo) {
+    const reviewName = `${location.google_location_name}/reviews/${externalId}`
+    await gmb.replyToReview(reviewName, content)
+  }
 
   // 4. Marcar response e review como publicados
   const now = new Date().toISOString()
