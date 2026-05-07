@@ -143,20 +143,22 @@ if ($localIP) {
     Write-Host "   http://${localIP}:${PORT}" -ForegroundColor Green
     Write-Host "   http://${localIP}:${PORT}/dashboard" -ForegroundColor Green
     Write-Host ""
-    Write-Host "   >>> Aponte a camera do celular para o QR Code abaixo <<<" -ForegroundColor Yellow
+    Write-Host "   Aponte a camera do celular para o QR Code:" -ForegroundColor Yellow
     Write-Host ""
 
     $mobileURL = "http://${localIP}:${PORT}"
 
     # Gera QR Code no terminal via qrcode-terminal (devDependency)
-    $qrNode = @"
+    # ATENCAO: o fechamento "@' deve estar na coluna 0
+    $qrNode = @'
 try {
   const qr = require('./node_modules/qrcode-terminal');
-  qr.generate('$mobileURL', { small: true });
+  qr.generate(process.env.REPLYFLOW_URL, { small: true });
 } catch(e) {
-  process.stdout.write('\n  (instale qrcode-terminal para exibir o QR: npm i -D qrcode-terminal)\n');
+  process.stdout.write('  (qrcode-terminal nao instalado — rode: npm i -D qrcode-terminal)\n');
 }
-"@
+'@
+    $env:REPLYFLOW_URL = $mobileURL
     node -e $qrNode
 } else {
     Write-Warn "IP da rede nao detectado (Wi-Fi desconectado?)"
