@@ -180,16 +180,6 @@ export async function GET(request: Request) {
   const now = new Date().toISOString()
 
   for (const location of autoPublishLocations ?? []) {
-    const { data: scheduledReviews } = await serviceClient
-      .from('reviews')
-      .select('id, rating, content, external_id, author_name, publish_after')
-      .eq('location_id', location.id)
-      .eq('status', 'pending')
-      .not('publish_after', 'is', null)
-      .lte('publish_after', now)
-
-    if (!scheduledReviews?.length) continue
-
     // Criar cliente GMB apenas se disponível (necessário para reviews reais)
     const gmb = location.google_access_token && location.google_location_name
       ? new GoogleMyBusinessClient({
@@ -199,7 +189,8 @@ export async function GET(request: Request) {
         })
       : null
 
-    // Também agendar reviews pendentes sem publish_after (ex: reviews de demo)
+    // ── Agendar reviews pendentes sem publish_after ──────────────────────────
+    // Cobre reviews de demo e reviews reais inseridos antes do auto_publish ser ativado
     const { data: unscheduled } = await serviceClient
       .from('reviews')
       .select('id, rating, external_id')
@@ -228,7 +219,16 @@ export async function GET(request: Request) {
       }
     }
 
-    for (const rev of scheduledReviews) {
+    // ── Publicar reviews com delay vencido ───────────────────────────────────
+    const { data: scheduledReviews } = await serviceClient
+      .from('reviews')
+      .select('id, rating, content, external_id, author_name, publish_after')
+      .eq('location_id', location.id)
+      .eq('status', 'pending')
+      .not('publish_after', 'is', null)
+      .lte('publish_after', now)
+
+    for (const rev of scheduledReviews ?? []) {
       try {
         await autoPublishReview({
           serviceClient,
