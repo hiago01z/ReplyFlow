@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { ReviewList } from "@/components/reviews/ReviewList";
+import { ExportCsvButton } from "@/components/reviews/ExportCsvButton";
 
 interface ReviewsPageProps {
-  searchParams: Promise<{ status?: string; rating?: string; locationId?: string; page?: string; highlight?: string }>;
+  searchParams: Promise<{ status?: string; rating?: string; locationId?: string; page?: string; highlight?: string; search?: string }>;
 }
 
 export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
@@ -50,18 +51,23 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
   if (params.status) query = query.eq("status", params.status);
   if (params.rating) query = query.eq("rating", parseInt(params.rating));
+  if (params.search) {
+    const term = `%${params.search}%`;
+    query = query.or(`content.ilike.${term},author_name.ilike.${term}`);
+  }
 
   const { data: reviews, count } = await query;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Reviews</h1>
           <p className="text-gray-500 text-sm mt-1">
             {count ?? 0} review{(count ?? 0) !== 1 ? "s" : ""} encontrado{(count ?? 0) !== 1 ? "s" : ""}
           </p>
         </div>
+        <ExportCsvButton locationIds={locationIds} filters={{ status: params.status, rating: params.rating, locationId: params.locationId, search: params.search }} />
       </div>
 
       <ReviewList
@@ -74,6 +80,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
           status: params.status,
           rating: params.rating,
           locationId: params.locationId,
+          search: params.search,
         }}
         highlightId={params.highlight}
       />

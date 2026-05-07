@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useState, useCallback } from "react";
 import { ReviewCard } from "./ReviewCard";
 import { cn } from "@/lib/utils";
-import { Search, SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { Review } from "@/types";
 
 interface ReviewListProps {
@@ -12,7 +13,7 @@ interface ReviewListProps {
   total: number;
   page: number;
   pageSize: number;
-  currentFilters: { status?: string; rating?: string; locationId?: string };
+  currentFilters: { status?: string; rating?: string; locationId?: string; search?: string };
   highlightId?: string;
 }
 
@@ -38,12 +39,22 @@ export function ReviewList({ reviews, locations, total, page, pageSize, currentF
   const pathname  = usePathname();
   const searchParams = useSearchParams();
 
+  // Local state for search input (debounced push)
+  const [searchDraft, setSearchDraft] = useState(currentFilters.search ?? "");
+
   function updateFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     value ? params.set(key, value) : params.delete(key);
     params.delete("page");
     router.push(`${pathname}?${params.toString()}`);
   }
+
+  const commitSearch = useCallback((value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    value.trim() ? params.set("search", value.trim()) : params.delete("search");
+    params.delete("page");
+    router.push(`${pathname}?${params.toString()}`);
+  }, [router, pathname, searchParams]);
 
   function goToPage(p: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -52,12 +63,37 @@ export function ReviewList({ reviews, locations, total, page, pageSize, currentF
   }
 
   const totalPages = Math.ceil(total / pageSize);
-  const hasActiveFilter = !!(currentFilters.status || currentFilters.rating || currentFilters.locationId);
+  const hasActiveFilter = !!(currentFilters.status || currentFilters.rating || currentFilters.locationId || currentFilters.search);
 
   return (
     <div className="space-y-4">
       {/* ── Filter bar ── */}
       <div className="card p-3 flex flex-wrap items-center gap-3">
+        {/* Search input */}
+        <div className="relative flex-1 min-w-[180px] max-w-xs">
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            value={searchDraft}
+            onChange={(e) => setSearchDraft(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && commitSearch(searchDraft)}
+            onBlur={() => commitSearch(searchDraft)}
+            placeholder="Buscar por autor ou texto…"
+            className="w-full h-8 pl-8 pr-7 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition-colors"
+          />
+          {searchDraft && (
+            <button
+              type="button"
+              onClick={() => { setSearchDraft(""); commitSearch(""); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
+
+        <div className="w-px h-4 bg-gray-200 shrink-0" />
+
         <div className="flex items-center gap-1.5 text-xs text-gray-400 shrink-0">
           <SlidersHorizontal size={13} />
           <span className="font-medium">Filtrar</span>
