@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ExportCsvButton } from "@/components/reviews/ExportCsvButton";
+import { UpgradeBanner } from "@/components/reviews/UpgradeBanner";
+import { PLAN_LIMITS } from "@/types";
 
 interface ReviewsPageProps {
   searchParams: Promise<{ status?: string; rating?: string; locationId?: string; page?: string; highlight?: string; search?: string }>;
@@ -15,9 +17,13 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("organization_id")
+    .select("organization_id, organization:organizations(plan)")
     .eq("id", user!.id)
     .single();
+
+  const org = userRecord?.organization as unknown as { plan: string } | null;
+  const plan = (org?.plan ?? "free") as keyof typeof PLAN_LIMITS;
+  const monthlyLimit = PLAN_LIMITS[plan]?.responsesPerMonth ?? null;
 
   const { data: locations } = await serviceClient
     .from("locations")
@@ -58,6 +64,27 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
   const { data: reviews, count } = await query;
 
+  // ── Monthly response usage for upgrade banner (free plan only) ─────────────
+  let monthlyUsed = 0;
+  if (monthlyLimit !== null && locationIds.length > 0) {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const { data: monthlyReviews } = await serviceClient
+      .from("reviews")
+      .select("id")
+      .in("location_id", locationIds)
+      .gte("created_at", startOfMonth.toISOString());
+    const reviewIds = (monthlyReviews ?? []).map((r) => r.id);
+    if (reviewIds.length > 0) {
+      const { count: rCount } = await serviceClient
+        .from("responses")
+        .select("id", { count: "exact", head: true })
+        .in("review_id", reviewIds);
+      monthlyUsed = rCount ?? 0;
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6 gap-4">
@@ -69,6 +96,10 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         </div>
         <ExportCsvButton locationIds={locationIds} filters={{ status: params.status, rating: params.rating, locationId: params.locationId, search: params.search }} />
       </div>
+
+      {monthlyLimit !== null && (
+        <UpgradeBanner used={monthlyUsed} limit={monthlyLimit} />
+      )}
 
       <ReviewList
         reviews={reviews ?? []}

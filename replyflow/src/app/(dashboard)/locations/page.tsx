@@ -1,6 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { MapPin, Plus, CheckCircle2, Wifi, Settings2 } from "lucide-react";
+import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw } from "lucide-react";
 
 interface LocationsPageProps {
   searchParams: Promise<{ success?: string; error?: string }>;
@@ -19,6 +19,25 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
     .from("locations").select("*")
     .eq("organization_id", userRecord!.organization_id)
     .order("created_at");
+
+  // Fetch the most-recent review per location as a last-sync proxy
+  const activeIds = (locations ?? []).filter((l) => l.active).map((l) => l.id);
+  const syncMap: Record<string, string> = {};
+  if (activeIds.length > 0) {
+    // One query — get the most recent review per active location
+    const { data: latestReviews } = await serviceClient
+      .from("reviews")
+      .select("location_id, platform_published_at")
+      .in("location_id", activeIds)
+      .order("platform_published_at", { ascending: false })
+      .limit(activeIds.length * 5); // grab enough rows to find one per location
+
+    for (const row of latestReviews ?? []) {
+      if (!syncMap[row.location_id] && row.platform_published_at) {
+        syncMap[row.location_id] = row.platform_published_at;
+      }
+    }
+  }
 
   return (
     <div className="animate-fade-in">
@@ -79,6 +98,10 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
         <div className="space-y-3">
           {locations.map((loc) => {
             const isConnected = !!loc.google_access_token;
+            const lastSync = syncMap[loc.id];
+            const lastSyncLabel = lastSync
+              ? new Date(lastSync).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })
+              : null;
             return (
               <div key={loc.id} className="card px-5 py-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 min-w-0">
@@ -90,6 +113,12 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                     <p className="text-xs text-gray-500 mt-0.5 capitalize">
                       {loc.niche} · Tom: {loc.tone}
                     </p>
+                    {lastSyncLabel && (
+                      <p className="flex items-center gap-1 text-[11px] text-gray-400 mt-0.5">
+                        <RefreshCw size={9} />
+                        Último review: {lastSyncLabel}
+                      </p>
+                    )}
                   </div>
                 </div>
 
