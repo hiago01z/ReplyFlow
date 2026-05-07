@@ -142,6 +142,9 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 2 (Auth + Dashboard) | ✅ Concluída |
 | Etapa 6 — Sprint 3 (Publicação + Alertas) | ✅ Concluída |
 | Etapa 6 — Sprint 4 (Landing + Polimento) | ✅ Concluída |
+| Etapa 6 — Sprint 5 (Validação Local) | ✅ Concluída |
+| Etapa 6 — Sprint 6 (Design System) | ✅ Concluída |
+| Etapa 6 — Sprint 7 (Auth + Toast + Demo) | ✅ Concluída |
 
 ---
 
@@ -179,6 +182,8 @@ Todo o planejamento estratégico e técnico está documentado em `_contextos/`:
 | `05_ETAPA5_ESTRUTURA_PROJETO.md` | Pastas, padrões, setup |
 | `06_DIARIO_EXECUCAO.md` | Log sessão a sessão |
 | `07_REGRAS_PROJETO.md` | **Regras obrigatórias — leia sempre** (README, padrões, segurança) |
+| `08_SPRINT5_VALIDACAO_DEPLOY.md` | Validação local, correções TypeScript, alertas de segurança |
+| `09_DESIGN_SYSTEM.md` | Design system: tokens CSS, componentes UI, ícones Lucide, padrões de página |
 
 ---
 

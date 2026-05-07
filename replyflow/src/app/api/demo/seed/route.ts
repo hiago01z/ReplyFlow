@@ -1,0 +1,148 @@
+import { NextResponse } from "next/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+
+// Usa os nomes de colunas reais do schema (external_id, content, platform_published_at)
+const DEMO_REVIEWS = [
+  {
+    external_id: "demo_001",
+    platform: "google" as const,
+    author_name: "Maria Silva",
+    rating: 5,
+    content: "Atendimento excelente! Voltarei com certeza. Equipe muito atenciosa e prestativa.",
+    platform_published_at: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(),
+    status: "pending" as const,
+    published_response: null,
+  },
+  {
+    external_id: "demo_002",
+    platform: "google" as const,
+    author_name: "João Pereira",
+    rating: 2,
+    content: "Esperei mais de uma hora sem ser atendido. Atendimento ruim, não voltarei.",
+    platform_published_at: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
+    status: "pending" as const,
+    published_response: null,
+  },
+  {
+    external_id: "demo_003",
+    platform: "google" as const,
+    author_name: "Ana Costa",
+    rating: 4,
+    content: "Muito bom de forma geral. Apenas o estacionamento é um pouco limitado, mas o serviço compensa.",
+    platform_published_at: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
+    status: "pending" as const,
+    published_response: null,
+  },
+  {
+    external_id: "demo_004",
+    platform: "google" as const,
+    author_name: "Carlos Mendes",
+    rating: 5,
+    content: "Melhor lugar da cidade! Recomendo a todos os amigos. Qualidade impecável.",
+    platform_published_at: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
+    status: "published" as const,
+    published_response: "Obrigado pelo seu carinho, Carlos! Fico muito feliz em saber que sua experiência foi tão positiva. Sua recomendação significa muito para nós. Esperamos vê-lo em breve!",
+  },
+  {
+    external_id: "demo_005",
+    platform: "google" as const,
+    author_name: "Fernanda Lima",
+    rating: 3,
+    content: "Serviço razoável. Poderia melhorar a comunicação com os clientes sobre prazos.",
+    platform_published_at: new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString(),
+    status: "pending" as const,
+    published_response: null,
+  },
+  {
+    external_id: "demo_006",
+    platform: "google" as const,
+    author_name: "Roberto Alves",
+    rating: 5,
+    content: "Incrível! Superou todas as minhas expectativas. Profissionais excelentes.",
+    platform_published_at: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString(),
+    status: "published" as const,
+    published_response: "Roberto, muito obrigado pelo seu elogio! É gratificante saber que superamos suas expectativas. Continuaremos trabalhando com dedicação para sempre oferecer o melhor. Até a próxima!",
+  },
+];
+
+export async function POST() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const serviceClient = createServiceClient();
+
+  const { data: userRecord } = await serviceClient
+    .from("users").select("organization_id").eq("id", user.id).single();
+
+  if (!userRecord?.organization_id) {
+    return NextResponse.json({ error: "No organization found" }, { status: 400 });
+  }
+
+  const { data: location } = await serviceClient
+    .from("locations").select("id")
+    .eq("organization_id", userRecord.organization_id)
+    .order("created_at").limit(1).single();
+
+  if (!location) {
+    return NextResponse.json({ error: "No location found. Complete onboarding first." }, { status: 400 });
+  }
+
+  // Verificar se já existe
+  const { count } = await serviceClient
+    .from("reviews").select("id", { count: "exact", head: true })
+    .eq("location_id", location.id)
+    .like("external_id", "demo_%");
+
+  if ((count ?? 0) > 0) {
+    return NextResponse.json({ message: "Demo data already exists", count });
+  }
+
+  // Inserir reviews
+  for (const r of DEMO_REVIEWS) {
+    const { published_response, ...reviewData } = r;
+
+    const { data: inserted, error: reviewErr } = await serviceClient
+      .from("reviews")
+      .insert({ ...reviewData, location_id: location.id })
+      .select("id")
+      .single();
+
+    if (reviewErr || !inserted) {
+      console.error("[demo/seed] review insert error:", reviewErr);
+      return NextResponse.json({ error: reviewErr?.message ?? "Insert failed" }, { status: 500 });
+    }
+
+    // Para reviews publicados, criar também o registro de response
+    if (published_response) {
+      await serviceClient.from("responses").insert({
+        review_id: inserted.id,
+        content: published_response,
+        published_at: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(),
+      });
+    }
+  }
+
+  return NextResponse.json({ success: true, inserted: DEMO_REVIEWS.length });
+}
+
+export async function DELETE() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const serviceClient = createServiceClient();
+  const { data: userRecord } = await serviceClient
+    .from("users").select("organization_id").eq("id", user.id).single();
+  if (!userRecord?.organization_id) return NextResponse.json({ error: "No org" }, { status: 400 });
+
+  const { data: location } = await serviceClient
+    .from("locations").select("id")
+    .eq("organization_id", userRecord.organization_id).limit(1).single();
+  if (!location) return NextResponse.json({ error: "No location" }, { status: 400 });
+
+  await serviceClient.from("reviews").delete()
+    .eq("location_id", location.id).like("external_id", "demo_%");
+
+  return NextResponse.json({ success: true });
+}

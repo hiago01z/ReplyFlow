@@ -28,7 +28,7 @@ export async function POST(
     .eq("id", user.id)
     .single();
 
-  const reviewOrgId = (review?.locations as { organization_id: string } | null)?.organization_id;
+  const reviewOrgId = (review?.locations as unknown as { organization_id: string } | null)?.organization_id;
 
   if (!review || reviewOrgId !== userRecord?.organization_id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -35,7 +35,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const updates: Promise<unknown>[] = [];
+  const updates: PromiseLike<unknown>[] = [];
 
   if (parsed.data.orgName) {
     updates.push(
