@@ -37,9 +37,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Failed to fetch locations' }, { status: 500 })
   }
 
+  // ── Helper: delay aleatório de 5-20 minutos para parecer natural ────────────
+  function randomDelayMs(): number {
+    const minMs = 5  * 60 * 1000
+    const maxMs = 20 * 60 * 1000
+    return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs
+  }
+
   const results = {
     processed:      0,
     newReviews:     0,
+    scheduled:      0,
     autoPublished:  0,
     alertsSent:     0,
     errors:         0,
@@ -112,28 +120,53 @@ export async function GET(request: Request) {
           }
         }
 
-        // ── Auto-publicação ───────────────────────────────────────────────────
-        // Só executa se:
-        //  1. O local tem auto_publish = true
-        //  2. O review NÃO é 1 estrela (muito arriscado publicar sem revisão)
-        //  3. O review ainda está pendente (não foi respondido manualmente antes)
-        if (location.auto_publish && rating >= 2 && inserted.status === 'pending') {
+        // ── Agendamento de auto-publicação com delay natural ─────────────────
+        // Condições:
+        //  1. Local tem auto_publish = true
+        //  2. Rating >= auto_publish_min_rating configurado pelo usuário
+        //  3. Review ainda está pendente
+        const minRating = location.auto_publish_min_rating ?? 3
+        if (location.auto_publish && rating >= minRating && inserted.status === 'pending') {
+          const publishAt = new Date(Date.now() + randomDelayMs()).toISOString()
+          await serviceClient
+            .from('reviews')
+            .update({ publish_after: publishAt })
+            .eq('id', inserted.id)
+          results.scheduled++
+        }
+      }
+
+      // ── Publicar reviews com delay vencido ───────────────────────────────
+      const now = new Date().toISOString()
+      const { data: scheduledReviews } = await serviceClient
+        .from('reviews')
+        .select('id, rating, content, external_id, author_name, publish_after')
+        .eq('location_id', location.id)
+        .eq('status', 'pending')
+        .not('publish_after', 'is', null)
+        .lte('publish_after', now)
+
+      for (const rev of scheduledReviews ?? []) {
+        try {
           await autoPublishReview({
             serviceClient,
             gmb,
-            reviewId:     inserted.id,
-            reviewContent: gmbReview.comment ?? '',
-            externalId:   gmbReview.reviewId,
-            rating,
-            authorName:   gmbReview.reviewer.displayName,
+            reviewId:      rev.id,
+            reviewContent: rev.content ?? '',
+            externalId:    rev.external_id,
+            rating:        rev.rating ?? 3,
+            authorName:    rev.author_name ?? 'Cliente',
             location: {
-              name:              location.name,
-              niche:             location.niche as LocationNiche,
-              tone:              location.tone as LocationTone,
+              name:                 location.name,
+              niche:                location.niche as LocationNiche,
+              tone:                 location.tone as LocationTone,
               google_location_name: location.google_location_name,
             },
           })
           results.autoPublished++
+        } catch (err) {
+          console.error(`[cron] error auto-publishing review ${rev.id}:`, err)
+          results.errors++
         }
       }
 
@@ -154,6 +187,7 @@ export async function GET(request: Request) {
     success:            true,
     locationsProcessed: results.processed,
     newReviews:         results.newReviews,
+    scheduled:          results.scheduled,
     autoPublished:      results.autoPublished,
     alertsSent:         results.alertsSent,
     errors:             results.errors,

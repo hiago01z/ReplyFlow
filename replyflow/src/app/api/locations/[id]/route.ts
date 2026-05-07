@@ -6,8 +6,9 @@ const updateSchema = z.object({
   name:         z.string().min(2).max(100).optional(),
   niche:        z.enum(["clinica", "restaurante", "academia", "petshop", "barbearia", "outro"]).optional(),
   tone:         z.enum(["formal", "amigavel", "descontraido"]).optional(),
-  auto_publish: z.boolean().optional(),
-  active:       z.boolean().optional(),
+  auto_publish:            z.boolean().optional(),
+  auto_publish_min_rating: z.number().int().min(1).max(5).optional(),
+  active:                  z.boolean().optional(),
 });
 
 async function getOwnedLocation(userId: string, locationId: string) {

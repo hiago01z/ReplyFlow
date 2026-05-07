@@ -35,7 +35,8 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
   const [name,        setName]        = useState(location.name);
   const [niche,       setNiche]       = useState(location.niche);
   const [tone,        setTone]        = useState(location.tone);
-  const [autoPublish, setAutoPublish] = useState(location.auto_publish);
+  const [autoPublish,    setAutoPublish]    = useState(location.auto_publish);
+  const [minRating,      setMinRating]      = useState(location.auto_publish_min_rating ?? 3);
   const [saving,      setSaving]      = useState(false);
   const [deleting,    setDeleting]    = useState(false);
   const [confirmDel,  setConfirmDel]  = useState(false);
@@ -48,7 +49,7 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
       const res = await fetch(`/api/locations/${location.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, niche, tone, auto_publish: autoPublish }),
+        body: JSON.stringify({ name, niche, tone, auto_publish: autoPublish, auto_publish_min_rating: minRating }),
       });
       if (!res.ok) throw new Error();
       success("Salvo!", "As configurações do local foram atualizadas.");
@@ -146,7 +147,8 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
       </div>
 
       {/* Auto-publicar */}
-      <div className="card p-6">
+      <div className="card p-6 space-y-4">
+        {/* Toggle */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
@@ -155,7 +157,7 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
             <div>
               <h2 className="text-sm font-semibold text-gray-900">Publicação automática</h2>
               <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                Publica respostas no Google sem revisão manual.
+                A IA responde e publica no Google automaticamente, com delay de 5-20 minutos para parecer natural.
               </p>
             </div>
           </div>
@@ -177,10 +179,50 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
             />
           </button>
         </div>
+
+        {/* Configuração de estrelas mínimas — só aparece quando ativo */}
         {autoPublish && (
-          <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            ⚠️ Com auto-publicação ativa, respostas serão postadas no Google imediatamente.
-          </p>
+          <div className="border-t border-gray-100 pt-4 space-y-3">
+            <div>
+              <p className="text-xs font-semibold text-gray-700 mb-1">
+                Publicar automaticamente reviews com:
+              </p>
+              <p className="text-xs text-gray-400 mb-3">
+                Reviews abaixo do mínimo ficam como rascunho para revisão manual.
+              </p>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setMinRating(star)}
+                    className={cn(
+                      "flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-all",
+                      minRating === star
+                        ? "border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm"
+                        : "border-gray-200 text-gray-500 hover:bg-gray-50",
+                    )}
+                  >
+                    <span className="text-base">{"★".repeat(star)}</span>
+                    <span>{star}★+</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={cn(
+              "rounded-lg px-3 py-2 text-xs",
+              minRating <= 2
+                ? "bg-red-50 border border-red-200 text-red-700"
+                : "bg-amber-50 border border-amber-200 text-amber-700",
+            )}>
+              {minRating === 1 && "⚠️ Todos os reviews serão respondidos automaticamente, incluindo críticas negativas."}
+              {minRating === 2 && "⚠️ Reviews com 2★ ou mais serão publicados automaticamente. Reviews de 1★ ficam para revisão."}
+              {minRating === 3 && "✅ Apenas reviews neutros e positivos (3★+) serão publicados automaticamente."}
+              {minRating === 4 && "✅ Apenas reviews positivos (4★+) serão publicados automaticamente."}
+              {minRating === 5 && "✅ Apenas reviews 5 estrelas serão publicados automaticamente."}
+            </div>
+          </div>
         )}
       </div>
 

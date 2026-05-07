@@ -40,6 +40,7 @@ export interface Location {
   niche: LocationNiche
   tone: LocationTone
   auto_publish: boolean
+  auto_publish_min_rating: number
   active: boolean
   created_at: string
   updated_at: string
@@ -55,6 +56,7 @@ export interface Review {
   rating: number | null
   content: string | null
   platform_published_at: string | null
+  publish_after: string | null
   status: ReviewStatus
   created_at: string
   updated_at: string
