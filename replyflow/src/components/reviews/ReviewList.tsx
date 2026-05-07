@@ -13,6 +13,7 @@ interface ReviewListProps {
   page: number;
   pageSize: number;
   currentFilters: { status?: string; rating?: string; locationId?: string };
+  highlightId?: string;
 }
 
 const STATUS_FILTERS = [
@@ -32,7 +33,7 @@ const RATING_FILTERS = [
   { value: "5", label: "5★" },
 ];
 
-export function ReviewList({ reviews, locations, total, page, pageSize, currentFilters }: ReviewListProps) {
+export function ReviewList({ reviews, locations, total, page, pageSize, currentFilters, highlightId }: ReviewListProps) {
   const router    = useRouter();
   const pathname  = usePathname();
   const searchParams = useSearchParams();
@@ -142,7 +143,13 @@ export function ReviewList({ reviews, locations, total, page, pageSize, currentF
         </div>
       ) : (
         <div className="space-y-3">
-          {reviews.map((review) => <ReviewCard key={review.id} review={review} />)}
+          {reviews.map((review) => (
+            <ReviewCard
+              key={review.id}
+              review={review}
+              highlighted={review.id === highlightId}
+            />
+          ))}
         </div>
       )}
 

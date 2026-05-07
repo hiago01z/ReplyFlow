@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, Sparkles, Send, EyeOff, RotateCcw, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import type { Review } from "@/types";
 
-interface ReviewCardProps { review: Review }
+interface ReviewCardProps { review: Review; highlighted?: boolean }
 
 const STATUS_CONFIG: Record<string, { label: string; color: "amber" | "blue" | "teal" | "green" | "gray" }> = {
   pending:   { label: "Pendente",  color: "amber" },
@@ -39,15 +39,25 @@ function Stars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) 
   );
 }
 
-export function ReviewCard({ review }: ReviewCardProps) {
+export function ReviewCard({ review, highlighted = false }: ReviewCardProps) {
   const router = useRouter();
   const { success, error: toastError, info } = useToast();
   const [responseText, setResponseText] = useState(review.response?.content ?? "");
   const [generating, setGenerating]     = useState(false);
   const [publishing, setPublishing]     = useState(false);
   const [expanded, setExpanded]         = useState(
-    review.status === "pending" || review.status === "draft"
+    highlighted || review.status === "pending" || review.status === "draft"
   );
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Scroll highlighted card into view on mount
+  useEffect(() => {
+    if (!highlighted) return;
+    const timer = setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [highlighted]);
 
   const statusCfg = STATUS_CONFIG[review.status] ?? STATUS_CONFIG.pending;
   const publishedDate = review.platform_published_at
@@ -138,7 +148,14 @@ export function ReviewCard({ review }: ReviewCardProps) {
   }
 
   return (
-    <div className={cn("card overflow-hidden transition-shadow hover:shadow-md", isNegative && review.status === "pending" && "border-red-200")}>
+    <div
+      ref={cardRef}
+      className={cn(
+        "card overflow-hidden transition-shadow hover:shadow-md",
+        isNegative && review.status === "pending" && "border-red-200",
+        highlighted && "ring-2 ring-indigo-400 ring-offset-1",
+      )}
+    >
       {/* ── Header row ── */}
       <button
         onClick={() => setExpanded((v) => !v)}

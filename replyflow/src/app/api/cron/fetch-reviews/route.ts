@@ -45,7 +45,7 @@ export async function GET(request: Request) {
   // Apenas locais com google_location_name configurado (necessário para a API GMB)
   const { data: gmbLocations, error: gmbError } = await serviceClient
     .from('locations')
-    .select('*, organization:organizations(id, plan, subscription_status)')
+    .select('*, organization:organizations(id, plan, subscription_status, alert_email)')
     .eq('active', true)
     .not('google_access_token', 'is', null)
     .not('google_location_name', 'is', null)
@@ -96,18 +96,24 @@ export async function GET(request: Request) {
         if (rating <= 2) {
           const { data: orgUser } = await serviceClient
             .from('users')
-            .select('email, whatsapp')
+            .select('email, whatsapp, email_alerts')
             .eq('organization_id', location.organization_id)
             .eq('role', 'owner')
             .single()
 
-          if (orgUser?.email) {
-            const org = location.organization as unknown as { plan: string; subscription_status: string } | null
+          const org = location.organization as unknown as {
+            plan: string; subscription_status: string; alert_email: string | null;
+          } | null
+
+          // Use custom alert email if set, otherwise fall back to user's login email
+          const alertTo = org?.alert_email || orgUser?.email
+
+          if (alertTo && orgUser?.email_alerts !== false) {
             const isProOrAgency = org?.plan === 'pro' || org?.plan === 'agency'
 
             // E-mail para todos os planos
             await sendNegativeReviewAlert({
-              to:           orgUser.email,
+              to:           alertTo,
               businessName: location.name,
               authorName:   gmbReview.reviewer.displayName,
               rating,
@@ -118,11 +124,11 @@ export async function GET(request: Request) {
             await serviceClient.from('alerts').insert({
               review_id: inserted.id,
               channel:   'email',
-              recipient: orgUser.email,
+              recipient: alertTo,
             })
 
             // WhatsApp apenas para Pro/Agency com número cadastrado
-            if (isProOrAgency && orgUser.whatsapp) {
+            if (isProOrAgency && orgUser?.whatsapp) {
               await sendWhatsAppAlert({
                 phone:        orgUser.whatsapp,
                 businessName: location.name,

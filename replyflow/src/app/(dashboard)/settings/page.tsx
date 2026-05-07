@@ -9,11 +9,13 @@ export default async function SettingsPage() {
 
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("name, email, whatsapp, organization:organizations(id, name, plan)")
+    .select("name, email, whatsapp, email_alerts, organization:organizations(id, name, plan, alert_email)")
     .eq("id", user!.id)
     .single();
 
-  const org = userRecord?.organization as unknown as { id: string; name: string; plan: string } | null;
+  const org = userRecord?.organization as unknown as {
+    id: string; name: string; plan: string; alert_email: string | null;
+  } | null;
   if (!org) return null;
 
   return (
@@ -26,7 +28,13 @@ export default async function SettingsPage() {
 
       <SettingsForm
         organization={org}
-        user={{ id: user!.id, name: userRecord?.name ?? null, email: userRecord?.email ?? user!.email ?? "", whatsapp: userRecord?.whatsapp ?? null }}
+        user={{
+          id:           user!.id,
+          name:         userRecord?.name ?? null,
+          email:        userRecord?.email ?? user!.email ?? "",
+          whatsapp:     userRecord?.whatsapp ?? null,
+          emailAlerts:  userRecord?.email_alerts ?? true,
+        }}
       />
     </div>
   );

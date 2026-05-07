@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { ReviewList } from "@/components/reviews/ReviewList";
 
 interface ReviewsPageProps {
-  searchParams: Promise<{ status?: string; rating?: string; locationId?: string; page?: string }>;
+  searchParams: Promise<{ status?: string; rating?: string; locationId?: string; page?: string; highlight?: string }>;
 }
 
 export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
@@ -75,6 +75,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
           rating: params.rating,
           locationId: params.locationId,
         }}
+        highlightId={params.highlight}
       />
     </div>
   );
