@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
-import { Building2, MapPin, Sparkles, CheckCircle2, Zap } from "lucide-react";
+import { Building2, MapPin, Sparkles, CheckCircle2, Zap, Wifi } from "lucide-react";
 
 const NICHES = [
   { value: "clinica",     label: "Clínica / Saúde",       icon: "🏥" },
@@ -24,11 +24,12 @@ const TONES = [
   { value: "descontraido",label: "Descontraído", desc: "Informal mas profissional",         icon: "😎" },
 ] as const;
 
-type Step = "business" | "location" | "done";
+type Step = "business" | "location" | "connect" | "done";
 
 const STEPS: { key: Step; label: string; Icon: React.ElementType }[] = [
   { key: "business",  label: "Empresa",  Icon: Building2 },
   { key: "location",  label: "Local",    Icon: MapPin },
+  { key: "connect",   label: "Google",   Icon: Wifi },
   { key: "done",      label: "Pronto",   Icon: CheckCircle2 },
 ];
 
@@ -57,8 +58,7 @@ export default function OnboardingPage() {
         body: JSON.stringify({ orgName, locationName, niche, tone }),
       });
       if (!res.ok) throw new Error();
-      setStep("done");
-      setTimeout(() => router.push("/dashboard"), 1800);
+      setStep("connect");
     } catch {
       setError("Algo deu errado. Tente novamente.");
       setLoading(false);
@@ -79,7 +79,8 @@ export default function OnboardingPage() {
       {step !== "done" && (
         <div className="flex items-center gap-1 mb-8">
           {STEPS.filter((s) => s.key !== "done").map((s, i) => {
-            const cur = STEPS.findIndex((x) => x.key === step);
+            const activeSteps = STEPS.filter((x) => x.key !== "done");
+            const cur = activeSteps.findIndex((x) => x.key === step);
             const done = i < cur;
             const active = i === cur;
             return (
@@ -96,7 +97,7 @@ export default function OnboardingPage() {
                   }
                   {s.label}
                 </div>
-                {i < STEPS.filter((s) => s.key !== "done").length - 1 && (
+                {i < activeSteps.length - 1 && (
                   <div className={cn("w-6 h-px", done ? "bg-indigo-300" : "bg-gray-200")} />
                 )}
               </div>
@@ -220,6 +221,51 @@ export default function OnboardingPage() {
                 <Sparkles size={15} />
                 Finalizar configuração
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Connect Google */}
+        {step === "connect" && (
+          <div>
+            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-5">
+              <Wifi size={22} className="text-indigo-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-1">Conecte o Google Meu Negócio</h2>
+            <p className="text-sm text-gray-500 mb-6">
+              O ReplyFlow precisa de acesso para monitorar seus reviews e publicar respostas automaticamente.
+            </p>
+
+            <div className="space-y-3">
+              <a
+                href="/api/google/auth"
+                className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold text-sm hover:bg-indigo-100 transition-colors"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Conectar com Google
+              </a>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("done");
+                  setTimeout(() => router.push("/dashboard"), 1600);
+                }}
+                className="w-full py-2.5 px-4 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Pular por agora → conectar depois em Locais
+              </button>
+            </div>
+
+            <div className="mt-5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl">
+              <p className="text-xs text-amber-700 leading-relaxed">
+                <strong>🔒 Seguro:</strong> o ReplyFlow solicita apenas permissão para ler reviews e publicar respostas. Nenhum outro dado é acessado.
+              </p>
             </div>
           </div>
         )}
