@@ -79,8 +79,9 @@ if (-not (Test-Path $envFile)) {
 # 3. Instalar dependencias
 # ----------------------------------------------------------
 Write-Host "`n  Verificando dependencias..." -ForegroundColor Cyan
-if (-not (Test-Path (Join-Path $ROOT "node_modules"))) {
-    Write-Warn "node_modules ausente. Instalando (aguarde alguns minutos)..."
+$nextBin = Join-Path $ROOT "node_modules\next\dist\bin\next"
+if (-not (Test-Path $nextBin)) {
+    Write-Warn "Dependencias ausentes ou incompletas. Instalando (aguarde)..."
     Push-Location $ROOT
     npm install
     $exitCode = $LASTEXITCODE
@@ -92,7 +93,7 @@ if (-not (Test-Path (Join-Path $ROOT "node_modules"))) {
     }
     Write-OK "Dependencias instaladas"
 } else {
-    Write-OK "node_modules encontrado"
+    Write-OK "Dependencias OK"
 }
 
 # ----------------------------------------------------------
