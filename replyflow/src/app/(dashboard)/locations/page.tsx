@@ -41,7 +41,16 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
       {params.success === "google_connected" && (
         <div className="flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 mb-5">
           <CheckCircle2 size={16} className="text-green-600 shrink-0" />
-          Google Meu Negócio conectado com sucesso!
+          Google Meu Negócio conectado! Local detectado automaticamente.
+        </div>
+      )}
+      {params.success === "google_connected_no_location" && (
+        <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 mb-5">
+          <span className="shrink-0 mt-0.5">⚠️</span>
+          <span>
+            Google conectado, mas não foi possível detectar o local automaticamente.
+            Tente desconectar e reconectar, ou verifique se sua conta Google tem acesso ao Google Meu Negócio.
+          </span>
         </div>
       )}
       {params.error && (
@@ -85,11 +94,20 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                 </div>
 
                 <div className="flex items-center gap-2.5 shrink-0">
-                  {isConnected ? (
+                  {isConnected && loc.google_location_name ? (
                     <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
                       <Wifi size={12} />
                       Google conectado
                     </div>
+                  ) : isConnected && !loc.google_location_name ? (
+                    <a
+                      href={`/api/google/auth?locationId=${loc.id}`}
+                      className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors"
+                      title="Local GMB não detectado — reconectar"
+                    >
+                      <Wifi size={12} />
+                      Reconectar Google
+                    </a>
                   ) : (
                     <a
                       href={`/api/google/auth?locationId=${loc.id}`}

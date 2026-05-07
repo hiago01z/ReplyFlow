@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { GoogleMyBusinessClient } from "@/lib/google/myBusiness";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -64,15 +65,48 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/locations?error=location_not_found`);
   }
 
-  // Salvar tokens no local
+  // ── Auto-detectar google_location_name via GMB API ───────────────────────
+  // O cron exige este campo para buscar reviews e publicar respostas.
+  let googleLocationName: string | null = null;
+  let googleAccountId: string | null = null;
+
+  try {
+    const gmb = new GoogleMyBusinessClient({
+      accessToken:  tokens.access_token,
+      refreshToken: tokens.refresh_token ?? null,
+      locationName: "", // não necessário para listAccounts/listLocations
+    });
+
+    const accounts = await gmb.listAccounts();
+    if (accounts.length > 0) {
+      const account = accounts[0];
+      googleAccountId = account.name; // e.g. "accounts/123456789"
+
+      const locations = await gmb.listLocations(account.name);
+      if (locations.length > 0) {
+        googleLocationName = locations[0].name; // e.g. "accounts/123/locations/456"
+      }
+    }
+  } catch (err) {
+    // Não bloqueia o fluxo — o usuário pode selecionar manualmente depois
+    console.error("[google/callback] auto-detect location failed:", err);
+  }
+
+  // Salvar tokens + location name no local
   await serviceClient
     .from("locations")
     .update({
-      google_access_token: tokens.access_token,
+      google_access_token:  tokens.access_token,
       google_refresh_token: tokens.refresh_token ?? null,
-      google_token_expiry: tokenExpiry,
+      google_token_expiry:  tokenExpiry,
+      ...(googleLocationName ? { google_location_name: googleLocationName } : {}),
+      ...(googleAccountId    ? { google_account_id:    googleAccountId    } : {}),
     })
     .eq("id", locationId);
 
-  return NextResponse.redirect(`${origin}/locations?success=google_connected`);
+  const successParam = googleLocationName
+    ? "google_connected"
+    : "google_connected_no_location";
+
+  return NextResponse.redirect(`${origin}/locations?success=${successParam}`);
 }
