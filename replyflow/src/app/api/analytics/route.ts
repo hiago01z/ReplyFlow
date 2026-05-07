@@ -8,7 +8,8 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(request.url)
-  const days = Math.min(Number(searchParams.get('days') ?? '30'), 90)
+  const days       = Math.min(Number(searchParams.get('days') ?? '30'), 90)
+  const filterLoc  = searchParams.get('locationId') ?? ''
 
   const serviceClient = createServiceClient()
 
@@ -30,7 +31,11 @@ export async function GET(request: Request) {
     .eq('organization_id', userRecord.organization_id)
     .eq('active', true)
 
-  const locationIds = (locations ?? []).map((l) => l.id)
+  const allLocationIds = (locations ?? []).map((l) => l.id)
+  // Apply optional per-location filter (must belong to org)
+  const locationIds = filterLoc && allLocationIds.includes(filterLoc)
+    ? [filterLoc]
+    : allLocationIds
 
   if (locationIds.length === 0) {
     return NextResponse.json({
@@ -134,5 +139,6 @@ export async function GET(request: Request) {
     statusBreakdown,
     topLocations,
     totals: { total, published, pending, avgRating, replyRate },
+    locations: (locations ?? []).map((l) => ({ id: l.id, name: l.name })),
   })
 }

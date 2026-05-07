@@ -23,6 +23,7 @@ interface AnalyticsData {
     avgRating: number;
     replyRate: number;
   };
+  locations: { id: string; name: string }[];
 }
 
 const PERIOD_OPTIONS = [
@@ -40,16 +41,19 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function AnalyticsDashboard() {
-  const [days, setDays]       = useState(30);
-  const [data, setData]       = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  const [days,       setDays]       = useState(30);
+  const [locationId, setLocationId] = useState("");
+  const [data, setData]             = useState<AnalyticsData | null>(null);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState<string | null>(null);
 
-  const fetchData = useCallback(async (d: number) => {
+  const fetchData = useCallback(async (d: number, loc: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/analytics?days=${d}`);
+      const params = new URLSearchParams({ days: String(d) });
+      if (loc) params.set("locationId", loc);
+      const res = await fetch(`/api/analytics?${params.toString()}`);
       if (!res.ok) throw new Error("Erro ao carregar dados");
       const json = await res.json();
       setData(json);
@@ -60,7 +64,7 @@ export function AnalyticsDashboard() {
     }
   }, []);
 
-  useEffect(() => { fetchData(days); }, [days, fetchData]);
+  useEffect(() => { fetchData(days, locationId); }, [days, locationId, fetchData]);
 
   const KPI = ({
     icon: Icon, label, value, sub, color,
@@ -93,22 +97,38 @@ export function AnalyticsDashboard() {
           <p className="text-sm text-gray-500 mt-1">Acompanhe o desempenho dos seus reviews ao longo do tempo.</p>
         </div>
 
-        {/* Period selector */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-          {PERIOD_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setDays(opt.value)}
-              className={cn(
-                "px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
-                days === opt.value
-                  ? "bg-white text-indigo-700 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700",
-              )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Location filter */}
+          {data && data.locations.length > 1 && (
+            <select
+              value={locationId}
+              onChange={(e) => setLocationId(e.target.value)}
+              className="text-xs bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-400 cursor-pointer"
             >
-              {opt.label}
-            </button>
-          ))}
+              <option value="">Todos os locais</option>
+              {data.locations.map((l) => (
+                <option key={l.id} value={l.id}>{l.name}</option>
+              ))}
+            </select>
+          )}
+
+          {/* Period selector */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+            {PERIOD_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setDays(opt.value)}
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
+                  days === opt.value
+                    ? "bg-white text-indigo-700 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700",
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -117,7 +137,7 @@ export function AnalyticsDashboard() {
         <div className="card p-4 border-red-200 bg-red-50 flex items-center justify-between gap-3">
           <span className="text-sm text-red-700">{error}</span>
           <button
-            onClick={() => fetchData(days)}
+            onClick={() => fetchData(days, locationId)}
             className="flex items-center gap-1.5 text-xs font-medium text-red-600 hover:text-red-800"
           >
             <RefreshCw size={12} /> Tentar novamente

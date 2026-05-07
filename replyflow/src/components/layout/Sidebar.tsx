@@ -17,6 +17,7 @@ interface SidebarProps {
   orgName: string;
   userName: string;
   plan: Plan;
+  pendingCount?: number;
 }
 
 const NAV_ITEMS = [
@@ -36,7 +37,7 @@ const PLAN_BADGE: Record<Plan, { label: string; cls: string }> = {
 };
 
 function SidebarContent({
-  orgName, userName, plan, onClose,
+  orgName, userName, plan, pendingCount = 0, onClose,
 }: SidebarProps & { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -85,6 +86,7 @@ function SidebarContent({
           const isActive = href === "/dashboard"
             ? pathname === "/dashboard"
             : pathname.startsWith(href);
+          const showBadge = href === "/reviews" && pendingCount > 0;
           return (
             <Link
               key={href}
@@ -98,7 +100,12 @@ function SidebarContent({
               )}
             >
               <Icon size={16} className={cn("shrink-0", isActive ? "text-indigo-600" : "text-gray-400")} />
-              {label}
+              <span className="flex-1">{label}</span>
+              {showBadge && (
+                <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold px-1.5 leading-none">
+                  {pendingCount > 99 ? "99+" : pendingCount}
+                </span>
+              )}
             </Link>
           );
         })}
