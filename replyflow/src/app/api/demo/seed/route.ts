@@ -142,14 +142,26 @@ export async function DELETE() {
     .from("users").select("organization_id").eq("id", user.id).single();
   if (!userRecord?.organization_id) return NextResponse.json({ error: "No org" }, { status: 400 });
 
-  const { data: location } = await serviceClient
-    .from("locations").select("id")
-    .eq("organization_id", userRecord.organization_id).limit(1).single();
-  if (!location) return NextResponse.json({ error: "No location" }, { status: 400 });
+  // Busca TODOS os locais da org (não só o primeiro)
+  const { data: locations } = await serviceClient
+    .from("locations")
+    .select("id")
+    .eq("organization_id", userRecord.organization_id);
 
-  // Remove todos os reviews de demo deste local (qualquer prefixo de org)
-  await serviceClient.from("reviews").delete()
-    .eq("location_id", location.id).like("external_id", "demo_%");
+  const locationIds = (locations ?? []).map((l) => l.id);
+  if (locationIds.length === 0) return NextResponse.json({ error: "No locations" }, { status: 400 });
 
-  return NextResponse.json({ success: true });
+  // Deleta todos os reviews de demo em qualquer local da org
+  const { error: deleteError, count } = await serviceClient
+    .from("reviews")
+    .delete({ count: "exact" })
+    .in("location_id", locationIds)
+    .like("external_id", "demo%");
+
+  if (deleteError) {
+    console.error("[demo/seed DELETE] error:", deleteError);
+    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true, deleted: count ?? 0 });
 }
