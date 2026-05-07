@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Sparkles, Send, EyeOff, RotateCcw, CheckCircle2
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Input";
+import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import type { Review } from "@/types";
 
@@ -40,6 +41,7 @@ function Stars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) 
 
 export function ReviewCard({ review }: ReviewCardProps) {
   const router = useRouter();
+  const { success, error: toastError, info } = useToast();
   const [responseText, setResponseText] = useState(review.response?.content ?? "");
   const [generating, setGenerating]     = useState(false);
   const [publishing, setPublishing]     = useState(false);
@@ -62,7 +64,12 @@ export function ReviewCard({ review }: ReviewCardProps) {
         const data = await res.json();
         setResponseText(data.response.content);
         router.refresh();
+        success("Resposta gerada!", "A IA criou uma resposta personalizada.");
+      } else {
+        toastError("Erro ao gerar", "Não foi possível gerar a resposta. Tente novamente.");
       }
+    } catch {
+      toastError("Erro ao gerar", "Verifique sua conexão e tente novamente.");
     } finally { setGenerating(false); }
   }
 
@@ -75,13 +82,25 @@ export function ReviewCard({ review }: ReviewCardProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ responseContent: responseText }),
       });
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        router.refresh();
+        success("Resposta publicada!", "A resposta foi publicada no Google.");
+      } else {
+        toastError("Erro ao publicar", "Não foi possível publicar. Verifique a conexão com o Google.");
+      }
+    } catch {
+      toastError("Erro ao publicar", "Verifique sua conexão e tente novamente.");
     } finally { setPublishing(false); }
   }
 
   async function handleIgnore() {
-    await fetch(`/api/reviews/${review.id}/ignore`, { method: "POST" });
-    router.refresh();
+    try {
+      await fetch(`/api/reviews/${review.id}/ignore`, { method: "POST" });
+      router.refresh();
+      info("Review ignorado", "Este review não aparecerá mais como pendente.");
+    } catch {
+      toastError("Erro", "Não foi possível ignorar o review.");
+    }
   }
 
   return (

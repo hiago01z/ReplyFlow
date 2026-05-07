@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CheckCircle2, Star, Zap } from "lucide-react";
 
 const TESTIMONIALS = [
   {
@@ -61,76 +62,130 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b border-gray-100 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
-        <div className="font-bold text-xl text-indigo-600">⚡ ReplyFlow</div>
+      <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 px-6 py-3.5 flex items-center justify-between max-w-6xl mx-auto">
+        <Link href="/" className="flex items-center gap-2 font-bold text-gray-900">
+          <div className="w-7 h-7 brand-gradient rounded-lg flex items-center justify-center shadow-sm">
+            <Zap size={13} className="text-white fill-white" />
+          </div>
+          ReplyFlow
+        </Link>
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="#como-funciona" className="text-gray-600 hover:text-gray-900 text-sm">
-            Como funciona
-          </Link>
-          <Link href="#depoimentos" className="text-gray-600 hover:text-gray-900 text-sm">
-            Depoimentos
-          </Link>
-          <Link href="#precos" className="text-gray-600 hover:text-gray-900 text-sm">
-            Preços
-          </Link>
-          <Link href="#faq" className="text-gray-600 hover:text-gray-900 text-sm">
-            FAQ
-          </Link>
-          <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
-            Entrar
-          </Link>
-          <Link
-            href="/register"
-            className="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-          >
+          {["#como-funciona","#depoimentos","#precos","#faq"].map((href) => (
+            <Link key={href} href={href} className="text-gray-500 hover:text-gray-900 text-sm transition-colors">
+              {href === "#como-funciona" ? "Como funciona" : href === "#depoimentos" ? "Depoimentos" : href === "#precos" ? "Preços" : "FAQ"}
+            </Link>
+          ))}
+          <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Entrar</Link>
+          <Link href="/register" className="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
             Começar grátis
           </Link>
         </nav>
-        {/* Mobile CTA */}
-        <Link
-          href="/register"
-          className="md:hidden bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg"
-        >
-          Grátis
-        </Link>
+        <Link href="/register" className="md:hidden bg-indigo-600 text-white text-sm px-3 py-1.5 rounded-lg font-medium">Grátis</Link>
       </header>
 
       {/* Hero */}
-      <section className="max-w-4xl mx-auto px-6 py-24 text-center">
-        <div className="inline-block bg-indigo-50 text-indigo-700 text-sm font-medium px-3 py-1 rounded-full mb-6">
-          IA para gestão de reputação local
+      <section className="relative overflow-hidden bg-white pt-20 pb-0 px-6">
+        {/* Background gradient blobs */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-indigo-100 rounded-full opacity-30 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-violet-100 rounded-full opacity-20 blur-3xl" />
         </div>
-        <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-6">
-          Sua reputação no{" "}
-          <span className="text-indigo-600">piloto automático</span>
-        </h1>
-        <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-          ReplyFlow responde todos os seus reviews no Google com IA personalizada —
-          em segundos, no tom certo, sem você precisar fazer nada.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/register"
-            className="bg-indigo-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition-colors"
-          >
-            Começar gratuitamente →
-          </Link>
-          <Link
-            href="#como-funciona"
-            className="border border-gray-200 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 transition-colors"
-          >
-            Ver como funciona
-          </Link>
-        </div>
-        <p className="text-sm text-gray-400 mt-4">
-          Sem cartão de crédito. 10 respostas grátis por mês.
-        </p>
 
-        {/* Social proof bar */}
-        <div className="mt-16 flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm text-gray-500">
+        <div className="relative max-w-5xl mx-auto text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-8">
+            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+            IA para gestão de reputação local
+          </div>
+
+          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-6">
+            Sua reputação no<br />
+            <span className="text-transparent bg-clip-text" style={{backgroundImage:"linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7)"}}>
+              piloto automático
+            </span>
+          </h1>
+
+          <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+            ReplyFlow responde reviews do Google com IA personalizada para o seu negócio —
+            em segundos, no tom certo, sem você fazer nada.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+            <Link href="/register" className="brand-gradient text-white px-8 py-3.5 rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-indigo-200">
+              Começar gratuitamente →
+            </Link>
+            <Link href="#como-funciona" className="bg-white border border-gray-200 text-gray-700 px-8 py-3.5 rounded-xl text-base font-semibold hover:bg-gray-50 transition-colors">
+              Ver como funciona
+            </Link>
+          </div>
+
+          <div className="flex items-center justify-center gap-4 text-xs text-gray-400 mb-12">
+            <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Sem cartão de crédito</span>
+            <span className="w-px h-3 bg-gray-200" />
+            <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> 10 respostas grátis/mês</span>
+            <span className="w-px h-3 bg-gray-200" />
+            <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Cancele quando quiser</span>
+          </div>
+
+          {/* Product mockup */}
+          <div className="relative mx-auto max-w-3xl">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white z-10 pointer-events-none" style={{top:"70%"}} />
+            <div className="rounded-2xl border border-gray-200 shadow-2xl shadow-gray-200 overflow-hidden">
+              {/* Fake browser chrome */}
+              <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                </div>
+                <div className="flex-1 bg-white rounded-md px-3 py-1 text-xs text-gray-400 mx-2">
+                  app.replyflow.com.br/reviews
+                </div>
+              </div>
+              {/* Fake dashboard */}
+              <div className="bg-[#f5f5fa] p-4 text-left">
+                {/* Mini stat bar */}
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {[{label:"Pendentes",v:"3",c:"text-amber-600 bg-amber-50"},{label:"Publicados",v:"47",c:"text-green-600 bg-green-50"},{label:"Críticos",v:"1",c:"text-red-600 bg-red-50"},{label:"Locais",v:"2",c:"text-indigo-600 bg-indigo-50"}].map(s=>(
+                    <div key={s.label} className="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm">
+                      <div className={`text-lg font-bold ${s.c.split(" ")[0]}`}>{s.v}</div>
+                      <div className="text-[10px] text-gray-400">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+                {/* Mini review cards */}
+                {[
+                  {name:"Maria S.",stars:5,text:"Atendimento excelente!",status:"Pendente",sc:"bg-amber-50 text-amber-700"},
+                  {name:"João P.",stars:2,text:"Esperei mais de uma hora.",status:"Pendente",sc:"bg-red-50 text-red-700"},
+                  {name:"Ana C.",stars:4,text:"Muito bom de forma geral.",status:"Publicado",sc:"bg-green-50 text-green-700"},
+                ].map((r,i)=>(
+                  <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm px-3 py-2.5 mb-2 flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">{r.name[0]}</div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-xs font-semibold text-gray-900">{r.name}</span>
+                          <div className="flex gap-0.5">{[1,2,3,4,5].map(n=><Star key={n} size={8} className={n<=r.stars?"fill-amber-400 text-amber-400":"fill-gray-200 text-gray-200"}/>)}</div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 truncate">{r.text}</p>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${r.sc}`}>{r.status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social proof */}
+      <section className="py-10 px-6 border-y border-gray-100">
+        <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm text-gray-400">
           <span>⭐ +1.200 reviews respondidos</span>
           <span>🏪 +340 negócios ativos</span>
           <span>🇧🇷 Feito para o mercado brasileiro</span>
+          <span>🤖 GPT-4o-mini integrado</span>
         </div>
       </section>
 

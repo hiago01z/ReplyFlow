@@ -4,14 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
-  LayoutDashboard,
-  Star,
-  MapPin,
-  CreditCard,
-  Settings,
-  LogOut,
-  Zap,
+  LayoutDashboard, Star, MapPin, CreditCard,
+  Settings, LogOut, Zap, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@/types";
@@ -37,7 +33,9 @@ const PLAN_BADGE: Record<Plan, { label: string; cls: string }> = {
   agency:  { label: "Agência", cls: "bg-purple-50 text-purple-600" },
 };
 
-export function Sidebar({ orgName, userName, plan }: SidebarProps) {
+function SidebarContent({
+  orgName, userName, plan, onClose,
+}: SidebarProps & { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const badge = PLAN_BADGE[plan];
@@ -50,23 +48,28 @@ export function Sidebar({ orgName, userName, plan }: SidebarProps) {
   }
 
   const initials = userName
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase() || "U";
+    .split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "U";
 
   return (
-    <aside className="w-[220px] bg-white border-r border-gray-100 flex flex-col h-full shrink-0">
+    <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-gray-100">
-        <Link href="/dashboard" className="flex items-center gap-2.5 group">
+      <div className="px-4 py-4 border-b border-gray-100 flex items-center justify-between">
+        <Link href="/dashboard" onClick={onClose} className="flex items-center gap-2.5">
           <div className="w-8 h-8 brand-gradient rounded-lg flex items-center justify-center shadow-sm shrink-0">
             <Zap size={15} className="text-white fill-white" />
           </div>
           <span className="font-bold text-gray-900 text-sm tracking-tight">ReplyFlow</span>
         </Link>
-        <div className="flex items-center gap-1.5 mt-2.5 pl-0.5">
+        {onClose && (
+          <button onClick={onClose} className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 md:hidden">
+            <X size={18} />
+          </button>
+        )}
+      </div>
+
+      {/* Org + plan */}
+      <div className="px-4 pt-2 pb-1">
+        <div className="flex items-center gap-1.5">
           <span className="text-xs text-gray-500 truncate flex-1 min-w-0">{orgName}</span>
           <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0", badge.cls)}>
             {badge.label}
@@ -80,11 +83,11 @@ export function Sidebar({ orgName, userName, plan }: SidebarProps) {
           const isActive = href === "/dashboard"
             ? pathname === "/dashboard"
             : pathname.startsWith(href);
-
           return (
             <Link
               key={href}
               href={href}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
                 isActive
@@ -92,13 +95,7 @@ export function Sidebar({ orgName, userName, plan }: SidebarProps) {
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
               )}
             >
-              <Icon
-                size={16}
-                className={cn(
-                  "shrink-0",
-                  isActive ? "text-indigo-600" : "text-gray-400",
-                )}
-              />
+              <Icon size={16} className={cn("shrink-0", isActive ? "text-indigo-600" : "text-gray-400")} />
               {label}
             </Link>
           );
@@ -121,6 +118,63 @@ export function Sidebar({ orgName, userName, plan }: SidebarProps) {
           Sair
         </button>
       </div>
-    </aside>
+    </div>
+  );
+}
+
+export function Sidebar(props: SidebarProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Fecha ao navegar
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  // Trava scroll quando drawer aberto
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-[220px] bg-white border-r border-gray-100 flex-col h-full shrink-0">
+        <SidebarContent {...props} />
+      </aside>
+
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <div className="w-7 h-7 brand-gradient rounded-lg flex items-center justify-center shadow-sm">
+            <Zap size={13} className="text-white fill-white" />
+          </div>
+          <span className="font-bold text-gray-900 text-sm tracking-tight">ReplyFlow</span>
+        </Link>
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+          aria-label="Abrir menu"
+        >
+          <Menu size={20} />
+        </button>
+      </div>
+
+      {/* Mobile drawer backdrop */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside
+        className={cn(
+          "md:hidden fixed top-0 left-0 z-50 h-full w-[260px] bg-white shadow-xl transition-transform duration-300",
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <SidebarContent {...props} onClose={() => setMobileOpen(false)} />
+      </aside>
+    </>
   );
 }
