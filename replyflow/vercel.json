@@ -1,15 +1,4 @@
 {
-  "functions": {
-    "src/app/api/cron/fetch-reviews/route.ts": {
-      "maxDuration": 300
-    },
-    "src/app/api/reviews/[id]/publish/route.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/reviews/[id]/generate/route.ts": {
-      "maxDuration": 30
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
