@@ -154,6 +154,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 13 (SEO + Rate Limiting + Vercel Analytics) | ✅ Concluída |
 | Etapa 6 — Sprint 14 (Dashboard Sparkline + TS/deps fixes) | ✅ Concluída |
 | Etapa 6 — Sprint 15 (Alert email settings + Review highlight) | ✅ Concluída |
+| Etapa 6 — Sprint 16 (Busca por texto + Export CSV) | ✅ Concluída |
 
 ---
 
@@ -161,7 +162,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 
 | Endpoint | Método | Descrição |
 |----------|--------|-----------|
-| `/api/reviews` | GET | Listar reviews com filtros |
+| `/api/reviews` | GET | Listar reviews com filtros (status, rating, locationId, search) |
+| `/api/reviews/export` | GET | Exportar reviews filtrados como CSV (max 5000 linhas) |
 | `/api/reviews/[id]/generate` | POST | Gerar resposta com IA |
 | `/api/reviews/[id]/publish` | POST | Publicar resposta no Google (GMB real) |
 | `/api/reviews/[id]/ignore` | POST | Ignorar review |
