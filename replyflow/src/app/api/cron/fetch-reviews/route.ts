@@ -25,18 +25,6 @@ export async function GET(request: Request) {
 
   const serviceClient = createServiceClient()
 
-  // Buscar locais ativos com Google conectado
-  const { data: locations, error } = await serviceClient
-    .from('locations')
-    .select('*, organization:organizations(id, plan, subscription_status)')
-    .eq('active', true)
-    .not('google_access_token', 'is', null)
-    .not('google_location_name', 'is', null)
-
-  if (error || !locations) {
-    return NextResponse.json({ error: 'Failed to fetch locations' }, { status: 500 })
-  }
-
   // ── Helper: delay aleatório de 5-20 minutos para parecer natural ────────────
   function randomDelayMs(): number {
     const minMs = 5  * 60 * 1000
@@ -53,7 +41,20 @@ export async function GET(request: Request) {
     errors:         0,
   }
 
-  for (const location of locations) {
+  // ── PASS 1: Buscar novas reviews do GMB ──────────────────────────────────────
+  // Apenas locais com google_location_name configurado (necessário para a API GMB)
+  const { data: gmbLocations, error: gmbError } = await serviceClient
+    .from('locations')
+    .select('*, organization:organizations(id, plan, subscription_status)')
+    .eq('active', true)
+    .not('google_access_token', 'is', null)
+    .not('google_location_name', 'is', null)
+
+  if (gmbError) {
+    console.error('[cron] error fetching GMB locations:', gmbError)
+  }
+
+  for (const location of gmbLocations ?? []) {
     try {
       const gmb = new GoogleMyBusinessClient({
         accessToken:    location.google_access_token,
@@ -143,10 +144,6 @@ export async function GET(request: Request) {
         }
 
         // ── Agendamento de auto-publicação com delay natural ─────────────────
-        // Condições:
-        //  1. Local tem auto_publish = true
-        //  2. Rating >= auto_publish_min_rating configurado pelo usuário
-        //  3. Review ainda está pendente
         const minRating = location.auto_publish_min_rating ?? 3
         if (location.auto_publish && rating >= minRating && inserted.status === 'pending') {
           const publishAt = new Date(Date.now() + randomDelayMs()).toISOString()
@@ -158,40 +155,6 @@ export async function GET(request: Request) {
         }
       }
 
-      // ── Publicar reviews com delay vencido ───────────────────────────────
-      const now = new Date().toISOString()
-      const { data: scheduledReviews } = await serviceClient
-        .from('reviews')
-        .select('id, rating, content, external_id, author_name, publish_after')
-        .eq('location_id', location.id)
-        .eq('status', 'pending')
-        .not('publish_after', 'is', null)
-        .lte('publish_after', now)
-
-      for (const rev of scheduledReviews ?? []) {
-        try {
-          await autoPublishReview({
-            serviceClient,
-            gmb,
-            reviewId:      rev.id,
-            reviewContent: rev.content ?? '',
-            externalId:    rev.external_id,
-            rating:        rev.rating ?? 3,
-            authorName:    rev.author_name ?? 'Cliente',
-            location: {
-              name:                 location.name,
-              niche:                location.niche as LocationNiche,
-              tone:                 location.tone as LocationTone,
-              google_location_name: location.google_location_name,
-            },
-          })
-          results.autoPublished++
-        } catch (err) {
-          console.error(`[cron] error auto-publishing review ${rev.id}:`, err)
-          results.errors++
-        }
-      }
-
       // Atualizar access_token se foi renovado pela GMB client
       await serviceClient
         .from('locations')
@@ -200,8 +163,93 @@ export async function GET(request: Request) {
 
       results.processed++
     } catch (err) {
-      console.error(`[cron] error processing location ${location.id}:`, err)
+      console.error(`[cron] error fetching GMB reviews for location ${location.id}:`, err)
       results.errors++
+    }
+  }
+
+  // ── PASS 2: Publicar reviews agendados ───────────────────────────────────────
+  // Separado do Pass 1 para que reviews de DEMO também sejam publicados,
+  // mesmo sem google_location_name configurado.
+  const { data: autoPublishLocations } = await serviceClient
+    .from('locations')
+    .select('id, name, niche, tone, google_access_token, google_refresh_token, google_location_name')
+    .eq('active', true)
+    .eq('auto_publish', true)
+
+  const now = new Date().toISOString()
+
+  for (const location of autoPublishLocations ?? []) {
+    const { data: scheduledReviews } = await serviceClient
+      .from('reviews')
+      .select('id, rating, content, external_id, author_name, publish_after')
+      .eq('location_id', location.id)
+      .eq('status', 'pending')
+      .not('publish_after', 'is', null)
+      .lte('publish_after', now)
+
+    if (!scheduledReviews?.length) continue
+
+    // Criar cliente GMB apenas se disponível (necessário para reviews reais)
+    const gmb = location.google_access_token && location.google_location_name
+      ? new GoogleMyBusinessClient({
+          accessToken:  location.google_access_token,
+          refreshToken: location.google_refresh_token,
+          locationName: location.google_location_name,
+        })
+      : null
+
+    // Também agendar reviews pendentes sem publish_after (ex: reviews de demo)
+    const { data: unscheduled } = await serviceClient
+      .from('reviews')
+      .select('id, rating, external_id')
+      .eq('location_id', location.id)
+      .eq('status', 'pending')
+      .is('publish_after', null)
+
+    if (unscheduled?.length) {
+      const { data: locFull } = await serviceClient
+        .from('locations')
+        .select('auto_publish_min_rating')
+        .eq('id', location.id)
+        .single()
+
+      const minRating = locFull?.auto_publish_min_rating ?? 3
+
+      for (const u of unscheduled) {
+        if ((u.rating ?? 0) >= minRating) {
+          const publishAt = new Date(Date.now() + randomDelayMs()).toISOString()
+          await serviceClient
+            .from('reviews')
+            .update({ publish_after: publishAt })
+            .eq('id', u.id)
+          results.scheduled++
+        }
+      }
+    }
+
+    for (const rev of scheduledReviews) {
+      try {
+        await autoPublishReview({
+          serviceClient,
+          gmb,
+          reviewId:      rev.id,
+          reviewContent: rev.content ?? '',
+          externalId:    rev.external_id,
+          rating:        rev.rating ?? 3,
+          authorName:    rev.author_name ?? 'Cliente',
+          location: {
+            name:                 location.name,
+            niche:                location.niche as LocationNiche,
+            tone:                 location.tone as LocationTone,
+            google_location_name: location.google_location_name ?? '',
+          },
+        })
+        results.autoPublished++
+      } catch (err) {
+        console.error(`[cron] error auto-publishing review ${rev.id}:`, err)
+        results.errors++
+      }
     }
   }
 
@@ -221,7 +269,7 @@ export async function GET(request: Request) {
 
 interface AutoPublishParams {
   serviceClient:  ReturnType<typeof createServiceClient>
-  gmb:            GoogleMyBusinessClient
+  gmb:            GoogleMyBusinessClient | null
   reviewId:       string
   reviewContent:  string
   externalId:     string
@@ -273,8 +321,9 @@ async function autoPublishReview({
 
   // 3. Publicar no Google My Business
   // Reviews de demo (external_id começa com "demo") não existem no GMB — pular chamada real
+  // Também pula se gmb não estiver disponível (sem google_location_name)
   const isDemo = externalId.startsWith('demo')
-  if (!isDemo) {
+  if (!isDemo && gmb) {
     const reviewName = `${location.google_location_name}/reviews/${externalId}`
     await gmb.replyToReview(reviewName, content)
   }
