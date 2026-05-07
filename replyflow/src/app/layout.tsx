@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   title: "ReplyFlow — Sua reputação no piloto automático",
   description:
     "ReplyFlow responde todos os seus reviews no Google com IA personalizada — em segundos, no tom certo, sem você precisar fazer nada.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   openGraph: {
     title: "ReplyFlow",
     description: "Sua reputação no piloto automático.",
