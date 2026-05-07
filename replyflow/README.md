@@ -35,9 +35,10 @@ ReplyFlow é um SaaS que responde automaticamente reviews do Google Meu Negócio
 | Pagamentos | Stripe (assinaturas recorrentes em BRL) |
 | IA | OpenAI GPT-4o-mini |
 | Filas | Upstash QStash |
-| Cache | Upstash Redis |
+| Cache / Rate Limit | Upstash Redis |
 | Email | Resend |
 | WhatsApp | Evolution API |
+| Analytics | Vercel Analytics |
 | Deploy | Vercel |
 
 ---
@@ -145,6 +146,12 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 5 (Validação Local) | ✅ Concluída |
 | Etapa 6 — Sprint 6 (Design System) | ✅ Concluída |
 | Etapa 6 — Sprint 7 (Auth + Toast + Demo) | ✅ Concluída |
+| Etapa 6 — Sprint 8 (Modal + Dark Mode + CountUp) | ✅ Concluída |
+| Etapa 6 — Sprint 9 (Analytics + Auto-publish) | ✅ Concluída |
+| Etapa 6 — Sprint 10 (Limites de plano + WhatsApp + Favicon) | ✅ Concluída |
+| Etapa 6 — Sprint 11 (Deploy Vercel + cron-job.org) | ✅ Concluída |
+| Etapa 6 — Sprint 12 (Stripe + Google OAuth prod) | ✅ Concluída |
+| Etapa 6 — Sprint 13 (SEO + Rate Limiting + Vercel Analytics) | ✅ Concluída |
 
 ---
 
@@ -164,7 +171,9 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/google/callback` | GET | Callback OAuth Google |
 | `/api/billing/checkout` | POST | Criar Checkout Session Stripe |
 | `/api/billing/portal` | POST | Redirecionar para Portal Stripe |
-| `/api/settings` | PATCH | Atualizar nome da empresa e perfil |
+| `/api/settings` | PATCH | Atualizar nome da empresa, perfil e WhatsApp |
+| `/api/analytics` | GET | Métricas de reviews por período (7/30/90 dias) |
+| `/api/demo/seed` | POST/DELETE | Inserir/remover reviews de demonstração |
 
 ---
 

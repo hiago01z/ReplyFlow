@@ -26,8 +26,11 @@ ReplyFlow responde automaticamente reviews do Google Meu Negócio com IA persona
 | Autenticação | Supabase Auth (email + Google OAuth) |
 | Pagamentos | Stripe (assinaturas em BRL) |
 | IA | OpenAI GPT-4o-mini |
+| Cache / Rate Limit | Upstash Redis |
 | Email | Resend |
-| Deploy | Vercel |
+| WhatsApp | Evolution API (plano Pro) |
+| Analytics | Vercel Analytics |
+| Deploy | Vercel + cron-job.org |
 
 ## Início Rápido
 
