@@ -62,6 +62,11 @@ export function ReviewCard({ review }: ReviewCardProps) {
       const res = await fetch(`/api/reviews/${review.id}/generate`, { method: "POST" });
       const data = await res.json().catch(() => ({}));
 
+      if (res.status === 403 && data?.error === 'plan_limit') {
+        toastError("Limite atingido 🔒", data.message ?? "Faça upgrade para gerar mais respostas.");
+        return;
+      }
+
       if (res.ok) {
         const content = data?.response?.content;
         if (!content) {

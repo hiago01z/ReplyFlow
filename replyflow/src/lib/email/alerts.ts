@@ -79,6 +79,49 @@ export async function sendNegativeReviewAlert(params: NegativeReviewAlertParams)
   })
 }
 
+// ─── WhatsApp Alert via Evolution API ───────────────────────────────────────
+
+interface WhatsAppAlertParams {
+  phone:        string   // formato: 5511999999999
+  businessName: string
+  authorName:   string
+  rating:       number
+  content:      string
+  reviewId:     string
+}
+
+export async function sendWhatsAppAlert(params: WhatsAppAlertParams): Promise<void> {
+  const evolutionUrl = process.env.EVOLUTION_API_URL
+  const evolutionKey = process.env.EVOLUTION_API_KEY
+
+  if (!evolutionUrl || !evolutionKey) return // silencioso se não configurado
+
+  const { phone, businessName, authorName, rating, content, reviewId } = params
+  const stars   = '★'.repeat(rating) + '☆'.repeat(5 - rating)
+  const reviewUrl = `${APP_URL}/reviews?highlight=${reviewId}`
+
+  const message = [
+    `⚠️ *Review negativo recebido!*`,
+    ``,
+    `🏢 *${businessName}*`,
+    `👤 ${authorName}`,
+    `${stars} (${rating} estrela${rating > 1 ? 's' : ''})`,
+    ``,
+    content ? `💬 "${content.slice(0, 200)}${content.length > 200 ? '...' : ''}"` : '',
+    ``,
+    `👉 Responder agora: ${reviewUrl}`,
+  ].filter(Boolean).join('\n')
+
+  await fetch(`${evolutionUrl}/message/sendText/replyflow`, {
+    method:  'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey':       evolutionKey,
+    },
+    body: JSON.stringify({ number: phone, text: message }),
+  })
+}
+
 interface WelcomeEmailParams {
   to: string
   name: string

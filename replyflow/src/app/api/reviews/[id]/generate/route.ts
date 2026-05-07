@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { generateReviewResponse } from '@/lib/openai/generateResponse'
 import { createClient } from '@/lib/supabase/server'
-import type { Location } from '@/types'
+import { PLAN_LIMITS } from '@/types'
+import type { Location, Plan } from '@/types'
 
 export async function POST(
   _request: Request,
@@ -40,12 +41,56 @@ export async function POST(
   // ── Verificar acesso: usuário pertence à organização do review ────────────
   const { data: userRecord } = await serviceClient
     .from('users')
-    .select('organization_id')
+    .select('organization_id, organization:organizations(plan)')
     .eq('id', user.id)
     .single()
 
   if (!userRecord || userRecord.organization_id !== location.organization_id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  // ── Verificar limite de respostas por plano ───────────────────────────────
+  const plan = (userRecord.organization as unknown as { plan: Plan } | null)?.plan ?? 'free'
+  const monthlyLimit = PLAN_LIMITS[plan]?.responsesPerMonth
+
+  if (monthlyLimit !== null && monthlyLimit !== undefined) {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1)
+    startOfMonth.setHours(0, 0, 0, 0)
+
+    // Buscar reviews da org criados este mês
+    const { data: orgLocations } = await serviceClient
+      .from('locations')
+      .select('id')
+      .eq('organization_id', userRecord.organization_id)
+
+    const locIds = (orgLocations ?? []).map((l) => l.id)
+
+    const { data: monthlyReviews } = await serviceClient
+      .from('reviews')
+      .select('id')
+      .in('location_id', locIds)
+      .gte('created_at', startOfMonth.toISOString())
+
+    const reviewIds = (monthlyReviews ?? []).map((r) => r.id)
+
+    let monthlyCount = 0
+    if (reviewIds.length > 0) {
+      const { count } = await serviceClient
+        .from('responses')
+        .select('id', { count: 'exact', head: true })
+        .in('review_id', reviewIds)
+      monthlyCount = count ?? 0
+    }
+
+    if (monthlyCount >= monthlyLimit) {
+      return NextResponse.json({
+        error:   'plan_limit',
+        message: `Seu plano Free permite ${monthlyLimit} respostas por mês. Faça upgrade para continuar.`,
+        limit:   monthlyLimit,
+        used:    monthlyCount,
+      }, { status: 403 })
+    }
   }
 
   // ── Gerar resposta com IA ─────────────────────────────────────────────────

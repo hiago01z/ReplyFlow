@@ -4,8 +4,9 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const schema = z.object({
-  orgName: z.string().min(2).max(100).optional(),
-  userName: z.string().max(100).optional(),
+  orgName:   z.string().min(2).max(100).optional(),
+  userName:  z.string().max(100).optional(),
+  whatsapp:  z.string().max(20).optional().nullable(),
 });
 
 export async function PATCH(request: Request) {
@@ -46,12 +47,13 @@ export async function PATCH(request: Request) {
     );
   }
 
-  if (parsed.data.userName !== undefined) {
+  const userUpdate: Record<string, unknown> = {};
+  if (parsed.data.userName !== undefined) userUpdate.name     = parsed.data.userName;
+  if (parsed.data.whatsapp  !== undefined) userUpdate.whatsapp = parsed.data.whatsapp;
+
+  if (Object.keys(userUpdate).length > 0) {
     updates.push(
-      serviceClient
-        .from("users")
-        .update({ name: parsed.data.userName })
-        .eq("id", user.id)
+      serviceClient.from("users").update(userUpdate).eq("id", user.id)
     );
   }
 

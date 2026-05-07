@@ -26,7 +26,7 @@ export default async function SettingsPage() {
 
       <SettingsForm
         organization={org}
-        user={{ id: user!.id, name: userRecord?.name ?? null, email: userRecord?.email ?? user!.email ?? "", whatsapp: userRecord?.whatsapp ?? null }}
+        user={{ id: user!.id, name: userRecord?.name ?? null, email: userRecord?.email ?? user!.email ?? "" }}
       />
     </div>
   );

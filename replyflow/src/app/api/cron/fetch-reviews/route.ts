@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { GoogleMyBusinessClient } from '@/lib/google/myBusiness'
 import { generateReviewResponse } from '@/lib/openai/generateResponse'
-import { sendNegativeReviewAlert } from '@/lib/email/alerts'
+import { sendNegativeReviewAlert, sendWhatsAppAlert } from '@/lib/email/alerts'
 import type { LocationNiche, LocationTone } from '@/types'
 
 // ─── Proteção de segurança ────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   // Buscar locais ativos com Google conectado
   const { data: locations, error } = await serviceClient
     .from('locations')
-    .select('*, organization:organizations(id, plan)')
+    .select('*, organization:organizations(id, plan, subscription_status)')
     .eq('active', true)
     .not('google_access_token', 'is', null)
     .not('google_location_name', 'is', null)
@@ -101,6 +101,10 @@ export async function GET(request: Request) {
             .single()
 
           if (orgUser?.email) {
+            const org = location.organization as unknown as { plan: string; subscription_status: string } | null
+            const isProOrAgency = org?.plan === 'pro' || org?.plan === 'agency'
+
+            // E-mail para todos os planos
             await sendNegativeReviewAlert({
               to:           orgUser.email,
               businessName: location.name,
@@ -108,13 +112,31 @@ export async function GET(request: Request) {
               rating,
               content:      gmbReview.comment ?? '',
               reviewId:     inserted.id,
-            }).catch(() => null) // nunca quebrar o cron por falha de e-mail
+            }).catch(() => null)
 
             await serviceClient.from('alerts').insert({
               review_id: inserted.id,
               channel:   'email',
               recipient: orgUser.email,
             })
+
+            // WhatsApp apenas para Pro/Agency com número cadastrado
+            if (isProOrAgency && orgUser.whatsapp) {
+              await sendWhatsAppAlert({
+                phone:        orgUser.whatsapp,
+                businessName: location.name,
+                authorName:   gmbReview.reviewer.displayName,
+                rating,
+                content:      gmbReview.comment ?? '',
+                reviewId:     inserted.id,
+              }).catch(() => null)
+
+              await serviceClient.from('alerts').insert({
+                review_id: inserted.id,
+                channel:   'whatsapp',
+                recipient: orgUser.whatsapp,
+              })
+            }
 
             results.alertsSent++
           }
