@@ -1,160 +1,190 @@
 # ============================================================
-# ReplyFlow — Script de execução local
+# ReplyFlow — Script de execução local (PC + Mobile)
 # Uso: .\dev.ps1
 # ============================================================
 
 $ErrorActionPreference = "Stop"
 $ROOT = $PSScriptRoot
+$PORT = 3000
 
 function Write-Step([string]$msg) {
-    Write-Host "`n⚡ $msg" -ForegroundColor Cyan
+    Write-Host "`n  $msg" -ForegroundColor Cyan
 }
 function Write-OK([string]$msg) {
-    Write-Host "  ✓ $msg" -ForegroundColor Green
+    Write-Host "  [OK] $msg" -ForegroundColor Green
 }
 function Write-Warn([string]$msg) {
-    Write-Host "  ⚠  $msg" -ForegroundColor Yellow
+    Write-Host "  [!]  $msg" -ForegroundColor Yellow
 }
 function Write-Err([string]$msg) {
-    Write-Host "  ✗ $msg" -ForegroundColor Red
+    Write-Host "  [X]  $msg" -ForegroundColor Red
 }
 
+Clear-Host
 Write-Host ""
-Write-Host "============================================================" -ForegroundColor Magenta
-Write-Host "  ⚡ ReplyFlow — Ambiente de Desenvolvimento Local" -ForegroundColor Magenta
-Write-Host "============================================================" -ForegroundColor Magenta
+Write-Host "  ============================================================" -ForegroundColor Magenta
+Write-Host "   *** ReplyFlow  ***  Ambiente de Desenvolvimento Local" -ForegroundColor Magenta
+Write-Host "  ============================================================" -ForegroundColor Magenta
 
 # ----------------------------------------------------------
 # 1. Verificar Node.js
 # ----------------------------------------------------------
 Write-Step "Verificando Node.js..."
 try {
-    $nodeVersion = node --version 2>&1
-    if ($LASTEXITCODE -ne 0) { throw "Node não encontrado" }
+    $nodeVersion = (node --version 2>&1).ToString().Trim()
+    if ($LASTEXITCODE -ne 0) { throw }
     Write-OK "Node.js $nodeVersion"
 } catch {
-    Write-Err "Node.js não encontrado. Instale em https://nodejs.org (v20+)"
+    Write-Err "Node.js nao encontrado. Instale em https://nodejs.org (v20+)"
     exit 1
 }
 
 # ----------------------------------------------------------
 # 2. Verificar .env.local
 # ----------------------------------------------------------
-Write-Step "Verificando variáveis de ambiente..."
-$envFile = Join-Path $ROOT ".env.local"
+Write-Step "Verificando variaveis de ambiente..."
+$envFile    = Join-Path $ROOT ".env.local"
 $envExample = Join-Path $ROOT ".env.example"
 
 if (-not (Test-Path $envFile)) {
     if (Test-Path $envExample) {
         Copy-Item $envExample $envFile
         Write-Warn ".env.local criado a partir do .env.example"
-        Write-Warn "IMPORTANTE: Preencha as variáveis em .env.local antes de continuar."
+        Write-Warn "IMPORTANTE: Preencha as variaveis em .env.local antes de continuar."
         Write-Host ""
         Write-Host "  Abrir .env.local para editar? (S/N) " -NoNewline -ForegroundColor Yellow
-        $resposta = Read-Host
-        if ($resposta -match "^[Ss]$") {
-            Start-Process notepad $envFile
-        }
-        Write-Host ""
+        $r = Read-Host
+        if ($r -match "^[Ss]$") { Start-Process notepad $envFile }
         Write-Host "  Pressione ENTER quando .env.local estiver preenchido..." -ForegroundColor Yellow
         Read-Host | Out-Null
     } else {
-        Write-Err ".env.example não encontrado. Verifique a estrutura do projeto."
+        Write-Err ".env.example nao encontrado."
         exit 1
     }
 } else {
-    # Validar variáveis críticas
     $envContent = Get-Content $envFile -Raw
-    $missing = @()
-
-    @(
-        "NEXT_PUBLIC_SUPABASE_URL",
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-        "SUPABASE_SERVICE_ROLE_KEY",
-        "OPENAI_API_KEY",
-        "STRIPE_SECRET_KEY"
-    ) | ForEach-Object {
-        if ($envContent -notmatch "$_=(?!your_|sk-\.\.\.|sk_test_\.\.\.|whsec_\.\.\.)") {
-            # Chave existe mas pode estar com valor placeholder
-        }
-        if ($envContent -notmatch "$_=\S") {
-            $missing += $_
-        }
-    }
+    $missing = @("NEXT_PUBLIC_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_ANON_KEY",
+                 "SUPABASE_SERVICE_ROLE_KEY","OPENAI_API_KEY","STRIPE_SECRET_KEY") |
+               Where-Object { $envContent -notmatch "$_=\S" }
 
     if ($missing.Count -gt 0) {
-        Write-Warn "Variáveis não preenchidas em .env.local:"
-        $missing | ForEach-Object { Write-Host "    - $_" -ForegroundColor Yellow }
-        Write-Warn "O app pode não funcionar corretamente."
+        Write-Warn "Variaveis nao preenchidas:"
+        $missing | ForEach-Object { Write-Host "       - $_" -ForegroundColor Yellow }
     } else {
-        Write-OK ".env.local encontrado e configurado"
+        Write-OK ".env.local configurado"
     }
 }
 
 # ----------------------------------------------------------
-# 3. Instalar dependências
+# 3. Instalar dependencias
 # ----------------------------------------------------------
-Write-Step "Verificando dependências..."
-$nodeModules = Join-Path $ROOT "node_modules"
-
-if (-not (Test-Path $nodeModules)) {
-    Write-Warn "node_modules não encontrado. Instalando dependências (isso pode levar alguns minutos)..."
+Write-Step "Verificando dependencias..."
+if (-not (Test-Path (Join-Path $ROOT "node_modules"))) {
+    Write-Warn "Instalando dependencias (aguarde)..."
     Push-Location $ROOT
     npm install
-    if ($LASTEXITCODE -ne 0) {
-        Write-Err "Falha ao instalar dependências. Verifique os erros acima."
-        Pop-Location
-        exit 1
-    }
+    if ($LASTEXITCODE -ne 0) { Write-Err "Falha no npm install."; Pop-Location; exit 1 }
     Pop-Location
-    Write-OK "Dependências instaladas com sucesso"
+    Write-OK "Dependencias instaladas"
 } else {
-    Write-OK "node_modules já existe (pular instalação)"
+    Write-OK "node_modules ja existe"
 }
 
 # ----------------------------------------------------------
-# 4. Verificar porta 3000
+# 4. Liberar porta
 # ----------------------------------------------------------
-Write-Step "Verificando porta 3000..."
-$portInUse = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue
-
+Write-Step "Verificando porta $PORT..."
+$portInUse = Get-NetTCPConnection -LocalPort $PORT -State Listen -ErrorAction SilentlyContinue
 if ($portInUse) {
-    Write-Warn "Porta 3000 já está em uso."
-    Write-Host "  Matar processo na porta 3000? (S/N) " -NoNewline -ForegroundColor Yellow
-    $kill = Read-Host
-    if ($kill -match "^[Ss]$") {
-        $portInUse | ForEach-Object {
-            Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
-        }
+    Write-Warn "Porta $PORT em uso."
+    Write-Host "  Matar processo? (S/N) " -NoNewline -ForegroundColor Yellow
+    if ((Read-Host) -match "^[Ss]$") {
+        $portInUse | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }
         Write-OK "Processo encerrado"
     }
 } else {
-    Write-OK "Porta 3000 disponível"
+    Write-OK "Porta $PORT disponivel"
 }
 
 # ----------------------------------------------------------
-# 5. Iniciar servidor de desenvolvimento
+# 5. Detectar IP da rede local (para acesso mobile)
 # ----------------------------------------------------------
-Write-Step "Iniciando servidor Next.js..."
+$localIP = $null
+try {
+    # Pega o IP da interface ativa conectada a uma rede (ignora loopback/VPN/WSL)
+    $iface = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+             Where-Object {
+                 $_.IPAddress -notmatch "^127\." -and
+                 $_.IPAddress -notmatch "^169\.254\." -and
+                 $_.PrefixOrigin -in @("Dhcp","Manual") -and
+                 $_.InterfaceAlias -notmatch "WSL|Loopback|vEthernet"
+             } |
+             Sort-Object -Property { [int]($_.IPAddress -split '\.')[2] } |
+             Select-Object -First 1
+
+    if ($iface) { $localIP = $iface.IPAddress }
+} catch { }
+
+# ----------------------------------------------------------
+# 6. Exibir URLs e iniciar servidor
+# ----------------------------------------------------------
 Write-Host ""
-Write-Host "  URL local:  http://localhost:3000" -ForegroundColor White
-Write-Host "  Dashboard:  http://localhost:3000/dashboard" -ForegroundColor White
-Write-Host "  Login:      http://localhost:3000/login" -ForegroundColor White
+Write-Host "  ============================================================" -ForegroundColor DarkCyan
+Write-Host "   SERVIDOR PRONTO — acesse nos links abaixo:" -ForegroundColor DarkCyan
+Write-Host "  ============================================================" -ForegroundColor DarkCyan
 Write-Host ""
-Write-Host "  Pressione Ctrl+C para parar o servidor." -ForegroundColor DarkGray
+Write-Host "   PC (localhost)" -ForegroundColor DarkGray
+Write-Host "   http://localhost:$PORT" -ForegroundColor White
+Write-Host "   http://localhost:$PORT/dashboard" -ForegroundColor White
 Write-Host ""
 
-# Abrir navegador após 4 segundos (tempo para o servidor subir)
+if ($localIP) {
+    Write-Host "   Mobile / outros dispositivos na rede Wi-Fi" -ForegroundColor DarkGray
+    Write-Host "   http://${localIP}:${PORT}" -ForegroundColor Green
+    Write-Host "   http://${localIP}:${PORT}/dashboard" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "   >>> Aponte a camera do celular para o QR Code abaixo <<<" -ForegroundColor Yellow
+    Write-Host ""
+
+    $mobileURL = "http://${localIP}:${PORT}"
+
+    # Gera QR Code no terminal via qrcode-terminal (devDependency)
+    $qrNode = @"
+try {
+  const qr = require('./node_modules/qrcode-terminal');
+  qr.generate('$mobileURL', { small: true });
+} catch(e) {
+  process.stdout.write('\n  (instale qrcode-terminal para exibir o QR: npm i -D qrcode-terminal)\n');
+}
+"@
+    node -e $qrNode
+} else {
+    Write-Warn "IP da rede nao detectado (Wi-Fi desconectado?)"
+    Write-Warn "Conecte ao Wi-Fi e reinicie o script para ver o link mobile."
+    Write-Host ""
+}
+
+Write-Host "  ============================================================" -ForegroundColor DarkGray
+Write-Host "   Ctrl+C para parar o servidor" -ForegroundColor DarkGray
+Write-Host "  ============================================================" -ForegroundColor DarkGray
+Write-Host ""
+
+# Abre navegador após o servidor subir
 $job = Start-Job -ScriptBlock {
+    param($port)
     Start-Sleep -Seconds 4
-    Start-Process "http://localhost:3000"
-}
+    Start-Process "http://localhost:$port"
+} -ArgumentList $PORT
 
+# Inicia Next.js com hostname 0.0.0.0 para aceitar conexoes da rede local
 Push-Location $ROOT
 try {
-    npm run dev
+    npx next dev --hostname 0.0.0.0 --port $PORT
 } finally {
     Pop-Location
     Stop-Job $job -ErrorAction SilentlyContinue
     Remove-Job $job -ErrorAction SilentlyContinue
+    Write-Host ""
+    Write-Host "  Servidor encerrado." -ForegroundColor DarkGray
+    Write-Host ""
 }
