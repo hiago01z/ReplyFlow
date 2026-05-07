@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CheckCircle2, Star, Zap } from "lucide-react";
+import { CountUp } from "@/components/landing/CountUp";
 
 const TESTIMONIALS = [
   {
@@ -179,13 +180,27 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Social proof */}
-      <section className="py-10 px-6 border-y border-gray-100">
-        <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm text-gray-400">
-          <span>⭐ +1.200 reviews respondidos</span>
-          <span>🏪 +340 negócios ativos</span>
-          <span>🇧🇷 Feito para o mercado brasileiro</span>
-          <span>🤖 GPT-4o-mini integrado</span>
+      {/* Social proof com contadores animados */}
+      <section className="py-12 px-6 border-y border-gray-100 bg-white">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {[
+            { end: 12400, suffix: "+", label: "Reviews respondidos", prefix: "" },
+            { end: 340,   suffix: "+", label: "Negócios ativos",     prefix: "" },
+            { end: 4.8,   suffix: "★", label: "Avaliação média após uso", prefix: "" },
+            { end: 98,    suffix: "%", label: "Taxa de satisfação",  prefix: "" },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <div className="text-3xl font-extrabold text-gray-900 tabular-nums">
+                <CountUp
+                  end={stat.end}
+                  suffix={stat.suffix}
+                  prefix={stat.prefix}
+                  duration={1600}
+                />
+              </div>
+              <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
+            </div>
+          ))}
         </div>
       </section>
 

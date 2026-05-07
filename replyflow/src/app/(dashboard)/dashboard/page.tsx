@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Clock, CheckCircle2, AlertTriangle, MapPin, ArrowRight, Star, Sparkles } from "lucide-react";
+import { Clock, CheckCircle2, AlertTriangle, MapPin, ArrowRight, Star, Sparkles, BarChart2 } from "lucide-react";
 import { DemoSeedButton } from "@/components/dashboard/DemoSeedButton";
 
 export default async function DashboardPage() {
@@ -19,11 +19,12 @@ export default async function DashboardPage() {
 
   const { data: locations } = await serviceClient
     .from("locations")
-    .select("id")
+    .select("id, auto_publish")
     .eq("organization_id", orgId)
     .eq("active", true);
 
   const locationIds = locations?.map((l) => l.id) ?? [];
+  const autoPublishCount = (locations ?? []).filter((l) => l.auto_publish).length;
 
   const [{ count: totalPending }, { count: totalPublished }, { count: totalNegative }, { count: totalTotal }] =
     await Promise.all([
@@ -134,6 +135,48 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Auto-publish banner */}
+      {autoPublishCount > 0 && (
+        <div className="card p-4 flex items-center gap-3 border-indigo-100 bg-indigo-50/60 mb-2">
+          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+            <Sparkles size={15} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-indigo-900">
+              Auto-resposta ativa em {autoPublishCount} {autoPublishCount === 1 ? "local" : "locais"}
+            </p>
+            <p className="text-xs text-indigo-700 mt-0.5">
+              A IA está respondendo reviews automaticamente a cada 30 minutos.
+            </p>
+          </div>
+          <Link
+            href="/locations"
+            className="text-xs font-medium text-indigo-600 hover:text-indigo-800 shrink-0"
+          >
+            Gerenciar
+          </Link>
+        </div>
+      )}
+
+      {/* Analytics shortcut — aparece quando há reviews */}
+      {(totalTotal ?? 0) > 0 && (
+        <Link
+          href="/analytics"
+          className="card p-4 flex items-center gap-3 hover:shadow-md transition-shadow group mb-2"
+        >
+          <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center shrink-0">
+            <BarChart2 size={15} className="text-violet-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900">Ver relatório completo</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Gráficos de tendência, distribuição de estrelas e taxa de resposta.
+            </p>
+          </div>
+          <ArrowRight size={15} className="text-gray-400 group-hover:text-indigo-600 transition-colors shrink-0" />
+        </Link>
       )}
 
       {/* Demo banner — só aparece quando não há reviews ainda */}

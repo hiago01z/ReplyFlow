@@ -60,17 +60,34 @@ export function ReviewCard({ review }: ReviewCardProps) {
     setGenerating(true);
     try {
       const res = await fetch(`/api/reviews/${review.id}/generate`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+
       if (res.ok) {
-        const data = await res.json();
-        setResponseText(data.response.content);
+        const content = data?.response?.content;
+        if (!content) {
+          toastError("Erro ao gerar", "A IA não retornou conteúdo. Tente novamente.");
+          return;
+        }
+        setResponseText(content);
         router.refresh();
         success("Resposta gerada!", "A IA criou uma resposta personalizada.");
       } else {
-        toastError("Erro ao gerar", "Não foi possível gerar a resposta. Tente novamente.");
+        const msg = data?.error ?? "Erro desconhecido";
+        if (res.status === 401) {
+          toastError("Sessão expirada", "Faça login novamente.");
+        } else if (res.status === 403) {
+          toastError("Sem permissão", "Você não tem acesso a este review.");
+        } else if (res.status === 502) {
+          toastError("Erro na IA", "Falha ao conectar com OpenAI. Verifique a chave de API.");
+        } else {
+          toastError(`Erro ${res.status}`, msg);
+        }
       }
     } catch {
-      toastError("Erro ao gerar", "Verifique sua conexão e tente novamente.");
-    } finally { setGenerating(false); }
+      toastError("Erro de rede", "Verifique sua conexão e tente novamente.");
+    } finally {
+      setGenerating(false);
+    }
   }
 
   async function handlePublish() {

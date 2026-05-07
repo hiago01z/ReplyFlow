@@ -3,40 +3,38 @@
 # Uso: .\dev.ps1   ou   clique duplo em dev.bat
 # ============================================================
 
-$ErrorActionPreference = "Stop"
+# Continue (nao Stop) para que o finally rode limpo no Ctrl+C
+$ErrorActionPreference = "Continue"
 $ROOT = $PSScriptRoot
 $PORT = 3000
 
-function Write-Step { param([string]$msg); Write-Host "" }
+function Write-Step { param([string]$msg); Write-Host "`n  $msg" -ForegroundColor Cyan }
 function Write-OK   { param([string]$msg); Write-Host "  [OK] $msg" -ForegroundColor Green }
 function Write-Warn { param([string]$msg); Write-Host "  [!]  $msg" -ForegroundColor Yellow }
 function Write-Err  { param([string]$msg); Write-Host "  [X]  $msg" -ForegroundColor Red }
-function Write-Info { param([string]$msg); Write-Host "       $msg" -ForegroundColor Cyan }
 
 Clear-Host
 Write-Host ""
 Write-Host "  =============================================" -ForegroundColor Magenta
-Write-Host "   ReplyFlow  -  Ambiente de Desenvolvimento   " -ForegroundColor Magenta
+Write-Host "   ReplyFlow  -  Ambiente de Desenvolvimento  " -ForegroundColor Magenta
 Write-Host "  =============================================" -ForegroundColor Magenta
 
 # ----------------------------------------------------------
 # 1. Verificar Node.js
 # ----------------------------------------------------------
-Write-Host "`n  Verificando Node.js..." -ForegroundColor Cyan
-try {
-    $nodeVersion = (node --version 2>&1).ToString().Trim()
-    if ($LASTEXITCODE -ne 0) { throw "exit $LASTEXITCODE" }
-    Write-OK "Node.js $nodeVersion"
-} catch {
+Write-Step "Verificando Node.js..."
+$nodeVersion = node --version 2>&1
+if ($LASTEXITCODE -ne 0) {
     Write-Err "Node.js nao encontrado. Instale em https://nodejs.org (v20+)"
     Read-Host "`n  Pressione ENTER para sair"
     exit 1
 }
+Write-OK "Node.js $($nodeVersion.ToString().Trim())"
 
 # ----------------------------------------------------------
 # 2. Verificar .env.local
 # ----------------------------------------------------------
-Write-Host "`n  Verificando variaveis de ambiente..." -ForegroundColor Cyan
+Write-Step "Verificando variaveis de ambiente..."
 $envFile    = Join-Path $ROOT ".env.local"
 $envExample = Join-Path $ROOT ".env.example"
 
@@ -78,10 +76,10 @@ if (-not (Test-Path $envFile)) {
 # ----------------------------------------------------------
 # 3. Instalar dependencias
 # ----------------------------------------------------------
-Write-Host "`n  Verificando dependencias..." -ForegroundColor Cyan
+Write-Step "Verificando dependencias..."
 $nextBin = Join-Path $ROOT "node_modules\next\dist\bin\next"
 if (-not (Test-Path $nextBin)) {
-    Write-Warn "Dependencias ausentes ou incompletas. Instalando (aguarde)..."
+    Write-Warn "Dependencias ausentes. Instalando (aguarde)..."
     Push-Location $ROOT
     npm install
     $exitCode = $LASTEXITCODE
@@ -99,15 +97,18 @@ if (-not (Test-Path $nextBin)) {
 # ----------------------------------------------------------
 # 4. Liberar porta
 # ----------------------------------------------------------
-Write-Host "`n  Verificando porta $PORT..." -ForegroundColor Cyan
+Write-Step "Verificando porta $PORT..."
+
 $portInUse = Get-NetTCPConnection -LocalPort $PORT -State Listen -ErrorAction SilentlyContinue
 if ($portInUse) {
     Write-Warn "Porta $PORT ja esta em uso."
     Write-Host "  Encerrar o processo? (S/N) " -NoNewline -ForegroundColor Yellow
     if ((Read-Host) -match "^[Ss]$") {
         $portInUse | ForEach-Object {
+            $null = taskkill /F /T /PID $_.OwningProcess 2>$null
             Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
         }
+        Start-Sleep -Milliseconds 500
         Write-OK "Processo encerrado"
     }
 } else {
@@ -131,7 +132,7 @@ try {
 } catch { }
 
 # ----------------------------------------------------------
-# 6. Exibir URLs
+# 6. Exibir URLs + QR Code
 # ----------------------------------------------------------
 Write-Host ""
 Write-Host "  =============================================" -ForegroundColor DarkCyan
@@ -153,6 +154,8 @@ if ($localIP) {
     $qrScript = Join-Path $ROOT "scripts\qr.js"
     if (Test-Path $qrScript) {
         node $qrScript "http://${localIP}:${PORT}"
+    } else {
+        Write-Warn "scripts\qr.js nao encontrado - rode: npm install qrcode-terminal --save-dev"
     }
     Write-Host ""
 } else {
@@ -165,22 +168,65 @@ Write-Host "   Pressione Ctrl+C para parar o servidor" -ForegroundColor DarkGray
 Write-Host "  =============================================" -ForegroundColor DarkGray
 Write-Host ""
 
-# Abre navegador apos o servidor subir
-$job = Start-Job -ScriptBlock {
-    param($p)
+# ----------------------------------------------------------
+# 7. Job paralelo: detecta PID do Next.js apos porta subir
+# ----------------------------------------------------------
+$pidDetectorJob = Start-Job -ScriptBlock {
+    param([int]$port)
+    for ($i = 0; $i -lt 60; $i++) {
+        Start-Sleep -Seconds 1
+        $conn = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
+        if ($conn) { return $conn[0].OwningProcess }
+    }
+    return $null
+} -ArgumentList $PORT
+
+# ----------------------------------------------------------
+# 8. Job paralelo: abre navegador apos 5s
+# ----------------------------------------------------------
+$browserJob = Start-Job -ScriptBlock {
+    param([int]$p)
     Start-Sleep -Seconds 5
     Start-Process "http://localhost:$p"
 } -ArgumentList $PORT
 
-# Inicia Next.js em 0.0.0.0 para aceitar conexoes da rede
+# ----------------------------------------------------------
+# 9. Iniciar Next.js
+#    Usa next.cmd (wrapper Windows do npm) em vez do script bash sem extensao
+# ----------------------------------------------------------
 Push-Location $ROOT
 try {
-    npx next dev --hostname 0.0.0.0 --port $PORT
+    $nextCmd = Join-Path $ROOT "node_modules\.bin\next.cmd"
+    & $nextCmd dev --hostname 0.0.0.0 --port $PORT
+
 } finally {
+    # Recuperar PID detectado pelo job paralelo
+    $detectedPID = Receive-Job $pidDetectorJob -ErrorAction SilentlyContinue
+    Stop-Job  $pidDetectorJob -ErrorAction SilentlyContinue
+    Remove-Job $pidDetectorJob -ErrorAction SilentlyContinue
+
+    # Matar arvore de processos do Next.js pelo PID registrado
+    if ($detectedPID) {
+        $null = taskkill /F /T /PID $detectedPID 2>$null
+    }
+
+    # Garantia extra: matar qualquer processo ainda na porta
+    $leftOver = Get-NetTCPConnection -LocalPort $PORT -State Listen -ErrorAction SilentlyContinue
+    if ($leftOver) {
+        $leftOver | ForEach-Object {
+            $null = taskkill /F /T /PID $_.OwningProcess 2>$null
+            Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
+        }
+        Write-Host "  Processos residuais na porta $PORT encerrados." -ForegroundColor DarkGray
+    }
+
+    # Limpar job do navegador
+    Stop-Job  $browserJob -ErrorAction SilentlyContinue
+    Remove-Job $browserJob -ErrorAction SilentlyContinue
+
     Pop-Location
-    Stop-Job  $job -ErrorAction SilentlyContinue
-    Remove-Job $job -ErrorAction SilentlyContinue
+
     Write-Host ""
-    Write-Host "  Servidor encerrado." -ForegroundColor DarkGray
+    Write-Host "  Servidor encerrado. Porta $PORT liberada." -ForegroundColor DarkGray
     Write-Host ""
 }

@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Star, MapPin, CreditCard,
-  Settings, LogOut, Zap, Menu, X,
+  Settings, LogOut, Zap, Menu, X, BarChart2,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@/types";
 
@@ -21,6 +22,7 @@ interface SidebarProps {
 const NAV_ITEMS = [
   { href: "/dashboard",  label: "Visão Geral",    Icon: LayoutDashboard },
   { href: "/reviews",    label: "Reviews",         Icon: Star },
+  { href: "/analytics",  label: "Analytics",       Icon: BarChart2 },
   { href: "/locations",  label: "Meus Locais",     Icon: MapPin },
   { href: "/billing",    label: "Plano & Billing", Icon: CreditCard },
   { href: "/settings",   label: "Configurações",   Icon: Settings },
@@ -110,6 +112,7 @@ function SidebarContent({
           </div>
           <span className="text-sm text-gray-700 truncate flex-1 min-w-0">{userName}</span>
         </div>
+        <ThemeToggle variant="full" />
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors"
