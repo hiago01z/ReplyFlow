@@ -152,6 +152,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 11 (Deploy Vercel + cron-job.org) | ✅ Concluída |
 | Etapa 6 — Sprint 12 (Stripe + Google OAuth prod) | ✅ Concluída |
 | Etapa 6 — Sprint 13 (SEO + Rate Limiting + Vercel Analytics) | ✅ Concluída |
+| Etapa 6 — Sprint 14 (Dashboard Sparkline + TS/deps fixes) | ✅ Concluída |
 
 ---
 
