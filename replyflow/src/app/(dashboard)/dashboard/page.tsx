@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Clock, CheckCircle2, AlertTriangle, MapPin, ArrowRight, Star, Sparkles, BarChart2 } from "lucide-react";
 import { DemoSeedButton } from "@/components/dashboard/DemoSeedButton";
+import { WeeklySparkline } from "@/components/dashboard/WeeklySparkline";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -37,6 +38,51 @@ export default async function DashboardPage() {
   const replyRate = totalTotal && totalTotal > 0
     ? Math.round(((totalPublished ?? 0) / totalTotal) * 100)
     : 0;
+
+  // ── Sparkline: últimos 7 + 7 dias para tendência ─────────────────────────
+  const now = new Date();
+  const day14Ago = new Date(now); day14Ago.setDate(now.getDate() - 14);
+  const day7Ago  = new Date(now); day7Ago.setDate(now.getDate() - 7);
+
+  const { data: sparkRows } = locationIds.length > 0
+    ? await serviceClient
+        .from("reviews")
+        .select("created_at")
+        .in("location_id", locationIds)
+        .gte("created_at", day14Ago.toISOString())
+    : { data: [] as { created_at: string }[] };
+
+  // Build daily buckets for last 7 days
+  const weekBuckets: Record<string, number> = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    weekBuckets[d.toISOString().slice(0, 10)] = 0;
+  }
+
+  let weekTotal = 0;
+  let prevWeekTotal = 0;
+  for (const row of sparkRows ?? []) {
+    const key = row.created_at.slice(0, 10);
+    const d = new Date(key + "T00:00:00");
+    if (d >= day7Ago) {
+      weekBuckets[key] = (weekBuckets[key] ?? 0) + 1;
+      weekTotal++;
+    } else {
+      prevWeekTotal++;
+    }
+  }
+
+  const sparkData = Object.entries(weekBuckets)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, total]) => ({
+      label: new Date(key + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+      total,
+    }));
+
+  const sparkTrend = prevWeekTotal === 0
+    ? (weekTotal > 0 ? 100 : 0)
+    : Math.round(((weekTotal - prevWeekTotal) / prevWeekTotal) * 100);
 
   // Detectar se há reviews de demo carregados
   const { count: demoCount } = locationIds.length > 0
@@ -118,6 +164,13 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* Weekly sparkline */}
+      {locationIds.length > 0 && (
+        <div className="mb-6">
+          <WeeklySparkline data={sparkData} weekTotal={weekTotal} trend={sparkTrend} />
+        </div>
+      )}
 
       {/* Reply rate banner */}
       {totalTotal !== null && totalTotal > 0 && (
