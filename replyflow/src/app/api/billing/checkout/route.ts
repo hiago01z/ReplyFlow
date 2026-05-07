@@ -38,6 +38,10 @@ export async function POST(request: Request) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.replyflow.com.br";
 
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'Stripe não configurado. Adicione STRIPE_SECRET_KEY nas variáveis de ambiente.' }, { status: 503 })
+  }
+
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],

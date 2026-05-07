@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { stripe, STRIPE_PLANS } from "@/lib/stripe/client";
+import { STRIPE_PLANS } from "@/lib/stripe/client";
 import Link from "next/link";
 import { CreditCard, CheckCircle2, Zap, Crown, Building2, ExternalLink } from "lucide-react";
 

@@ -24,6 +24,10 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/billing", request.url));
   }
 
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'Stripe não configurado.' }, { status: 503 })
+  }
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.replyflow.com.br";
 
   const portalSession = await stripe.billingPortal.sessions.create({
