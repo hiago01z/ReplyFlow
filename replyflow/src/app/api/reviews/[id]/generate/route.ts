@@ -124,10 +124,31 @@ export async function POST(
     })
     content = result.content
     tokensUsed = result.tokensUsed
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[generate] OpenAI error:', err)
+
+    // Detectar erros específicos da OpenAI
+    const apiErr = err as { status?: number; code?: string; message?: string }
+
+    if (apiErr?.status === 429 || apiErr?.code === 'insufficient_quota') {
+      return NextResponse.json(
+        {
+          error:   'openai_quota',
+          message: 'Créditos OpenAI esgotados. Acesse platform.openai.com/billing para adicionar saldo.',
+        },
+        { status: 402 }
+      )
+    }
+
+    if (apiErr?.status === 401 || apiErr?.code === 'invalid_api_key') {
+      return NextResponse.json(
+        { error: 'openai_auth', message: 'Chave da OpenAI inválida. Verifique OPENAI_API_KEY.' },
+        { status: 502 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'AI generation failed. Check OPENAI_API_KEY.' },
+      { error: 'AI generation failed', message: apiErr?.message ?? 'Erro desconhecido na IA.' },
       { status: 502 }
     )
   }

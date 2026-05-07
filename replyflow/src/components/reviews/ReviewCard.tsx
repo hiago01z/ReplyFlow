@@ -67,6 +67,16 @@ export function ReviewCard({ review }: ReviewCardProps) {
         return;
       }
 
+      if (res.status === 402 && data?.error === 'openai_quota') {
+        toastError("Créditos OpenAI esgotados 💳", data.message ?? "Acesse platform.openai.com/billing para recarregar.");
+        return;
+      }
+
+      if (res.status === 429 && data?.error === 'rate_limit') {
+        toastError("Muitas requisições ⏳", "Aguarde alguns segundos e tente novamente.");
+        return;
+      }
+
       if (res.ok) {
         const content = data?.response?.content;
         if (!content) {
@@ -77,13 +87,15 @@ export function ReviewCard({ review }: ReviewCardProps) {
         router.refresh();
         success("Resposta gerada!", "A IA criou uma resposta personalizada.");
       } else {
-        const msg = data?.error ?? "Erro desconhecido";
+        const msg = data?.message ?? data?.error ?? "Erro desconhecido";
         if (res.status === 401) {
           toastError("Sessão expirada", "Faça login novamente.");
         } else if (res.status === 403) {
           toastError("Sem permissão", "Você não tem acesso a este review.");
+        } else if (res.status === 502 && data?.error === 'openai_auth') {
+          toastError("Chave OpenAI inválida 🔑", "Verifique a variável OPENAI_API_KEY.");
         } else if (res.status === 502) {
-          toastError("Erro na IA", "Falha ao conectar com OpenAI. Verifique a chave de API.");
+          toastError("Erro na IA", msg);
         } else {
           toastError(`Erro ${res.status}`, msg);
         }

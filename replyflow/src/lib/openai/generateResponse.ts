@@ -3,6 +3,10 @@ import type { LocationNiche, LocationTone } from '@/types'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
+// Modelo configurável via env var — padrão gpt-4o-mini (barato e rápido)
+// Para usar gpt-4.1-mini: defina OPENAI_MODEL=gpt-4.1-mini no .env.local
+const OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4o-mini'
+
 interface GenerateResponseParams {
   reviewContent: string
   rating: number
@@ -62,7 +66,7 @@ ${isNegative ? 'ATENÇÃO: Review negativo. Priorize empatia e resolução.' : '
 Escreva a resposta agora:`
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: OPENAI_MODEL,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
