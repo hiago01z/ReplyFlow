@@ -42,6 +42,7 @@ export default function OnboardingPage() {
   const [locationName,  setLocationName]  = useState("");
   const [niche,         setNiche]         = useState("outro");
   const [tone,          setTone]          = useState("amigavel");
+  const [locationId,    setLocationId]    = useState<string | null>(null);
 
   const stepIndex = STEPS.findIndex((s) => s.key === step);
 
@@ -58,6 +59,8 @@ export default function OnboardingPage() {
         body: JSON.stringify({ orgName, locationName, niche, tone }),
       });
       if (!res.ok) throw new Error();
+      const data = await res.json();
+      setLocationId(data.locationId ?? null);
       setStep("connect");
     } catch {
       setError("Algo deu errado. Tente novamente.");
@@ -238,7 +241,7 @@ export default function OnboardingPage() {
 
             <div className="space-y-3">
               <a
-                href="/api/google/auth"
+                href={locationId ? `/api/google/auth?locationId=${locationId}` : "/locations"}
                 className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold text-sm hover:bg-indigo-100 transition-colors"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">

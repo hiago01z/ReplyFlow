@@ -69,17 +69,16 @@ export async function POST(request: Request) {
   }
 
   // Criar primeiro local
-  const { error: locationError } = await serviceClient.from("locations").insert({
-    organization_id: orgId,
-    name: locationName,
-    niche,
-    tone,
-  });
+  const { data: location, error: locationError } = await serviceClient
+    .from("locations")
+    .insert({ organization_id: orgId, name: locationName, niche, tone })
+    .select("id")
+    .single();
 
-  if (locationError) {
+  if (locationError || !location) {
     console.error("[onboarding] location insert error:", locationError);
     return NextResponse.json({ error: "Failed to create location", detail: locationError?.message }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, locationId: location.id });
 }
