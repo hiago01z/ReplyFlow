@@ -13,24 +13,20 @@ export default async function SettingsPage() {
     .eq("id", user!.id)
     .single();
 
-  const org = userRecord?.organization as { id: string; name: string; plan: string } | null;
-
+  const org = userRecord?.organization as unknown as { id: string; name: string; plan: string } | null;
   if (!org) return null;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="mb-8">
+        <p className="text-xs font-medium text-indigo-600 uppercase tracking-widest mb-1">Conta</p>
         <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
-        <p className="text-gray-500 text-sm mt-1">Gerencie os dados da sua conta e empresa.</p>
+        <p className="text-sm text-gray-500 mt-1">Gerencie os dados da sua conta e empresa.</p>
       </div>
 
       <SettingsForm
         organization={org}
-        user={{
-          id: user!.id,
-          name: userRecord?.name ?? null,
-          email: userRecord?.email ?? user!.email ?? "",
-        }}
+        user={{ id: user!.id, name: userRecord?.name ?? null, email: userRecord?.email ?? user!.email ?? "" }}
       />
     </div>
   );

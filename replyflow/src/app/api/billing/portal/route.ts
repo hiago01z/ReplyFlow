@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     .eq("id", user.id)
     .single();
 
-  const org = userRecord?.organization as { stripe_customer_id: string | null } | null;
+  const org = userRecord?.organization as unknown as { stripe_customer_id: string | null } | null;
 
   if (!org?.stripe_customer_id) {
     return NextResponse.redirect(new URL("/billing", request.url));

@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     .eq("id", user.id)
     .single();
 
-  const org = userRecord?.organization as { id: string; stripe_customer_id: string | null } | null;
+  const org = userRecord?.organization as unknown as { id: string; stripe_customer_id: string | null } | null;
 
   if (!org) {
     return NextResponse.redirect(new URL("/onboarding", request.url));

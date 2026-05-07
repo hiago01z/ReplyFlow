@@ -53,7 +53,8 @@ export async function POST(request: Request) {
       .single();
 
     if (orgError || !org) {
-      return NextResponse.json({ error: "Failed to create organization" }, { status: 500 });
+      console.error("[onboarding] org insert error:", orgError);
+      return NextResponse.json({ error: "Failed to create organization", detail: orgError?.message }, { status: 500 });
     }
 
     orgId = org.id;
@@ -76,7 +77,8 @@ export async function POST(request: Request) {
   });
 
   if (locationError) {
-    return NextResponse.json({ error: "Failed to create location" }, { status: 500 });
+    console.error("[onboarding] location insert error:", locationError);
+    return NextResponse.json({ error: "Failed to create location", detail: locationError?.message }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

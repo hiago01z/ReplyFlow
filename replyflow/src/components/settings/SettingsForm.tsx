@@ -2,122 +2,94 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { useToast } from "@/components/ui/Toast";
+import { Building2, User, Mail } from "lucide-react";
 
 interface SettingsFormProps {
-  organization: {
-    id: string;
-    name: string;
-    plan: string;
-  };
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-  };
+  organization: { id: string; name: string; plan: string };
+  user: { id: string; name: string | null; email: string };
 }
 
 export function SettingsForm({ organization, user }: SettingsFormProps) {
   const router = useRouter();
-  const [orgName, setOrgName] = useState(organization.name);
+  const { success, error: toastError } = useToast();
+  const [orgName,  setOrgName]  = useState(organization.name);
   const [userName, setUserName] = useState(user.name ?? "");
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState("");
+  const [saving,   setSaving]   = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setError("");
-    setSaved(false);
-
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orgName, userName }),
       });
-
-      if (!res.ok) throw new Error("Falha ao salvar configurações.");
-
-      setSaved(true);
+      if (!res.ok) throw new Error();
+      success("Configurações salvas!", "Suas alterações foram salvas com sucesso.");
       router.refresh();
     } catch {
-      setError("Ocorreu um erro. Tente novamente.");
+      toastError("Erro ao salvar", "Ocorreu um erro. Tente novamente.");
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {saved && (
-        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700">
-          ✓ Configurações salvas com sucesso.
+    <form onSubmit={handleSubmit} className="max-w-xl space-y-5">
+      {/* Empresa */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Building2 size={16} className="text-gray-400" />
+          <h2 className="text-sm font-semibold text-gray-900">Empresa</h2>
         </div>
-      )}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {/* Dados da empresa */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Empresa</h2>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Nome da empresa
-          </label>
-          <input
-            type="text"
-            value={orgName}
-            onChange={(e) => setOrgName(e.target.value)}
-            className="w-full max-w-md border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            required
-            minLength={2}
-          />
-        </div>
+        <Input
+          label="Nome da empresa"
+          type="text"
+          value={orgName}
+          onChange={(e) => setOrgName(e.target.value)}
+          required
+          minLength={2}
+          placeholder="Ex: Clínica Sorriso Perfeito"
+        />
       </div>
 
-      {/* Dados do perfil */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Perfil</h2>
+      {/* Perfil */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <User size={16} className="text-gray-400" />
+          <h2 className="text-sm font-semibold text-gray-900">Perfil</h2>
+        </div>
         <div className="space-y-4">
+          <Input
+            label="Seu nome"
+            type="text"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="João Silva"
+          />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Seu nome
-            </label>
-            <input
-              type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              className="w-full max-w-md border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
+              <Mail size={13} className="text-gray-400" />
               E-mail
             </label>
             <input
               type="email"
               value={user.email}
               disabled
-              className="w-full max-w-md border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
+              className="w-full h-10 px-3.5 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-400 cursor-not-allowed"
             />
-            <p className="text-xs text-gray-400 mt-1">O e-mail não pode ser alterado por aqui.</p>
+            <p className="mt-1.5 text-xs text-gray-400">O e-mail não pode ser alterado por aqui.</p>
           </div>
         </div>
       </div>
 
-      <div>
-        <button
-          type="submit"
-          disabled={saving}
-          className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-        >
-          {saving ? "Salvando..." : "Salvar alterações"}
-        </button>
-      </div>
+      <Button type="submit" loading={saving}>
+        Salvar alterações
+      </Button>
     </form>
   );
 }

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { MapPin, Plus, CheckCircle2, Wifi, Settings2 } from "lucide-react";
 
 interface LocationsPageProps {
   searchParams: Promise<{ success?: string; error?: string }>;
@@ -13,96 +14,112 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
   const serviceClient = createServiceClient();
 
   const { data: userRecord } = await serviceClient
-    .from("users")
-    .select("organization_id")
-    .eq("id", user!.id)
-    .single();
+    .from("users").select("organization_id").eq("id", user!.id).single();
 
   const { data: locations } = await serviceClient
-    .from("locations")
-    .select("*")
+    .from("locations").select("*")
     .eq("organization_id", userRecord!.organization_id)
     .order("created_at");
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="animate-fade-in">
+      <div className="flex items-start justify-between mb-8">
         <div>
+          <p className="text-xs font-medium text-indigo-600 uppercase tracking-widest mb-1">Locais</p>
           <h1 className="text-2xl font-bold text-gray-900">Meus Locais</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Gerencie os locais monitorados pelo ReplyFlow.
-          </p>
+          <p className="text-sm text-gray-500 mt-1">Gerencie os locais monitorados pelo ReplyFlow.</p>
         </div>
         <Link
           href="/locations/new"
-          className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
+          className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
         >
-          + Adicionar local
+          <Plus size={15} />
+          Adicionar local
         </Link>
       </div>
 
-      {/* Feedback de sucesso/erro */}
+      {/* Toast feedback */}
       {params.success === "google_connected" && (
-        <div className="bg-green-50 border border-green-100 rounded-xl px-4 py-3 text-sm text-green-800 mb-4">
-          ✅ Google Meu Negócio conectado com sucesso!
+        <div className="flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 mb-5">
+          <CheckCircle2 size={16} className="text-green-600 shrink-0" />
+          Google Meu Negócio conectado com sucesso!
         </div>
       )}
       {params.error && (
-        <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-800 mb-4">
-          ⚠️ Erro ao conectar Google. Tente novamente.
+        <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-800 mb-5">
+          <span className="shrink-0">⚠️</span>
+          Erro ao conectar Google. Tente novamente.
         </div>
       )}
 
-      {/* Lista de locais */}
+      {/* Empty state */}
       {!locations?.length ? (
-        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
-          <div className="text-4xl mb-3">📍</div>
-          <p className="text-gray-500 mb-4">Nenhum local cadastrado ainda.</p>
+        <div className="card border-dashed p-12 text-center">
+          <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <MapPin size={24} className="text-indigo-500" />
+          </div>
+          <h3 className="text-base font-semibold text-gray-900 mb-1">Nenhum local cadastrado</h3>
+          <p className="text-sm text-gray-500 mb-6">Adicione seu primeiro local para começar a monitorar reviews.</p>
           <Link
             href="/locations/new"
-            className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors"
           >
-            Adicionar primeiro local →
+            <Plus size={15} /> Adicionar primeiro local
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-3">
           {locations.map((loc) => {
             const isConnected = !!loc.google_access_token;
             return (
-              <div
-                key={loc.id}
-                className="bg-white rounded-2xl border border-gray-100 px-6 py-5 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-xl">
-                    📍
+              <div key={loc.id} className="card px-5 py-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                    <MapPin size={18} className="text-indigo-500" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{loc.name}</p>
-                    <p className="text-sm text-gray-500 capitalize">
-                      {loc.niche} · Tom {loc.tone}
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm truncate">{loc.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 capitalize">
+                      {loc.niche} · Tom: {loc.tone}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5 shrink-0">
                   {isConnected ? (
-                    <span className="text-xs font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-full">
-                      ✓ Google conectado
-                    </span>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+                      <Wifi size={12} />
+                      Google conectado
+                    </div>
                   ) : (
                     <a
                       href={`/api/google/auth?locationId=${loc.id}`}
-                      className="text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-full transition-colors"
+                      className="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-full transition-colors"
                     >
-                      Conectar Google →
+                      <Plus size={12} />
+                      Conectar Google
                     </a>
                   )}
+                  <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                    <Settings2 size={15} />
+                  </button>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Info box */}
+      {(locations?.length ?? 0) > 0 && (
+        <div className="mt-6 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3.5 flex items-start gap-3">
+          <div className="w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+            <span className="text-indigo-600 text-[10px] font-bold">i</span>
+          </div>
+          <p className="text-xs text-indigo-700 leading-relaxed">
+            Após conectar o Google, o ReplyFlow busca reviews automaticamente a cada 30 minutos.
+            Você também pode forçar uma busca manual acessando as configurações do local.
+          </p>
         </div>
       )}
     </div>
