@@ -3,6 +3,9 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { STRIPE_PLANS } from "@/lib/stripe/client";
 import Link from "next/link";
 import { CreditCard, CheckCircle2, Zap, Crown, Building2, ExternalLink, MapPin, Clock } from "lucide-react";
+import { CheckoutSuccessBanner } from "@/components/billing/CheckoutSuccessBanner";
+
+export const dynamic = "force-dynamic";
 
 const PLAN_FEATURES: Record<string, string[]> = {
   free:    ["1 local", "2 plataformas", "10 respostas/mês", "Sem cartão"],
@@ -18,7 +21,12 @@ const PLAN_ICONS: Record<string, React.ReactNode> = {
   agency:  <Building2 size={20} className="text-purple-500" />,
 };
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string; canceled?: string }>;
+}) {
+  const params = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const serviceClient = createServiceClient();
@@ -51,6 +59,24 @@ export default async function BillingPage() {
         <h1 className="text-2xl font-bold text-gray-900">Plano & Assinatura</h1>
         <p className="text-sm text-gray-500 mt-1">Gerencie sua assinatura e forma de pagamento.</p>
       </div>
+
+      {/* Checkout success — auto-refresh until webhook updates the plan */}
+      {params.success === "1" && (
+        <CheckoutSuccessBanner plan={currentPlan} />
+      )}
+
+      {/* Checkout canceled */}
+      {params.canceled === "1" && (
+        <div className="card border-amber-200 bg-amber-50 p-4 mb-5 flex items-center gap-3">
+          <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+            <span className="text-base">↩️</span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-amber-900">Pagamento cancelado</p>
+            <p className="text-xs text-amber-700 mt-0.5">Nenhuma cobrança foi efetuada. Escolha um plano quando quiser.</p>
+          </div>
+        </div>
+      )}
 
       {/* Trial banner */}
       {currentPlan === "free" && trialActive && (

@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { TemplatePicker } from "@/components/reviews/TemplatePicker";
+import { UpgradeModal } from "@/components/ui/UpgradeModal";
+import type { UpgradeModalProps } from "@/components/ui/UpgradeModal";
 import { cn } from "@/lib/utils";
 import type { Review } from "@/types";
 
@@ -58,6 +60,7 @@ export function ReviewCard({
   const [responseText, setResponseText] = useState(review.response?.content ?? "");
   const [generating, setGenerating]     = useState(false);
   const [publishing, setPublishing]     = useState(false);
+  const [upgradeModal, setUpgradeModal] = useState<{ open: boolean; reason: UpgradeModalProps["reason"] }>({ open: false, reason: "response_limit" });
   const [expanded, setExpanded]         = useState(
     highlighted || review.status === "pending" || review.status === "draft"
   );
@@ -86,7 +89,8 @@ export function ReviewCard({
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 403 && data?.error === 'plan_limit') {
-        toastError("Limite atingido 🔒", data.message ?? "Faça upgrade para gerar mais respostas.");
+        const reason = data.message?.includes('trial') ? 'trial_expired' : 'response_limit'
+        setUpgradeModal({ open: true, reason })
         return;
       }
 
@@ -161,6 +165,12 @@ export function ReviewCard({
   }
 
   return (
+    <>
+    <UpgradeModal
+      open={upgradeModal.open}
+      reason={upgradeModal.reason}
+      onClose={() => setUpgradeModal((s) => ({ ...s, open: false }))}
+    />
     <div
       ref={cardRef}
       className={cn(
@@ -312,5 +322,6 @@ export function ReviewCard({
         </div>
       )}
     </div>
+    </>
   );
 }

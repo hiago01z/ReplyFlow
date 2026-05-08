@@ -1,0 +1,67 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Loader2 } from "lucide-react";
+
+interface Props {
+  /** Plan value read fresh from the server on each render */
+  plan: string;
+}
+
+/**
+ * Shown on /billing?success=1 after a Stripe checkout redirect.
+ * Stripe webhooks are async — this component polls via router.refresh()
+ * until the plan is no longer "free", then shows a success confirmation.
+ */
+export function CheckoutSuccessBanner({ plan }: Props) {
+  const router = useRouter();
+  const planUpdated = plan !== "free";
+
+  useEffect(() => {
+    if (planUpdated) return;
+    // Retry at 3 s, 7 s, 12 s — covers p95 webhook latency
+    const t1 = setTimeout(() => router.refresh(), 3_000);
+    const t2 = setTimeout(() => router.refresh(), 7_000);
+    const t3 = setTimeout(() => router.refresh(), 12_000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [router, planUpdated]);
+
+  const PLAN_LABEL: Record<string, string> = {
+    starter: "Starter",
+    pro:     "Pro",
+    agency:  "Agência",
+  };
+
+  if (planUpdated) {
+    return (
+      <div className="card border-green-200 bg-green-50 p-4 mb-5 flex items-center gap-3">
+        <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
+          <CheckCircle2 size={16} className="text-green-600" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-green-900">
+            Assinatura ativada! 🎉
+          </p>
+          <p className="text-xs text-green-700 mt-0.5">
+            Bem-vindo ao plano <strong>{PLAN_LABEL[plan] ?? plan}</strong>. Todos os recursos estão liberados.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card border-indigo-200 bg-indigo-50/60 p-4 mb-5 flex items-center gap-3">
+      <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0 animate-pulse">
+        <Loader2 size={16} className="text-indigo-600 animate-spin" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-indigo-900">Processando pagamento…</p>
+        <p className="text-xs text-indigo-700 mt-0.5">
+          Atualizando seu plano automaticamente. Aguarde alguns segundos.
+        </p>
+      </div>
+    </div>
+  );
+}
