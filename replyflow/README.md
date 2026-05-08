@@ -161,6 +161,9 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 20 (Notificações Realtime) | ✅ Concluída |
 | Etapa 6 — Sprint 21 (WhatsApp 1-click approval) | ✅ Concluída |
 | Etapa 6 — Sprint 22 (Relatório PDF mensal) | ✅ Concluída |
+| Etapa 6 — Sprint 23 (Sync manual de reviews) | ✅ Concluída |
+| Etapa 6 — Sprint 24 (Checklist de onboarding) | ✅ Concluída |
+| Etapa 6 — Sprint 25 (Painel multi-cliente Agência) | ✅ Concluída |
 
 ---
 
@@ -173,6 +176,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/reviews/bulk` | POST | Gerar/publicar em lote (até 50 reviews) |
 | `/api/reviews/[id]/approve` | GET | Aprovar e publicar via link WhatsApp (token HMAC) |
 | `/api/reports/monthly` | GET | Relatório HTML/PDF mensal (Pro/Agency) |
+| `/api/locations/[id]/sync` | POST | Sync manual de reviews para um local |
+| `/api/agency/clients` | GET/POST | Listar/criar clientes da agência |
 | `/api/reviews/[id]/generate` | POST | Gerar resposta com IA |
 | `/api/reviews/[id]/publish` | POST | Publicar resposta no Google (GMB real) |
 | `/api/reviews/[id]/ignore` | POST | Ignorar review |
