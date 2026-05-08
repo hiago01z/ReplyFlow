@@ -61,10 +61,11 @@ const FAQ = [
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 px-6 py-3.5 flex items-center justify-between max-w-6xl mx-auto">
-        <Link href="/" className="flex items-center gap-2 font-bold text-gray-900">
+    <main className="min-h-screen bg-white dark:bg-[#0f0f13]">
+
+      {/* ── Header ────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-10 bg-white/90 dark:bg-[#0f0f13]/90 backdrop-blur-sm border-b border-gray-100 dark:border-[#2a2a35] px-6 py-3.5 flex items-center justify-between max-w-6xl mx-auto">
+        <Link href="/" className="flex items-center gap-2 font-bold text-gray-900 dark:text-gray-100">
           <div className="w-7 h-7 brand-gradient rounded-lg flex items-center justify-center shadow-sm">
             <Zap size={13} className="text-white fill-white" />
           </div>
@@ -78,11 +79,11 @@ export default function LandingPage() {
             { href: "#precos",        label: "Preços"         },
             { href: "#faq",           label: "FAQ"            },
           ].map(({ href, label }) => (
-            <Link key={href} href={href} className="text-gray-500 hover:text-gray-900 text-sm transition-colors">
+            <Link key={href} href={href} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 text-sm transition-colors">
               {label}
             </Link>
           ))}
-          <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Entrar</Link>
+          <Link href="/login" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Entrar</Link>
           <Link href="/register" className="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
             Começar grátis
           </Link>
@@ -90,91 +91,92 @@ export default function LandingPage() {
         <Link href="/register" className="md:hidden bg-indigo-600 text-white text-sm px-3 py-1.5 rounded-lg font-medium">Grátis</Link>
       </header>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-white pt-20 pb-0 px-6">
-        {/* Background gradient blobs */}
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-white dark:bg-[#0f0f13] pt-20 pb-0 px-6">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-indigo-100 rounded-full opacity-30 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-violet-100 rounded-full opacity-20 blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-indigo-100 dark:bg-indigo-900/20 rounded-full opacity-30 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-violet-100 dark:bg-violet-900/20 rounded-full opacity-20 blur-3xl" />
         </div>
 
         <div className="relative max-w-5xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-8">
+          <div className="inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-full mb-8">
             <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
             IA para gestão de reputação local
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-6">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-gray-100 leading-[1.1] tracking-tight mb-6">
             Sua reputação no<br />
             <span className="text-transparent bg-clip-text" style={{backgroundImage:"linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7)"}}>
               piloto automático
             </span>
           </h1>
 
-          <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             ReplyFlow responde reviews do Google com IA personalizada para o seu negócio —
             em segundos, no tom certo, sem você fazer nada.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-            <Link href="/register" className="brand-gradient text-white px-8 py-3.5 rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-indigo-200">
+            <Link href="/register" className="brand-gradient text-white px-8 py-3.5 rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40">
               Começar gratuitamente →
             </Link>
-            <Link href="#como-funciona" className="bg-white border border-gray-200 text-gray-700 px-8 py-3.5 rounded-xl text-base font-semibold hover:bg-gray-50 transition-colors">
+            <Link href="#como-funciona" className="bg-white dark:bg-[#18181f] border border-gray-200 dark:border-[#2a2a35] text-gray-700 dark:text-gray-300 px-8 py-3.5 rounded-xl text-base font-semibold hover:bg-gray-50 dark:hover:bg-[#1e1e28] transition-colors">
               Ver como funciona
             </Link>
           </div>
 
-          <div className="flex items-center justify-center gap-4 text-xs text-gray-400 mb-12">
+          <div className="flex items-center justify-center gap-4 text-xs text-gray-400 dark:text-gray-500 mb-12">
             <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Sem cartão de crédito</span>
-            <span className="w-px h-3 bg-gray-200" />
+            <span className="w-px h-3 bg-gray-200 dark:bg-gray-700" />
             <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> 10 respostas grátis/mês</span>
-            <span className="w-px h-3 bg-gray-200" />
+            <span className="w-px h-3 bg-gray-200 dark:bg-gray-700" />
             <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Cancele quando quiser</span>
           </div>
 
           {/* Product mockup */}
           <div className="relative mx-auto max-w-3xl">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white z-10 pointer-events-none" style={{top:"70%"}} />
-            <div className="rounded-2xl border border-gray-200 shadow-2xl shadow-gray-200 overflow-hidden">
-              {/* Fake browser chrome */}
-              <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-[#0f0f13] z-10 pointer-events-none" style={{top:"70%"}} />
+            <div className="rounded-2xl border border-gray-200 dark:border-[#2a2a35] shadow-2xl shadow-gray-200 dark:shadow-black/40 overflow-hidden">
+              {/* Browser chrome */}
+              <div className="bg-gray-100 dark:bg-[#1a1a24] px-4 py-2.5 flex items-center gap-2 border-b border-gray-200 dark:border-[#2a2a35]">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
                   <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                   <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
                 </div>
-                <div className="flex-1 bg-white rounded-md px-3 py-1 text-xs text-gray-400 mx-2">
+                <div className="flex-1 bg-white dark:bg-[#18181f] rounded-md px-3 py-1 text-xs text-gray-400 dark:text-gray-500 mx-2">
                   app.replyflow.com.br/reviews
                 </div>
               </div>
               {/* Fake dashboard */}
-              <div className="bg-[#f5f5fa] p-4 text-left">
-                {/* Mini stat bar */}
+              <div className="bg-[#f5f5fa] dark:bg-[#13131a] p-4 text-left">
                 <div className="grid grid-cols-4 gap-2 mb-3">
-                  {[{label:"Pendentes",v:"3",c:"text-amber-600 bg-amber-50"},{label:"Publicados",v:"47",c:"text-green-600 bg-green-50"},{label:"Críticos",v:"1",c:"text-red-600 bg-red-50"},{label:"Locais",v:"2",c:"text-indigo-600 bg-indigo-50"}].map(s=>(
-                    <div key={s.label} className="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm">
+                  {[
+                    {label:"Pendentes", v:"3",  c:"text-amber-600 bg-amber-50 dark:bg-amber-900/20"},
+                    {label:"Publicados",v:"47", c:"text-green-600 bg-green-50 dark:bg-green-900/20"},
+                    {label:"Críticos",  v:"1",  c:"text-red-600 bg-red-50 dark:bg-red-900/20"},
+                    {label:"Locais",    v:"2",  c:"text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"},
+                  ].map(s=>(
+                    <div key={s.label} className="bg-white dark:bg-[#18181f] rounded-xl p-2.5 border border-gray-100 dark:border-[#2a2a35] shadow-sm">
                       <div className={`text-lg font-bold ${s.c.split(" ")[0]}`}>{s.v}</div>
-                      <div className="text-[10px] text-gray-400">{s.label}</div>
+                      <div className="text-[10px] text-gray-400 dark:text-gray-500">{s.label}</div>
                     </div>
                   ))}
                 </div>
-                {/* Mini review cards */}
                 {[
-                  {name:"Maria S.",stars:5,text:"Atendimento excelente!",status:"Pendente",sc:"bg-amber-50 text-amber-700"},
-                  {name:"João P.",stars:2,text:"Esperei mais de uma hora.",status:"Pendente",sc:"bg-red-50 text-red-700"},
-                  {name:"Ana C.",stars:4,text:"Muito bom de forma geral.",status:"Publicado",sc:"bg-green-50 text-green-700"},
+                  {name:"Maria S.",stars:5,text:"Atendimento excelente!",status:"Pendente",sc:"bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400"},
+                  {name:"João P.",stars:2,text:"Esperei mais de uma hora.",status:"Pendente",sc:"bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"},
+                  {name:"Ana C.",stars:4,text:"Muito bom de forma geral.",status:"Publicado",sc:"bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"},
                 ].map((r,i)=>(
-                  <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm px-3 py-2.5 mb-2 flex items-start justify-between gap-3">
+                  <div key={i} className="bg-white dark:bg-[#18181f] rounded-xl border border-gray-100 dark:border-[#2a2a35] shadow-sm px-3 py-2.5 mb-2 flex items-start justify-between gap-3">
                     <div className="flex items-start gap-2 min-w-0">
                       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">{r.name[0]}</div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-xs font-semibold text-gray-900">{r.name}</span>
-                          <div className="flex gap-0.5">{[1,2,3,4,5].map(n=><Star key={n} size={8} className={n<=r.stars?"fill-amber-400 text-amber-400":"fill-gray-200 text-gray-200"}/>)}</div>
+                          <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">{r.name}</span>
+                          <div className="flex gap-0.5">{[1,2,3,4,5].map(n=><Star key={n} size={8} className={n<=r.stars?"fill-amber-400 text-amber-400":"fill-gray-200 dark:fill-gray-700 text-gray-200 dark:text-gray-700"}/>)}</div>
                         </div>
-                        <p className="text-[11px] text-gray-500 truncate">{r.text}</p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{r.text}</p>
                       </div>
                     </div>
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${r.sc}`}>{r.status}</span>
@@ -186,8 +188,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Social proof com contadores animados */}
-      <section className="py-12 px-6 border-y border-gray-100 bg-white">
+      {/* ── Social proof ──────────────────────────────────────────────────── */}
+      <section className="py-12 px-6 border-y border-gray-100 dark:border-[#2a2a35] bg-white dark:bg-[#0f0f13]">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             { end: 12400, suffix: "+", label: "Reviews respondidos", prefix: "" },
@@ -196,167 +198,96 @@ export default function LandingPage() {
             { end: 98,    suffix: "%", label: "Taxa de satisfação",  prefix: "" },
           ].map((stat) => (
             <div key={stat.label}>
-              <div className="text-3xl font-extrabold text-gray-900 tabular-nums">
-                <CountUp
-                  end={stat.end}
-                  suffix={stat.suffix}
-                  prefix={stat.prefix}
-                  duration={1600}
-                />
+              <div className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tabular-nums">
+                <CountUp end={stat.end} suffix={stat.suffix} prefix={stat.prefix} duration={1600} />
               </div>
-              <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{stat.label}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Como funciona */}
-      <section id="como-funciona" className="bg-gray-50 py-20 px-6">
+      {/* ── Como funciona ─────────────────────────────────────────────────── */}
+      <section id="como-funciona" className="bg-gray-50 dark:bg-[#111118] py-20 px-6">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-100 mb-4">
             Como funciona
           </h2>
-          <p className="text-center text-gray-600 mb-12">
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-12">
             3 passos para ter sua reputação gerenciada por IA
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              {
-                step: "01",
-                icon: "🔗",
-                title: "Conecte seu Google",
-                description:
-                  "Autorize o ReplyFlow a acessar seus reviews do Google Meu Negócio em 1 clique. Leva menos de 2 minutos.",
-              },
-              {
-                step: "02",
-                icon: "🤖",
-                title: "IA gera as respostas",
-                description:
-                  "Nosso sistema lê cada review e cria uma resposta personalizada para o nicho e tom do seu negócio — automático.",
-              },
-              {
-                step: "03",
-                icon: "✅",
-                title: "Publique com 1 clique",
-                description:
-                  "Aprove e publique direto do dashboard — ou ative o modo automático e esqueça. Você escolhe.",
-              },
+              { step:"01", icon:"🔗", title:"Conecte seu Google",
+                description:"Autorize o ReplyFlow a acessar seus reviews do Google Meu Negócio em 1 clique. Leva menos de 2 minutos." },
+              { step:"02", icon:"🤖", title:"IA gera as respostas",
+                description:"Nosso sistema lê cada review e cria uma resposta personalizada para o nicho e tom do seu negócio — automático." },
+              { step:"03", icon:"✅", title:"Publique com 1 clique",
+                description:"Aprove e publique direto do dashboard — ou ative o modo automático e esqueça. Você escolhe." },
             ].map((item) => (
-              <div key={item.step} className="bg-white rounded-2xl p-8 shadow-sm text-center">
+              <div key={item.step} className="bg-white dark:bg-[#18181f] rounded-2xl p-8 shadow-sm dark:shadow-none border border-transparent dark:border-[#2a2a35] text-center">
                 <div className="text-4xl mb-4">{item.icon}</div>
-                <div className="text-xs font-bold text-indigo-400 mb-2 tracking-widest">
-                  PASSO {item.step}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {item.description}
-                </p>
+                <div className="text-xs font-bold text-indigo-400 dark:text-indigo-500 mb-2 tracking-widest">PASSO {item.step}</div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{item.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Recursos em destaque */}
-      <section id="recursos" className="py-20 px-6 bg-white">
+      {/* ── Recursos em destaque ──────────────────────────────────────────── */}
+      <section id="recursos" className="py-20 px-6 bg-white dark:bg-[#0f0f13]">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-3">Plataforma completa</p>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Tudo que você precisa para gerir sua reputação</h2>
-            <p className="text-gray-500 max-w-xl mx-auto text-sm">
+            <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3">Plataforma completa</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Tudo que você precisa para gerir sua reputação</h2>
+            <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto text-sm">
               Muito mais do que gerar respostas. O ReplyFlow é um sistema completo de gestão de reputação local.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              {
-                Icon: Sparkles,
-                color: "bg-indigo-100 text-indigo-600",
-                title: "IA personalizada por nicho",
-                desc:  "Respostas no tom da sua empresa — formal, descontraído ou técnico. A IA aprende o contexto do seu negócio.",
-              },
-              {
-                Icon: Send,
-                color: "bg-green-100 text-green-600",
-                title: "Publicação em 1 clique",
-                desc:  "Aprove e publique direto no Google. Ou ative o modo automático com delay natural para parecer humano.",
-              },
-              {
-                Icon: MessageSquare,
-                color: "bg-blue-100 text-blue-600",
-                title: "Aprovação via WhatsApp",
-                desc:  "Receba a resposta gerada no WhatsApp e aprove com um único toque — sem abrir o dashboard. Plano Pro.",
-              },
-              {
-                Icon: Bell,
-                color: "bg-amber-100 text-amber-600",
-                title: "Alertas em tempo real",
-                desc:  "Notificação imediata por e-mail e WhatsApp quando um review negativo (1-2 estrelas) chega.",
-              },
-              {
-                Icon: FileText,
-                color: "bg-purple-100 text-purple-600",
-                title: "Relatório PDF mensal",
-                desc:  "Receba um relatório mensal completo com taxa de resposta, nota média e distribuição de avaliações.",
-              },
-              {
-                Icon: Building2,
-                color: "bg-rose-100 text-rose-600",
-                title: "Painel multi-cliente",
-                desc:  "Para agências: gerencie todos os seus clientes em um único painel com visão consolidada.",
-              },
-              {
-                Icon: RefreshCw,
-                color: "bg-teal-100 text-teal-600",
-                title: "Sincronização automática",
-                desc:  "Reviews coletados a cada 30 minutos. Ou force uma busca manual com 1 clique quando precisar.",
-              },
-              {
-                Icon: CheckCircle2,
-                color: "bg-indigo-100 text-indigo-600",
-                title: "Ações em lote",
-                desc:  "Selecione vários reviews de uma vez e gere ou publique todas as respostas em sequência.",
-              },
-              {
-                Icon: Star,
-                color: "bg-amber-100 text-amber-600",
-                title: "Analytics de reputação",
-                desc:  "Evolução da nota, taxa de resposta, distribuição de estrelas e top locais — tudo em um dashboard.",
-              },
+              { Icon: Sparkles,    color: "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400",  title: "IA personalizada por nicho",   desc: "Respostas no tom da sua empresa — formal, descontraído ou técnico. A IA aprende o contexto do seu negócio." },
+              { Icon: Send,        color: "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400",     title: "Publicação em 1 clique",       desc: "Aprove e publique direto no Google. Ou ative o modo automático com delay natural para parecer humano." },
+              { Icon: MessageSquare, color:"bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",        title: "Aprovação via WhatsApp",       desc: "Receba a resposta gerada no WhatsApp e aprove com um único toque — sem abrir o dashboard. Plano Pro." },
+              { Icon: Bell,        color: "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",    title: "Alertas em tempo real",        desc: "Notificação imediata por e-mail e WhatsApp quando um review negativo (1-2 estrelas) chega." },
+              { Icon: FileText,    color: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",title: "Relatório PDF mensal",         desc: "Receba um relatório mensal completo com taxa de resposta, nota média e distribuição de avaliações." },
+              { Icon: Building2,   color: "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400",        title: "Painel multi-cliente",         desc: "Para agências: gerencie todos os seus clientes em um único painel com visão consolidada." },
+              { Icon: RefreshCw,   color: "bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400",        title: "Sincronização automática",     desc: "Reviews coletados a cada 30 minutos. Ou force uma busca manual com 1 clique quando precisar." },
+              { Icon: CheckCircle2,color: "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400",title: "Ações em lote",               desc: "Selecione vários reviews de uma vez e gere ou publique todas as respostas em sequência." },
+              { Icon: Star,        color: "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",    title: "Analytics de reputação",      desc: "Evolução da nota, taxa de resposta, distribuição de estrelas e top locais — tudo em um dashboard." },
             ].map(({ Icon, color, title, desc }) => (
-              <div key={title} className="bg-gray-50 rounded-2xl p-6 hover:shadow-md transition-shadow">
+              <div key={title} className="bg-gray-50 dark:bg-[#18181f] border border-transparent dark:border-[#2a2a35] rounded-2xl p-6 hover:shadow-md dark:hover:shadow-none dark:hover:border-[#3a3a48] transition-all">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${color}`}>
                   <Icon size={18} />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm mb-2">{title}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2">{title}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Depoimentos */}
-      <section id="depoimentos" className="py-20 px-6 bg-gray-50">
+      {/* ── Depoimentos ───────────────────────────────────────────────────── */}
+      <section id="depoimentos" className="py-20 px-6 bg-gray-50 dark:bg-[#111118]">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-100 mb-4">
             Quem usa, aprova
           </h2>
-          <p className="text-center text-gray-600 mb-12">
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-12">
             Negócios reais que recuperaram horas do dia com o ReplyFlow
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="bg-gray-50 rounded-2xl p-7 flex flex-col">
+              <div key={t.name} className="bg-white dark:bg-[#18181f] border border-gray-100 dark:border-[#2a2a35] rounded-2xl p-7 flex flex-col shadow-sm dark:shadow-none">
                 <div className="flex gap-0.5 mb-4">
                   {"★★★★★".split("").map((s, i) => (
                     <span key={i} className="text-amber-400 text-lg">{s}</span>
                   ))}
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed mb-5 flex-1">
+                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed mb-5 flex-1">
                   &ldquo;{t.text}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
@@ -364,8 +295,8 @@ export default function LandingPage() {
                     {t.avatar}
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-gray-900">{t.name}</p>
-                    <p className="text-xs text-gray-500">{t.business} · {t.city}</p>
+                    <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{t.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t.business} · {t.city}</p>
                   </div>
                 </div>
               </div>
@@ -374,62 +305,34 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Preços */}
-      <section id="precos" className="bg-gray-50 py-20 px-6">
+      {/* ── Preços ────────────────────────────────────────────────────────── */}
+      <section id="precos" className="bg-gray-50 dark:bg-[#0f0f13] py-20 px-6">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-100 mb-4">
             Planos e preços
           </h2>
-          <p className="text-center text-gray-600 mb-12">
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-12">
             Comece grátis. Faça upgrade quando precisar. Cancele quando quiser.
           </p>
           <div className="grid md:grid-cols-3 gap-6 items-center">
             {[
               {
-                name: "Starter",
-                price: "R$ 97",
-                period: "/mês",
+                name: "Starter", price: "R$ 97", period: "/mês",
                 description: "Para autônomos e pequenos negócios",
-                features: [
-                  "1 local",
-                  "3 plataformas",
-                  "Respostas ilimitadas",
-                  "Alerta por e-mail",
-                  "Tom personalizado",
-                ],
-                cta: "Assinar Starter",
-                highlight: false,
+                features: ["1 local","3 plataformas","Respostas ilimitadas","Alerta por e-mail","Tom personalizado"],
+                cta: "Assinar Starter", highlight: false,
               },
               {
-                name: "Pro",
-                price: "R$ 197",
-                period: "/mês",
+                name: "Pro", price: "R$ 197", period: "/mês",
                 description: "Para negócios com múltiplas unidades",
-                features: [
-                  "Até 3 locais",
-                  "Todas as plataformas",
-                  "Respostas ilimitadas",
-                  "Alerta via WhatsApp",
-                  "Aprovação em 1 clique",
-                  "Relatório mensal PDF",
-                ],
-                cta: "Assinar Pro",
-                highlight: true,
+                features: ["Até 3 locais","Todas as plataformas","Respostas ilimitadas","Alerta via WhatsApp","Aprovação em 1 clique","Relatório mensal PDF"],
+                cta: "Assinar Pro", highlight: true,
               },
               {
-                name: "Agência",
-                price: "R$ 497",
-                period: "/mês",
+                name: "Agência", price: "R$ 497", period: "/mês",
                 description: "Para agências gerenciando múltiplos clientes",
-                features: [
-                  "Clientes ilimitados",
-                  "Painel multi-cliente",
-                  "White-label disponível",
-                  "API de integração",
-                  "Suporte dedicado",
-                ],
-                cta: "Assinar Agência",
-                highlight: false,
+                features: ["Clientes ilimitados","Painel multi-cliente","White-label disponível","API de integração","Suporte dedicado"],
+                cta: "Assinar Agência", highlight: false,
               },
             ].map((plan) => (
               <div
@@ -437,30 +340,26 @@ export default function LandingPage() {
                 className={`rounded-2xl p-8 ${
                   plan.highlight
                     ? "bg-indigo-600 text-white shadow-xl scale-105"
-                    : "bg-white border border-gray-200"
+                    : "bg-white dark:bg-[#18181f] border border-gray-200 dark:border-[#2a2a35]"
                 }`}
               >
                 {plan.highlight && (
-                  <div className="text-xs font-bold text-indigo-200 mb-3 tracking-widest">
-                    ★ MAIS POPULAR
-                  </div>
+                  <div className="text-xs font-bold text-indigo-200 mb-3 tracking-widest">★ MAIS POPULAR</div>
                 )}
-                <div className={`text-sm font-medium mb-1 ${plan.highlight ? "text-indigo-200" : "text-indigo-600"}`}>
+                <div className={`text-sm font-medium mb-1 ${plan.highlight ? "text-indigo-200" : "text-indigo-600 dark:text-indigo-400"}`}>
                   {plan.name}
                 </div>
                 <div className="flex items-end gap-1 mb-2">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  <span className={`text-sm mb-1 ${plan.highlight ? "text-indigo-200" : "text-gray-500"}`}>
-                    {plan.period}
-                  </span>
+                  <span className={`text-4xl font-bold ${plan.highlight ? "text-white" : "text-gray-900 dark:text-gray-100"}`}>{plan.price}</span>
+                  <span className={`text-sm mb-1 ${plan.highlight ? "text-indigo-200" : "text-gray-500 dark:text-gray-400"}`}>{plan.period}</span>
                 </div>
-                <p className={`text-sm mb-6 ${plan.highlight ? "text-indigo-100" : "text-gray-500"}`}>
+                <p className={`text-sm mb-6 ${plan.highlight ? "text-indigo-100" : "text-gray-500 dark:text-gray-400"}`}>
                   {plan.description}
                 </p>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm">
-                      <span className={plan.highlight ? "text-indigo-300" : "text-indigo-600"}>✓</span>
+                    <li key={feature} className={`flex items-center gap-2 text-sm ${plan.highlight ? "text-white" : "text-gray-700 dark:text-gray-300"}`}>
+                      <span className={plan.highlight ? "text-indigo-300" : "text-indigo-600 dark:text-indigo-400"}>✓</span>
                       {feature}
                     </li>
                   ))}
@@ -478,30 +377,30 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <p className="text-center text-sm text-gray-400 mt-8">
+          <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-8">
             Todos os planos incluem teste de 7 dias grátis. Sem fidelidade.
           </p>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="py-20 px-6">
+      {/* ── FAQ ───────────────────────────────────────────────────────────── */}
+      <section id="faq" className="py-20 px-6 bg-white dark:bg-[#0f0f13]">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-100 mb-4">
             Perguntas frequentes
           </h2>
-          <p className="text-center text-gray-600 mb-12">Dúvidas comuns antes de começar</p>
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-12">Dúvidas comuns antes de começar</p>
           <div className="space-y-4">
             {FAQ.map((item) => (
               <details
                 key={item.q}
-                className="bg-gray-50 rounded-2xl px-6 py-5 group cursor-pointer"
+                className="bg-gray-50 dark:bg-[#18181f] border border-transparent dark:border-[#2a2a35] rounded-2xl px-6 py-5 group cursor-pointer"
               >
-                <summary className="font-semibold text-gray-900 text-sm list-none flex items-center justify-between gap-4">
+                <summary className="font-semibold text-gray-900 dark:text-gray-100 text-sm list-none flex items-center justify-between gap-4">
                   {item.q}
-                  <span className="text-gray-400 group-open:rotate-45 transition-transform shrink-0 text-lg leading-none">+</span>
+                  <span className="text-gray-400 dark:text-gray-500 group-open:rotate-45 transition-transform shrink-0 text-lg leading-none">+</span>
                 </summary>
-                <p className="mt-4 text-sm text-gray-600 leading-relaxed">
+                <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                   {item.a}
                 </p>
               </details>
@@ -510,8 +409,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section className="bg-indigo-600 py-20 px-6 text-center">
+      {/* ── CTA Final ─────────────────────────────────────────────────────── */}
+      <section className="bg-indigo-600 dark:bg-indigo-700 py-20 px-6 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold text-white mb-4">
             Pronto para automatizar sua reputação?
@@ -531,19 +430,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 py-10 px-6">
+      {/* ── Footer ────────────────────────────────────────────────────────── */}
+      <footer className="border-t border-gray-100 dark:border-[#2a2a35] bg-white dark:bg-[#0f0f13] py-10 px-6">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="font-bold text-indigo-600">⚡ ReplyFlow</div>
-          <div className="flex gap-6 text-sm text-gray-500">
-            <Link href="#como-funciona" className="hover:text-gray-900">Como funciona</Link>
-            <Link href="#precos" className="hover:text-gray-900">Preços</Link>
-            <Link href="#faq" className="hover:text-gray-900">FAQ</Link>
-            <Link href="/login" className="hover:text-gray-900">Entrar</Link>
+          <div className="font-bold text-indigo-600 dark:text-indigo-400">⚡ ReplyFlow</div>
+          <div className="flex gap-6 text-sm text-gray-500 dark:text-gray-400">
+            <Link href="#como-funciona" className="hover:text-gray-900 dark:hover:text-gray-100">Como funciona</Link>
+            <Link href="#precos" className="hover:text-gray-900 dark:hover:text-gray-100">Preços</Link>
+            <Link href="#faq" className="hover:text-gray-900 dark:hover:text-gray-100">FAQ</Link>
+            <Link href="/login" className="hover:text-gray-900 dark:hover:text-gray-100">Entrar</Link>
           </div>
-          <p className="text-sm text-gray-400">© 2026 ReplyFlow. Todos os direitos reservados.</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">© 2026 ReplyFlow. Todos os direitos reservados.</p>
         </div>
       </footer>
+
     </main>
   );
 }
