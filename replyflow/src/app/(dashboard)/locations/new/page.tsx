@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
+import { UpgradeModal } from "@/components/ui/UpgradeModal";
 import { cn } from "@/lib/utils";
 import { MapPin, ChevronLeft, CheckCircle2, Zap } from "lucide-react";
 
@@ -28,11 +29,12 @@ export default function NewLocationPage() {
   const router = useRouter();
   const { success, error: toastError } = useToast();
 
-  const [name,        setName]        = useState("");
-  const [niche,       setNiche]       = useState<string>("outro");
-  const [tone,        setTone]        = useState<string>("amigavel");
-  const [autoPublish, setAutoPublish] = useState(false);
-  const [loading,     setLoading]     = useState(false);
+  const [name,         setName]        = useState("");
+  const [niche,        setNiche]       = useState<string>("outro");
+  const [tone,         setTone]        = useState<string>("amigavel");
+  const [autoPublish,  setAutoPublish] = useState(false);
+  const [loading,      setLoading]     = useState(false);
+  const [upgradeOpen,  setUpgradeOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,7 +48,7 @@ export default function NewLocationPage() {
       });
       const data = await res.json();
       if (res.status === 403 && data.error === "plan_limit") {
-        toastError("Limite do plano", data.message);
+        setUpgradeOpen(true);
         return;
       }
       if (!res.ok) throw new Error(data.error ?? "unknown");
@@ -61,6 +63,12 @@ export default function NewLocationPage() {
   }
 
   return (
+    <>
+    <UpgradeModal
+      open={upgradeOpen}
+      reason="location_limit"
+      onClose={() => setUpgradeOpen(false)}
+    />
     <div className="animate-fade-in max-w-xl">
       {/* Header */}
       <div className="mb-8">
@@ -207,5 +215,6 @@ export default function NewLocationPage() {
         </div>
       </form>
     </div>
+    </>
   );
 }
