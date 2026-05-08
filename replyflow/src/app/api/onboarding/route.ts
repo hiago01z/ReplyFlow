@@ -45,10 +45,11 @@ export async function POST(request: Request) {
       .eq("id", existingUser.organization_id);
     orgId = existingUser.organization_id;
   } else {
-    // Criar nova organização
+    // Criar nova organização com trial de 7 dias
+    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     const { data: org, error: orgError } = await serviceClient
       .from("organizations")
-      .insert({ name: orgName })
+      .insert({ name: orgName, trial_ends_at: trialEndsAt })
       .select()
       .single();
 

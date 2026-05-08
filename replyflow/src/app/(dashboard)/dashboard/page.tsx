@@ -5,6 +5,7 @@ import { Clock, CheckCircle2, AlertTriangle, MapPin, ArrowRight, Star, Sparkles,
 import { DemoSeedButton } from "@/components/dashboard/DemoSeedButton";
 import { WeeklySparkline } from "@/components/dashboard/WeeklySparkline";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+import { TrialBanner } from "@/components/dashboard/TrialBanner";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,11 +14,12 @@ export default async function DashboardPage() {
 
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("organization_id, organization:organizations(name)")
+    .select("organization_id, organization:organizations(name, plan, trial_ends_at)")
     .eq("id", user!.id)
     .single();
 
   const orgId = userRecord?.organization_id;
+  const org = userRecord?.organization as unknown as { name: string; plan: string; trial_ends_at: string | null } | null;
 
   const { data: locations } = await serviceClient
     .from("locations")
@@ -110,7 +112,7 @@ export default async function DashboardPage() {
     : { count: 0 };
   const hasDemo = (demoCount ?? 0) > 0;
 
-  const orgName = (userRecord?.organization as unknown as { name: string } | null)?.name ?? "sua empresa";
+  const orgName = org?.name ?? "sua empresa";
 
   const stats = [
     {
@@ -164,6 +166,9 @@ export default async function DashboardPage() {
         </h1>
         <p className="text-gray-500 text-sm mt-1">Acompanhe sua reputação em tempo real.</p>
       </div>
+
+      {/* Trial banner */}
+      <TrialBanner trialEndsAt={org?.trial_ends_at ?? null} plan={org?.plan ?? "free"} />
 
       {/* Onboarding checklist */}
       {showOnboarding && (

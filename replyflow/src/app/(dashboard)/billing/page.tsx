@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { STRIPE_PLANS } from "@/lib/stripe/client";
 import Link from "next/link";
-import { CreditCard, CheckCircle2, Zap, Crown, Building2, ExternalLink, MapPin } from "lucide-react";
+import { CreditCard, CheckCircle2, Zap, Crown, Building2, ExternalLink, MapPin, Clock } from "lucide-react";
 
 const PLAN_FEATURES: Record<string, string[]> = {
   free:    ["1 local", "2 plataformas", "10 respostas/mês", "Sem cartão"],
@@ -24,7 +24,7 @@ export default async function BillingPage() {
   const serviceClient = createServiceClient();
 
   const { data: userRecord } = await serviceClient
-    .from("users").select("organization:organizations(id,plan,stripe_customer_id,stripe_subscription_id,subscription_status,extra_locations)").eq("id", user!.id).single();
+    .from("users").select("organization:organizations(id,plan,stripe_customer_id,stripe_subscription_id,subscription_status,extra_locations,trial_ends_at)").eq("id", user!.id).single();
 
   const org = userRecord?.organization as unknown as {
     id: string; plan: string;
@@ -32,10 +32,17 @@ export default async function BillingPage() {
     stripe_subscription_id: string | null;
     subscription_status: string | null;
     extra_locations: number;
+    trial_ends_at: string | null;
   } | null;
 
   const currentPlan = org?.plan ?? "free";
   const isActive    = org?.subscription_status === "active";
+
+  const trialEndsAt = org?.trial_ends_at ?? null;
+  const trialActive = trialEndsAt ? new Date(trialEndsAt).getTime() > Date.now() : false;
+  const trialDaysLeft = trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
   return (
     <div className="animate-fade-in max-w-3xl">
@@ -44,6 +51,36 @@ export default async function BillingPage() {
         <h1 className="text-2xl font-bold text-gray-900">Plano & Assinatura</h1>
         <p className="text-sm text-gray-500 mt-1">Gerencie sua assinatura e forma de pagamento.</p>
       </div>
+
+      {/* Trial banner */}
+      {currentPlan === "free" && trialActive && (
+        <div className="card border-indigo-200 bg-indigo-50/60 p-4 mb-5 flex items-center gap-3">
+          <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0">
+            <Clock size={16} className="text-indigo-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-indigo-900">
+              Período de avaliação — {trialDaysLeft} {trialDaysLeft === 1 ? "dia restante" : "dias restantes"}
+            </p>
+            <p className="text-xs text-indigo-700 mt-0.5">
+              Aproveite respostas ilimitadas durante o trial. Faça upgrade antes de expirar.
+            </p>
+          </div>
+        </div>
+      )}
+      {currentPlan === "free" && !trialActive && trialEndsAt && (
+        <div className="card border-red-200 bg-red-50 p-4 mb-5 flex items-center gap-3">
+          <div className="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+            <Clock size={16} className="text-red-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-900">Período de avaliação expirado</p>
+            <p className="text-xs text-red-700 mt-0.5">
+              Faça upgrade para continuar gerando respostas com IA sem limitações.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Current plan card */}
       <div className="card p-6 mb-6">

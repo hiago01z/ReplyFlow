@@ -61,7 +61,7 @@ export async function POST(
   // ── Verificar acesso: usuário pertence à organização do review ────────────
   const { data: userRecord } = await serviceClient
     .from('users')
-    .select('organization_id, whatsapp, organization:organizations(plan)')
+    .select('organization_id, whatsapp, organization:organizations(plan, trial_ends_at)')
     .eq('id', user.id)
     .single()
 
@@ -70,8 +70,12 @@ export async function POST(
   }
 
   // ── Verificar limite de respostas por plano ───────────────────────────────
-  const plan = (userRecord.organization as unknown as { plan: Plan } | null)?.plan ?? 'free'
-  const monthlyLimit = PLAN_LIMITS[plan]?.responsesPerMonth
+  const plan = (userRecord.organization as unknown as { plan: Plan; trial_ends_at?: string | null } | null)?.plan ?? 'free'
+  const trialEndsAt = (userRecord.organization as unknown as { trial_ends_at?: string | null } | null)?.trial_ends_at
+  const trialActive = trialEndsAt ? new Date(trialEndsAt).getTime() > Date.now() : false
+
+  // Durante o trial, plano free tem respostas ilimitadas
+  const monthlyLimit = (plan === 'free' && trialActive) ? null : PLAN_LIMITS[plan]?.responsesPerMonth
 
   if (monthlyLimit !== null && monthlyLimit !== undefined) {
     const startOfMonth = new Date()
@@ -106,7 +110,7 @@ export async function POST(
     if (monthlyCount >= monthlyLimit) {
       return NextResponse.json({
         error:   'plan_limit',
-        message: `Seu plano Free permite ${monthlyLimit} respostas por mês. Faça upgrade para continuar.`,
+        message: `Seu plano Free permite ${monthlyLimit} respostas por mês. Seu período de avaliação expirou — faça upgrade para continuar.`,
         limit:   monthlyLimit,
         used:    monthlyCount,
       }, { status: 403 })
