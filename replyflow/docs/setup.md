@@ -80,7 +80,12 @@ ALTER PUBLICATION supabase_realtime ADD TABLE reviews;
 2. Copie os `price_id` (começam com `price_`) para o `.env.local`
 3. Configure o webhook em **Developers → Webhooks → Add endpoint**:
    - URL: `https://seudominio.com/api/webhooks/stripe`
-   - Eventos: `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - Eventos obrigatórios:
+     - `checkout.session.completed` ← **crítico**: salva o stripe_customer_id
+     - `customer.subscription.created`
+     - `customer.subscription.updated`
+     - `customer.subscription.deleted`
+     - `invoice.payment_succeeded`
 
 ## 5. Configurar Google OAuth (Google My Business)
 
