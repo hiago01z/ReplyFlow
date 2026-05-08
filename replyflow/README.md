@@ -158,6 +158,9 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 17 (Upgrade banner + Location sync status) | ✅ Concluída |
 | Etapa 6 — Sprint 18 (Sidebar badge + Analytics por local) | ✅ Concluída |
 | Etapa 6 — Sprint 19 (Bulk actions em reviews) | ✅ Concluída |
+| Etapa 6 — Sprint 20 (Notificações Realtime) | ✅ Concluída |
+| Etapa 6 — Sprint 21 (WhatsApp 1-click approval) | ✅ Concluída |
+| Etapa 6 — Sprint 22 (Relatório PDF mensal) | ✅ Concluída |
 
 ---
 
@@ -168,6 +171,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/reviews` | GET | Listar reviews com filtros (status, rating, locationId, search) |
 | `/api/reviews/export` | GET | Exportar reviews filtrados como CSV (max 5000 linhas) |
 | `/api/reviews/bulk` | POST | Gerar/publicar em lote (até 50 reviews) |
+| `/api/reviews/[id]/approve` | GET | Aprovar e publicar via link WhatsApp (token HMAC) |
+| `/api/reports/monthly` | GET | Relatório HTML/PDF mensal (Pro/Agency) |
 | `/api/reviews/[id]/generate` | POST | Gerar resposta com IA |
 | `/api/reviews/[id]/publish` | POST | Publicar resposta no Google (GMB real) |
 | `/api/reviews/[id]/ignore` | POST | Ignorar review |
