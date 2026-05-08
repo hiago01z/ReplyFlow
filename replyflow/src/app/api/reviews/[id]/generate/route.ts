@@ -4,7 +4,11 @@ import { generateReviewResponse } from '@/lib/openai/generateResponse'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit } from '@/lib/ratelimit'
 import { PLAN_LIMITS } from '@/types'
+import { createApprovalToken } from '@/lib/approvalToken'
+import { sendWhatsAppApproval } from '@/lib/email/alerts'
 import type { Location, Plan } from '@/types'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.replyflow.com.br'
 
 export async function POST(
   _request: Request,
@@ -57,7 +61,7 @@ export async function POST(
   // ── Verificar acesso: usuário pertence à organização do review ────────────
   const { data: userRecord } = await serviceClient
     .from('users')
-    .select('organization_id, organization:organizations(plan)')
+    .select('organization_id, whatsapp, organization:organizations(plan)')
     .eq('id', user.id)
     .single()
 
@@ -208,6 +212,36 @@ export async function POST(
     .from('reviews')
     .update({ status: 'draft', updated_at: new Date().toISOString() })
     .eq('id', id)
+
+  // ── WhatsApp 1-click approval (Pro/Agency) ────────────────────────────────
+  // Only when: plan is pro/agency, user has WhatsApp, auto_publish is OFF
+  const orgPlan = (userRecord?.organization as unknown as { plan: Plan } | null)?.plan ?? 'free'
+  const userPhone = (userRecord as unknown as { whatsapp?: string })?.whatsapp
+
+  if (
+    (orgPlan === 'pro' || orgPlan === 'agency') &&
+    userPhone &&
+    !location.auto_publish
+  ) {
+    try {
+      const token      = createApprovalToken(id, response.id)
+      const approveUrl = `${APP_URL}/api/reviews/${id}/approve?token=${token}`
+      const dashUrl    = `${APP_URL}/reviews?highlight=${id}`
+
+      await sendWhatsAppApproval({
+        phone:         userPhone,
+        businessName:  location.name,
+        authorName:    review.author_name ?? 'Alguém',
+        rating:        review.rating ?? 3,
+        responseDraft: content,
+        approveUrl,
+        dashboardUrl:  dashUrl,
+      })
+    } catch (err) {
+      // Non-fatal: WhatsApp failure must not break the generate response
+      console.error('[generate] WhatsApp approval send error:', err)
+    }
+  }
 
   return NextResponse.json({ response })
 }

@@ -122,6 +122,52 @@ export async function sendWhatsAppAlert(params: WhatsAppAlertParams): Promise<vo
   })
 }
 
+// ─── WhatsApp 1-click Approval (Sprint 21) ──────────────────────────────────
+
+interface WhatsAppApprovalParams {
+  phone:        string   // formato: 5511999999999
+  businessName: string
+  authorName:   string
+  rating:       number
+  responseDraft: string
+  approveUrl:   string  // signed token URL
+  dashboardUrl: string
+}
+
+export async function sendWhatsAppApproval(params: WhatsAppApprovalParams): Promise<void> {
+  const evolutionUrl = process.env.EVOLUTION_API_URL
+  const evolutionKey = process.env.EVOLUTION_API_KEY
+
+  if (!evolutionUrl || !evolutionKey) return
+
+  const { phone, businessName, authorName, rating, responseDraft, approveUrl, dashboardUrl } = params
+  const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating)
+
+  const message = [
+    `⚡ *ReplyFlow — Resposta pronta para aprovar*`,
+    ``,
+    `🏢 *${businessName}*`,
+    `👤 ${authorName} · ${stars}`,
+    ``,
+    `📝 *Rascunho:*`,
+    `"${responseDraft.slice(0, 300)}${responseDraft.length > 300 ? '...' : ''}"`,
+    ``,
+    `✅ *Aprovar e publicar agora:*`,
+    approveUrl,
+    ``,
+    `✏️ Editar no dashboard: ${dashboardUrl}`,
+  ].join('\n')
+
+  await fetch(`${evolutionUrl}/message/sendText/replyflow`, {
+    method:  'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey':       evolutionKey,
+    },
+    body: JSON.stringify({ number: phone, text: message }),
+  })
+}
+
 interface WelcomeEmailParams {
   to: string
   name: string

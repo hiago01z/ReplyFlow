@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { RealtimeWatcher } from "@/components/reviews/RealtimeWatcher";
 
 export default async function DashboardLayout({
   children,
@@ -41,6 +42,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Real-time watcher: invisible, fires toast + router.refresh on new review */}
+      <RealtimeWatcher locationIds={locIds} />
       <Sidebar
         orgName={userRecord.organization?.name ?? "Minha Empresa"}
         userName={userRecord.name ?? user.email ?? ""}
