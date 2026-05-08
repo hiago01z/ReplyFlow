@@ -168,6 +168,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 27 (Digest semanal por email) | ✅ Concluída |
 | Etapa 6 — Sprint 28 (Landing features + cron fixes) | ✅ Concluída |
 | Etapa 6 — Sprint 29 (Trial system 7 dias + Stripe webhook fix) | ✅ Concluída |
+| Etapa 6 — Sprint 30 (UpgradeModal — gate visual de plano) | ✅ Concluída |
 
 ---
 
