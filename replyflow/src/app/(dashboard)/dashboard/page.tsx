@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Clock, CheckCircle2, AlertTriangle, MapPin, ArrowRight, Star, Sparkles, BarChart2 } from "lucide-react";
 import { DemoSeedButton } from "@/components/dashboard/DemoSeedButton";
 import { WeeklySparkline } from "@/components/dashboard/WeeklySparkline";
+import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -20,12 +21,16 @@ export default async function DashboardPage() {
 
   const { data: locations } = await serviceClient
     .from("locations")
-    .select("id, auto_publish")
+    .select("id, auto_publish, google_access_token")
     .eq("organization_id", orgId)
     .eq("active", true);
 
   const locationIds = locations?.map((l) => l.id) ?? [];
   const autoPublishCount = (locations ?? []).filter((l) => l.auto_publish).length;
+
+  // Onboarding checklist state
+  const hasGoogleConnected = (locations ?? []).some((l) => !!l.google_access_token);
+  const hasAutoPublish     = autoPublishCount > 0;
 
   const [{ count: totalPending }, { count: totalPublished }, { count: totalNegative }, { count: totalTotal }] =
     await Promise.all([
@@ -84,6 +89,17 @@ export default async function DashboardPage() {
     ? (weekTotal > 0 ? 100 : 0)
     : Math.round(((weekTotal - prevWeekTotal) / prevWeekTotal) * 100);
 
+  // Check if user generated at least one AI response (onboarding step)
+  let hasFirstResponse = false;
+  if (locationIds.length > 0) {
+    const { count: responseCount } = await serviceClient
+      .from("reviews")
+      .select("id", { count: "exact", head: true })
+      .in("location_id", locationIds)
+      .in("status", ["draft", "published"]);
+    hasFirstResponse = (responseCount ?? 0) > 0;
+  }
+
   // Detectar se há reviews de demo carregados
   const { count: demoCount } = locationIds.length > 0
     ? await serviceClient
@@ -135,6 +151,9 @@ export default async function DashboardPage() {
     },
   ];
 
+  // Show onboarding checklist only while not fully set up
+  const showOnboarding = !hasGoogleConnected || !hasFirstResponse;
+
   return (
     <div className="animate-fade-in">
       {/* Header */}
@@ -145,6 +164,15 @@ export default async function DashboardPage() {
         </h1>
         <p className="text-gray-500 text-sm mt-1">Acompanhe sua reputação em tempo real.</p>
       </div>
+
+      {/* Onboarding checklist */}
+      {showOnboarding && (
+        <OnboardingChecklist
+          hasGoogleConnected={hasGoogleConnected}
+          hasFirstResponse={hasFirstResponse}
+          hasAutoPublish={hasAutoPublish}
+        />
+      )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

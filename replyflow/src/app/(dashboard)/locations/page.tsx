@@ -1,6 +1,7 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw } from "lucide-react";
+import { SyncNowButton } from "@/components/locations/SyncNowButton";
 
 interface LocationsPageProps {
   searchParams: Promise<{ success?: string; error?: string }>;
@@ -123,6 +124,10 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                 </div>
 
                 <div className="flex items-center gap-2.5 shrink-0">
+                  {/* Sync manual button — only for connected locations */}
+                  {isConnected && loc.google_location_name && (
+                    <SyncNowButton locationId={loc.id} />
+                  )}
                   {isConnected && loc.google_location_name ? (
                     <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
                       <Wifi size={12} />
@@ -168,7 +173,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
           </div>
           <p className="text-xs text-indigo-700 leading-relaxed">
             Após conectar o Google, o ReplyFlow busca reviews automaticamente a cada 30 minutos.
-            Você também pode forçar uma busca manual acessando as configurações do local.
+            Use o botão <strong>Sincronizar</strong> em cada local para buscar agora sem esperar.
           </p>
         </div>
       )}

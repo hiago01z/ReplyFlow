@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Star, MapPin, CreditCard,
-  Settings, LogOut, Zap, Menu, X, BarChart2,
+  Settings, LogOut, Zap, Menu, X, BarChart2, Building2,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
@@ -21,12 +21,13 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { href: "/dashboard",  label: "Visão Geral",    Icon: LayoutDashboard },
-  { href: "/reviews",    label: "Reviews",         Icon: Star },
-  { href: "/analytics",  label: "Analytics",       Icon: BarChart2 },
-  { href: "/locations",  label: "Meus Locais",     Icon: MapPin },
-  { href: "/billing",    label: "Plano & Billing", Icon: CreditCard },
-  { href: "/settings",   label: "Configurações",   Icon: Settings },
+  { href: "/dashboard",  label: "Visão Geral",    Icon: LayoutDashboard, plans: null },
+  { href: "/reviews",    label: "Reviews",         Icon: Star,            plans: null },
+  { href: "/analytics",  label: "Analytics",       Icon: BarChart2,       plans: null },
+  { href: "/locations",  label: "Meus Locais",     Icon: MapPin,          plans: null },
+  { href: "/agency",     label: "Agência",          Icon: Building2,       plans: ["agency"] },
+  { href: "/billing",    label: "Plano & Billing", Icon: CreditCard,      plans: null },
+  { href: "/settings",   label: "Configurações",   Icon: Settings,        plans: null },
 ];
 
 const PLAN_BADGE: Record<Plan, { label: string; cls: string }> = {
@@ -82,7 +83,7 @@ function SidebarContent({
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map(({ href, label, Icon }) => {
+        {NAV_ITEMS.filter(({ plans }) => !plans || plans.includes(plan)).map(({ href, label, Icon }) => {
           const isActive = href === "/dashboard"
             ? pathname === "/dashboard"
             : pathname.startsWith(href);
