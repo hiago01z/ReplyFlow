@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, Star, Zap } from "lucide-react";
+import { CheckCircle2, Star, Zap, Sparkles, MessageSquare, Bell, FileText, RefreshCw, Building2, Send } from "lucide-react";
 import { CountUp } from "@/components/landing/CountUp";
 
 const TESTIMONIALS = [
@@ -71,9 +71,15 @@ export default function LandingPage() {
           ReplyFlow
         </Link>
         <nav className="hidden md:flex items-center gap-6">
-          {["#como-funciona","#depoimentos","#precos","#faq"].map((href) => (
+          {[
+            { href: "#como-funciona", label: "Como funciona" },
+            { href: "#recursos",      label: "Recursos"       },
+            { href: "#depoimentos",   label: "Depoimentos"    },
+            { href: "#precos",        label: "Preços"         },
+            { href: "#faq",           label: "FAQ"            },
+          ].map(({ href, label }) => (
             <Link key={href} href={href} className="text-gray-500 hover:text-gray-900 text-sm transition-colors">
-              {href === "#como-funciona" ? "Como funciona" : href === "#depoimentos" ? "Depoimentos" : href === "#precos" ? "Preços" : "FAQ"}
+              {label}
             </Link>
           ))}
           <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Entrar</Link>
@@ -254,8 +260,87 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Recursos em destaque */}
+      <section id="recursos" className="py-20 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-3">Plataforma completa</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Tudo que você precisa para gerir sua reputação</h2>
+            <p className="text-gray-500 max-w-xl mx-auto text-sm">
+              Muito mais do que gerar respostas. O ReplyFlow é um sistema completo de gestão de reputação local.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              {
+                Icon: Sparkles,
+                color: "bg-indigo-100 text-indigo-600",
+                title: "IA personalizada por nicho",
+                desc:  "Respostas no tom da sua empresa — formal, descontraído ou técnico. A IA aprende o contexto do seu negócio.",
+              },
+              {
+                Icon: Send,
+                color: "bg-green-100 text-green-600",
+                title: "Publicação em 1 clique",
+                desc:  "Aprove e publique direto no Google. Ou ative o modo automático com delay natural para parecer humano.",
+              },
+              {
+                Icon: MessageSquare,
+                color: "bg-blue-100 text-blue-600",
+                title: "Aprovação via WhatsApp",
+                desc:  "Receba a resposta gerada no WhatsApp e aprove com um único toque — sem abrir o dashboard. Plano Pro.",
+              },
+              {
+                Icon: Bell,
+                color: "bg-amber-100 text-amber-600",
+                title: "Alertas em tempo real",
+                desc:  "Notificação imediata por e-mail e WhatsApp quando um review negativo (1-2 estrelas) chega.",
+              },
+              {
+                Icon: FileText,
+                color: "bg-purple-100 text-purple-600",
+                title: "Relatório PDF mensal",
+                desc:  "Receba um relatório mensal completo com taxa de resposta, nota média e distribuição de avaliações.",
+              },
+              {
+                Icon: Building2,
+                color: "bg-rose-100 text-rose-600",
+                title: "Painel multi-cliente",
+                desc:  "Para agências: gerencie todos os seus clientes em um único painel com visão consolidada.",
+              },
+              {
+                Icon: RefreshCw,
+                color: "bg-teal-100 text-teal-600",
+                title: "Sincronização automática",
+                desc:  "Reviews coletados a cada 30 minutos. Ou force uma busca manual com 1 clique quando precisar.",
+              },
+              {
+                Icon: CheckCircle2,
+                color: "bg-indigo-100 text-indigo-600",
+                title: "Ações em lote",
+                desc:  "Selecione vários reviews de uma vez e gere ou publique todas as respostas em sequência.",
+              },
+              {
+                Icon: Star,
+                color: "bg-amber-100 text-amber-600",
+                title: "Analytics de reputação",
+                desc:  "Evolução da nota, taxa de resposta, distribuição de estrelas e top locais — tudo em um dashboard.",
+              },
+            ].map(({ Icon, color, title, desc }) => (
+              <div key={title} className="bg-gray-50 rounded-2xl p-6 hover:shadow-md transition-shadow">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${color}`}>
+                  <Icon size={18} />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm mb-2">{title}</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Depoimentos */}
-      <section id="depoimentos" className="py-20 px-6">
+      <section id="depoimentos" className="py-20 px-6 bg-gray-50">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
             Quem usa, aprova

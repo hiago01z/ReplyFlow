@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { STRIPE_PLANS } from "@/lib/stripe/client";
 import Link from "next/link";
-import { CreditCard, CheckCircle2, Zap, Crown, Building2, ExternalLink } from "lucide-react";
+import { CreditCard, CheckCircle2, Zap, Crown, Building2, ExternalLink, MapPin } from "lucide-react";
 
 const PLAN_FEATURES: Record<string, string[]> = {
   free:    ["1 local", "2 plataformas", "10 respostas/mês", "Sem cartão"],
@@ -24,13 +24,14 @@ export default async function BillingPage() {
   const serviceClient = createServiceClient();
 
   const { data: userRecord } = await serviceClient
-    .from("users").select("organization:organizations(*)").eq("id", user!.id).single();
+    .from("users").select("organization:organizations(id,plan,stripe_customer_id,stripe_subscription_id,subscription_status,extra_locations)").eq("id", user!.id).single();
 
   const org = userRecord?.organization as unknown as {
     id: string; plan: string;
     stripe_customer_id: string | null;
     stripe_subscription_id: string | null;
     subscription_status: string | null;
+    extra_locations: number;
   } | null;
 
   const currentPlan = org?.plan ?? "free";
@@ -151,6 +152,33 @@ export default async function BillingPage() {
             Todos os planos incluem 7 dias grátis. Sem fidelidade. Cancele quando quiser.
           </p>
         </>
+      )}
+
+      {/* Extra-location add-on (Starter only) */}
+      {currentPlan === "starter" && (
+        <div className="card p-5 mb-4 flex items-center justify-between gap-4 border-blue-200 bg-blue-50/40">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+              <MapPin size={16} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 text-sm">
+                Local extra
+                {(org?.extra_locations ?? 0) > 0 && (
+                  <span className="ml-2 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+                    {org!.extra_locations} ativo{org!.extra_locations !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">R$49/mês por local adicional.</p>
+            </div>
+          </div>
+          <form action="/api/billing/extra-location" method="POST" className="shrink-0">
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap">
+              + Comprar local
+            </button>
+          </form>
+        </div>
       )}
 
       {/* Agency upsell */}

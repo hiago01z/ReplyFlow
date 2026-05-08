@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   // Buscar org e plano
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("organization_id, organization:organizations(plan)")
+    .select("organization_id, organization:organizations(plan, extra_locations)")
     .eq("id", user.id)
     .single();
 
@@ -35,8 +35,14 @@ export async function POST(request: Request) {
   }
 
   const orgId = userRecord.organization_id;
-  const plan  = (userRecord.organization as unknown as { plan: string } | null)?.plan ?? "free";
-  const limit = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]?.locations ?? 1;
+  const orgData = userRecord.organization as unknown as {
+    plan: string;
+    extra_locations?: number;
+  } | null;
+  const plan           = orgData?.plan ?? "free";
+  const extraLocations = orgData?.extra_locations ?? 0;
+  const baseLimit      = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]?.locations ?? 1;
+  const limit          = baseLimit === Infinity ? Infinity : baseLimit + extraLocations;
 
   // Verificar limite de locais
   const { count } = await serviceClient
@@ -47,7 +53,13 @@ export async function POST(request: Request) {
 
   if (limit !== Infinity && (count ?? 0) >= limit) {
     return NextResponse.json(
-      { error: "plan_limit", message: `Seu plano ${plan} permite até ${limit} local(is). Faça upgrade para adicionar mais.` },
+      {
+        error:   "plan_limit",
+        message: plan === "starter"
+          ? `Seu plano Starter permite ${limit} local(is). Compre um local extra (R$49/mês) ou faça upgrade para o Pro.`
+          : `Seu plano ${plan} permite até ${limit} local(is). Faça upgrade para adicionar mais.`,
+        canBuyAddon: plan === "starter",
+      },
       { status: 403 }
     );
   }

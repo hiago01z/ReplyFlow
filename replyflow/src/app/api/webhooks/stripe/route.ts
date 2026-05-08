@@ -33,35 +33,94 @@ export async function POST(request: Request) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription
-      const priceId = subscription.items.data[0]?.price.id ?? ''
-      const plan = PLAN_BY_PRICE[priceId] ?? 'free'
+      const isAddon = subscription.metadata?.type === 'extra_location'
 
-      await supabase
-        .from('organizations')
-        .update({
-          plan,
-          stripe_subscription_id: subscription.id,
-          stripe_price_id: priceId,
-          subscription_status: subscription.status,
-        })
-        .eq('stripe_customer_id', subscription.customer as string)
+      if (isAddon) {
+        // ── Add-on: extra location ──────────────────────────────────────────
+        const orgId = subscription.metadata?.organizationId
+        if (!orgId) break
 
+        if (subscription.status === 'active') {
+          // Upsert the add-on subscription record
+          await supabase.from('add_on_subscriptions').upsert(
+            {
+              organization_id:        orgId,
+              stripe_subscription_id: subscription.id,
+              type:                   'extra_location',
+              quantity:               1,
+              status:                 'active',
+            },
+            { onConflict: 'stripe_subscription_id' },
+          )
+
+          // Recompute extra_locations from active add-ons
+          const { count } = await supabase
+            .from('add_on_subscriptions')
+            .select('id', { count: 'exact', head: true })
+            .eq('organization_id', orgId)
+            .eq('type', 'extra_location')
+            .eq('status', 'active')
+
+          await supabase
+            .from('organizations')
+            .update({ extra_locations: count ?? 1 })
+            .eq('id', orgId)
+        }
+      } else {
+        // ── Main plan subscription ──────────────────────────────────────────
+        const priceId = subscription.items.data[0]?.price.id ?? ''
+        const plan    = PLAN_BY_PRICE[priceId] ?? 'free'
+
+        await supabase
+          .from('organizations')
+          .update({
+            plan,
+            stripe_subscription_id: subscription.id,
+            stripe_price_id:        priceId,
+            subscription_status:    subscription.status,
+          })
+          .eq('stripe_customer_id', subscription.customer as string)
+      }
       break
     }
 
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription
+      const isAddon = subscription.metadata?.type === 'extra_location'
 
-      await supabase
-        .from('organizations')
-        .update({
-          plan: 'free',
-          stripe_subscription_id: null,
-          stripe_price_id: null,
-          subscription_status: 'canceled',
-        })
-        .eq('stripe_customer_id', subscription.customer as string)
+      if (isAddon) {
+        const orgId = subscription.metadata?.organizationId
+        if (!orgId) break
 
+        await supabase
+          .from('add_on_subscriptions')
+          .update({ status: 'canceled' })
+          .eq('stripe_subscription_id', subscription.id)
+
+        // Recompute
+        const { count } = await supabase
+          .from('add_on_subscriptions')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', orgId)
+          .eq('type', 'extra_location')
+          .eq('status', 'active')
+
+        await supabase
+          .from('organizations')
+          .update({ extra_locations: count ?? 0 })
+          .eq('id', orgId)
+      } else {
+        await supabase
+          .from('organizations')
+          .update({
+            plan:                    'free',
+            stripe_subscription_id:  null,
+            stripe_price_id:         null,
+            subscription_status:     'canceled',
+            extra_locations:         0,
+          })
+          .eq('stripe_customer_id', subscription.customer as string)
+      }
       break
     }
   }
