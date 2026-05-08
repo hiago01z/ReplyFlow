@@ -18,10 +18,28 @@ export default function ResetPasswordPage() {
   const [ready,     setReady]     = useState(false);
 
   useEffect(() => {
-    // Supabase injeta o token na hash da URL após clicar no link de reset
     const supabase = createClient();
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true);
+
+    // ── PKCE flow: code already exchanged in /api/auth/callback ──────────────
+    // When redirectTo is /reset-password, the callback exchanges the code and
+    // redirects here with a valid session. PASSWORD_RECOVERY won't fire, but
+    // we already have a session → show the form immediately.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setReady(true);
+        return;
+      }
+
+      // ── Implicit flow: token in URL hash (#access_token=...&type=recovery) ─
+      // Listen for PASSWORD_RECOVERY event (fires when Supabase detects hash token)
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+          setReady(true);
+        }
+      });
+
+      // Cleanup on unmount
+      return () => subscription.unsubscribe();
     });
   }, []);
 
@@ -36,7 +54,9 @@ export default function ResetPasswordPage() {
     setLoading(false);
     if (error) { setError("Não foi possível redefinir a senha. O link pode ter expirado."); return; }
     setDone(true);
-    setTimeout(() => router.push("/dashboard"), 2000);
+    // Sign out to clear the recovery session, then redirect to login
+    await supabase.auth.signOut();
+    setTimeout(() => router.push("/login"), 2000);
   }
 
   if (done) {
@@ -46,7 +66,7 @@ export default function ResetPasswordPage() {
           <CheckCircle2 size={28} className="text-green-500" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Senha redefinida!</h1>
-        <p className="text-sm text-gray-500">Redirecionando para o dashboard…</p>
+        <p className="text-sm text-gray-500">Redirecionando para o login…</p>
         <div className="mt-4 flex gap-1 justify-center">
           {[0, 1, 2].map((i) => (
             <div key={i} className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />

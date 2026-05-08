@@ -18,8 +18,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
+    // redirectTo → /api/auth/callback exchanges the PKCE code, then
+    // passes next=/reset-password so the user lands on the reset form.
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/api/auth/callback?next=/reset-password`,
     });
     setLoading(false);
     if (error) { setError("Não foi possível enviar o e-mail. Verifique o endereço."); return; }

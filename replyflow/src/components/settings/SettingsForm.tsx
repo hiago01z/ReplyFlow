@@ -55,8 +55,8 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
       {/* Empresa */}
       <div className="card p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Building2 size={16} className="text-gray-400" />
-          <h2 className="text-sm font-semibold text-gray-900">Empresa</h2>
+          <Building2 size={16} className="text-gray-400 dark:text-gray-500" />
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Empresa</h2>
         </div>
         <Input
           label="Nome da empresa"
@@ -72,21 +72,21 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
       {/* Alertas */}
       <div className="card p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Bell size={16} className="text-gray-400" />
-          <h2 className="text-sm font-semibold text-gray-900">Alertas de reviews negativos</h2>
+          <Bell size={16} className="text-gray-400 dark:text-gray-500" />
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Alertas de reviews negativos</h2>
         </div>
         <div className="space-y-4">
           {/* Toggle */}
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-700">Alertas por e-mail</p>
-              <p className="text-xs text-gray-400 mt-0.5">Receba um e-mail quando um review de 1-2 estrelas chegar.</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Alertas por e-mail</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Receba um e-mail quando um review de 1-2 estrelas chegar.</p>
             </div>
             <button
               type="button"
               onClick={() => setEmailAlerts((v) => !v)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-                emailAlerts ? "bg-indigo-600" : "bg-gray-200"
+                emailAlerts ? "bg-indigo-600" : "bg-gray-200 dark:bg-gray-700"
               }`}
               aria-checked={emailAlerts}
               role="switch"
@@ -102,8 +102,8 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
           {/* Custom alert email */}
           {emailAlerts && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
-                <Mail size={13} className="text-gray-400" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
+                <Mail size={13} className="text-gray-400 dark:text-gray-500" />
                 E-mail de destino dos alertas
               </label>
               <input
@@ -111,18 +111,18 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
                 value={alertEmail}
                 onChange={(e) => setAlertEmail(e.target.value)}
                 placeholder={user.email + " (padrão)"}
-                className="w-full h-10 px-3.5 text-sm bg-white border border-gray-200 rounded-lg focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-colors"
+                className="w-full h-10 px-3.5 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-[#18181f] border border-gray-200 dark:border-[#2a2a35] rounded-lg focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40 outline-none transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-600"
               />
-              <p className="mt-1.5 text-xs text-gray-400">
+              <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
                 Deixe em branco para usar <span className="font-medium">{user.email}</span>
               </p>
             </div>
           )}
 
           {!emailAlerts && (
-            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
-              <BellOff size={14} className="text-gray-400 shrink-0" />
-              <p className="text-xs text-gray-500">Alertas por e-mail desativados. Você não será notificado sobre reviews negativos.</p>
+            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
+              <BellOff size={14} className="text-gray-400 dark:text-gray-500 shrink-0" />
+              <p className="text-xs text-gray-500 dark:text-gray-400">Alertas por e-mail desativados. Você não será notificado sobre reviews negativos.</p>
             </div>
           )}
         </div>
@@ -131,8 +131,8 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
       {/* Perfil */}
       <div className="card p-5">
         <div className="flex items-center gap-2 mb-4">
-          <User size={16} className="text-gray-400" />
-          <h2 className="text-sm font-semibold text-gray-900">Perfil</h2>
+          <User size={16} className="text-gray-400 dark:text-gray-500" />
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Perfil</h2>
         </div>
         <div className="space-y-4">
           <Input
@@ -143,26 +143,26 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
             placeholder="João Silva"
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
-              <Mail size={13} className="text-gray-400" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
+              <Mail size={13} className="text-gray-400 dark:text-gray-500" />
               E-mail de login
             </label>
             <input
               type="email"
               value={user.email}
               disabled
-              className="w-full h-10 px-3.5 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-400 cursor-not-allowed"
+              className="w-full h-10 px-3.5 text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#2a2a35] rounded-lg text-gray-400 dark:text-gray-500 cursor-not-allowed"
             />
-            <p className="mt-1.5 text-xs text-gray-400">O e-mail de login não pode ser alterado por aqui.</p>
+            <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">O e-mail de login não pode ser alterado por aqui.</p>
           </div>
 
           {/* WhatsApp — alertas Pro */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
-              <Smartphone size={13} className="text-gray-400" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
+              <Smartphone size={13} className="text-gray-400 dark:text-gray-500" />
               WhatsApp para alertas
               {!isPro && (
-                <span className="ml-1 text-[10px] font-semibold bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full">
+                <span className="ml-1 text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">
                   PRO
                 </span>
               )}
@@ -175,12 +175,12 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
               placeholder={isPro ? "5511999999999" : "Disponível no plano Pro"}
               className={`w-full h-10 px-3.5 text-sm border rounded-lg transition-colors ${
                 isPro
-                  ? "bg-white border-gray-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none"
-                  : "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
+                  ? "text-gray-900 dark:text-gray-100 bg-white dark:bg-[#18181f] border-gray-200 dark:border-[#2a2a35] focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40 outline-none"
+                  : "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-[#2a2a35] text-gray-400 dark:text-gray-500 cursor-not-allowed"
               }`}
             />
             {isPro && (
-              <p className="mt-1.5 text-xs text-gray-400">
+              <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
                 Formato: código do país + DDD + número. Ex: 5511999999999
               </p>
             )}

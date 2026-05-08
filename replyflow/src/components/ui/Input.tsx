@@ -13,7 +13,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {label}
           </label>
         )}
@@ -21,17 +21,20 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            "w-full h-10 px-3.5 text-sm text-gray-900 bg-white",
+            "w-full h-10 px-3.5 text-sm text-gray-900 dark:text-gray-100",
+            "bg-white dark:bg-[#18181f]",
             "border rounded-lg transition-colors",
-            "placeholder:text-gray-400",
+            "placeholder:text-gray-400 dark:placeholder:text-gray-600",
             "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
-            error ? "border-red-300 focus:ring-red-500" : "border-gray-200 hover:border-gray-300",
+            error
+              ? "border-red-300 dark:border-red-700 focus:ring-red-500"
+              : "border-gray-200 dark:border-[#2a2a35] hover:border-gray-300 dark:hover:border-[#3a3a48]",
             className,
           )}
           {...props}
         />
-        {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
-        {hint && !error && <p className="mt-1.5 text-xs text-gray-500">{hint}</p>}
+        {error && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{error}</p>}
+        {hint && !error && <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{hint}</p>}
       </div>
     );
   }
@@ -46,7 +49,7 @@ export const Textarea = forwardRef<
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           {label}
         </label>
       )}
@@ -54,16 +57,19 @@ export const Textarea = forwardRef<
         ref={ref}
         id={inputId}
         className={cn(
-          "w-full px-3.5 py-2.5 text-sm text-gray-900 bg-white",
+          "w-full px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100",
+          "bg-white dark:bg-[#18181f]",
           "border rounded-lg transition-colors resize-none",
-          "placeholder:text-gray-400",
+          "placeholder:text-gray-400 dark:placeholder:text-gray-600",
           "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
-          error ? "border-red-300" : "border-gray-200 hover:border-gray-300",
+          error
+            ? "border-red-300 dark:border-red-700"
+            : "border-gray-200 dark:border-[#2a2a35] hover:border-gray-300 dark:hover:border-[#3a3a48]",
           className,
         )}
         {...props}
       />
-      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 });

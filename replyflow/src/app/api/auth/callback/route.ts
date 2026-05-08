@@ -13,6 +13,13 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data.user) {
+      // ── Password recovery: always redirect to reset-password ──────────────
+      // next=/reset-password is set by forgot-password page. Honour it without
+      // creating orgs or checking user records.
+      if (next === "/reset-password") {
+        return NextResponse.redirect(`${origin}/reset-password`);
+      }
+
       const serviceClient = createServiceClient();
 
       // Verificar se o usuário já tem registro na tabela users

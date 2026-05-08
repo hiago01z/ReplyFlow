@@ -1,11 +1,18 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (user) redirect("/dashboard");
+
+  // Allow authenticated users to reach /reset-password — they need a session to update the password
+  const h = await headers();
+  const pathname = h.get("x-pathname") ?? "";
+  const isResetPassword = pathname.startsWith("/reset-password");
+
+  if (user && !isResetPassword) redirect("/dashboard");
 
   return (
     <div className="min-h-screen flex">

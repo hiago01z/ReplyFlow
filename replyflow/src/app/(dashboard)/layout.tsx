@@ -41,7 +41,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#0f0f13]">
       {/* Real-time watcher: invisible, fires toast + router.refresh on new review */}
       <RealtimeWatcher locationIds={locIds} />
       <Sidebar
