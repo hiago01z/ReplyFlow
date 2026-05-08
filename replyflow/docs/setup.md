@@ -38,6 +38,7 @@ Preencha todas as variáveis em `.env.local`:
 | `STRIPE_PRICE_STARTER_MONTHLY` | Stripe Dashboard → Products |
 | `STRIPE_PRICE_PRO_MONTHLY` | Stripe Dashboard → Products |
 | `STRIPE_PRICE_AGENCY_MONTHLY` | Stripe Dashboard → Products |
+| `STRIPE_PRICE_EXTRA_LOCATION` | Stripe Dashboard → Products (add-on R$49/mês) |
 | `UPSTASH_REDIS_REST_URL` | [console.upstash.com](https://console.upstash.com) → Redis → REST API |
 | `UPSTASH_REDIS_REST_TOKEN` | [console.upstash.com](https://console.upstash.com) → Redis → REST API |
 | `RESEND_API_KEY` | [resend.com/api-keys](https://resend.com/api-keys) |
@@ -58,6 +59,15 @@ No [Supabase Dashboard](https://app.supabase.com) → **SQL Editor**, execute as
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_sprint3_additions.sql
 supabase/migrations/003_auto_publish_config.sql
+supabase/migrations/004_alert_settings.sql
+supabase/migrations/005_responses_unique.sql
+supabase/migrations/006_agency.sql
+supabase/migrations/007_extra_locations.sql
+```
+
+Depois, habilite o Realtime na tabela `reviews`:
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE reviews;
 ```
 
 ## 4. Configurar Stripe
@@ -66,6 +76,7 @@ supabase/migrations/003_auto_publish_config.sql
    - **ReplyFlow Starter** — R$97/mês recorrente
    - **ReplyFlow Pro** — R$197/mês recorrente
    - **ReplyFlow Agência** — R$497/mês recorrente
+   - **Local Extra (add-on)** — R$49/mês recorrente (disponível apenas no Starter)
 2. Copie os `price_id` (começam com `price_`) para o `.env.local`
 3. Configure o webhook em **Developers → Webhooks → Add endpoint**:
    - URL: `https://seudominio.com/api/webhooks/stripe`
@@ -94,9 +105,10 @@ supabase/migrations/003_auto_publish_config.sql
 O Vercel Hobby não suporta crons customizados. Use o [cron-job.org](https://cron-job.org) (grátis):
 
 1. Crie uma conta e clique em **+ Create Cronjob**
-2. URL: `https://seudominio.com/api/cron/fetch-reviews?secret=SEU_CRON_SECRET`
-3. Schedule: a cada 30 minutos (`*/30 * * * *`)
-4. Salve e ative
+2. Crie dois cron jobs:
+   - **Buscar reviews** — URL: `https://seudominio.com/api/cron/fetch-reviews?secret=SEU_CRON_SECRET` — Schedule: `*/30 * * * *` (a cada 30 min)
+   - **Digest semanal** — URL: `https://seudominio.com/api/cron/weekly-digest?secret=SEU_CRON_SECRET` — Schedule: `0 8 * * 1` (toda segunda às 8h)
+3. Salve e ative ambos
 
 ## 8. Rodar localmente
 
