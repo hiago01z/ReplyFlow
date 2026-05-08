@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
+import { TemplatePicker } from "@/components/reviews/TemplatePicker";
 import { cn } from "@/lib/utils";
 import type { Review } from "@/types";
 
@@ -247,10 +248,21 @@ export function ReviewCard({
           {/* Response area */}
           {isEditable && (
             <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                  Resposta {responseText ? "— editável" : ""}
-                </span>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                    Resposta {responseText ? "— editável" : ""}
+                  </span>
+                  {/* Template picker — only visible when editing */}
+                  {(responseText !== undefined) && (
+                    <TemplatePicker
+                      niche={(review.location as { niche?: string } | undefined)?.niche ?? "outro"}
+                      rating={review.rating ?? 3}
+                      authorName={review.author_name}
+                      onSelect={(text) => setResponseText(text)}
+                    />
+                  )}
+                </div>
                 {!responseText ? (
                   <Button size="sm" onClick={handleGenerate} loading={generating} className="gap-1.5">
                     <Sparkles size={13} />
@@ -267,7 +279,7 @@ export function ReviewCard({
               <Textarea
                 value={responseText}
                 onChange={(e) => setResponseText(e.target.value)}
-                placeholder="Clique em 'Gerar com IA' para criar uma resposta automaticamente…"
+                placeholder="Clique em 'Gerar com IA' ou em 'Sugestões' para começar…"
                 rows={4}
                 className="text-sm"
               />

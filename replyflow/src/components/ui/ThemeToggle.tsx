@@ -10,10 +10,10 @@ export function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    // Ler preferencia salva ou usar preferencia do sistema
+    // Novos visitantes (sem preferencia salva) sempre iniciam em modo claro.
+    // So usa dark se o usuario ESCOLHEU explicitamente via toggle.
     const saved = localStorage.getItem("rf-theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initial = saved ?? (prefersDark ? "dark" : "light");
+    const initial = saved ?? "light";
     applyTheme(initial);
     setTheme(initial);
   }, []);
@@ -91,9 +91,9 @@ export const themeScript = `
 (function(){
   try {
     var saved = localStorage.getItem('rf-theme');
-    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    var theme = saved || (prefersDark ? 'dark' : 'light');
-    if (theme === 'dark') document.documentElement.classList.add('dark');
+    // Novos visitantes (sem preferencia salva) sempre em modo claro.
+    // Dark apenas se o usuario escolheu explicitamente.
+    if (saved === 'dark') document.documentElement.classList.add('dark');
   } catch(e) {}
 })();
 `;
