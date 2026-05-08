@@ -164,6 +164,10 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 23 (Sync manual de reviews) | ✅ Concluída |
 | Etapa 6 — Sprint 24 (Checklist de onboarding) | ✅ Concluída |
 | Etapa 6 — Sprint 25 (Painel multi-cliente Agência) | ✅ Concluída |
+| Etapa 6 — Sprint 26 (Add-on extra locais Stripe) | ✅ Concluída |
+| Etapa 6 — Sprint 27 (Digest semanal por email) | ✅ Concluída |
+| Etapa 6 — Sprint 28 (Landing features + cron fixes) | ✅ Concluída |
+| Etapa 6 — Sprint 29 (Trial system 7 dias + Stripe webhook fix) | ✅ Concluída |
 
 ---
 
