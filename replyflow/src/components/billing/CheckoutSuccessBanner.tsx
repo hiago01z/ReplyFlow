@@ -23,16 +23,20 @@ export function CheckoutSuccessBanner({ plan }: Props) {
     if (planUpdated) return;
 
     // 1) Call sync immediately — queries Stripe directly and updates the DB.
-    //    This covers environments where the webhook isn't configured yet.
+    //    Force full reload after sync so the RSC cache is bypassed.
     fetch("/api/billing/sync", { method: "POST" })
-      .then(() => router.refresh())
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.synced) {
+          window.location.reload();
+        }
+      })
       .catch(() => {/* silent — fallback polling covers it */});
 
-    // 2) Fallback polling in case sync takes a moment or the user hits the
-    //    page before the checkout.session.completed event fires in Stripe.
-    const t1 = setTimeout(() => router.refresh(), 3_000);
-    const t2 = setTimeout(() => router.refresh(), 8_000);
-    const t3 = setTimeout(() => router.refresh(), 15_000);
+    // 2) Fallback polling: full reload at 4 s, 9 s, 16 s
+    const t1 = setTimeout(() => window.location.reload(), 4_000);
+    const t2 = setTimeout(() => window.location.reload(), 9_000);
+    const t3 = setTimeout(() => window.location.reload(), 16_000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [router, planUpdated]);
 

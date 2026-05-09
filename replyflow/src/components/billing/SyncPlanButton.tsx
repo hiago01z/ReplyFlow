@@ -17,7 +17,9 @@ export function SyncPlanButton() {
       const data = await res.json();
       setResult(data);
       if (data.synced) {
-        router.refresh();
+        // Force full page reload so the server component re-reads the DB.
+        // router.refresh() alone sometimes returns stale data from the RSC cache.
+        setTimeout(() => { window.location.reload(); }, 400);
       }
     } catch {
       setResult({ error: "network" });
