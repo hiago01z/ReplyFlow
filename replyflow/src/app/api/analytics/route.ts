@@ -44,6 +44,7 @@ export async function GET(request: Request) {
       statusBreakdown:  [],
       topLocations:     [],
       totals: { total: 0, published: 0, pending: 0, avgRating: 0, replyRate: 0 },
+      locations:        [],
     })
   }
 

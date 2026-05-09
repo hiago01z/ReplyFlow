@@ -1,7 +1,8 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw } from "lucide-react";
+import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw, Zap, AlertCircle } from "lucide-react";
 import { SyncNowButton } from "@/components/locations/SyncNowButton";
+import { ReactivateLocationButton } from "@/components/locations/ReactivateLocationButton";
 
 interface LocationsPageProps {
   searchParams: Promise<{ success?: string; error?: string }>;
@@ -19,6 +20,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
   const { data: locations } = await serviceClient
     .from("locations").select("*")
     .eq("organization_id", userRecord!.organization_id)
+    .order("active", { ascending: false }) // active locations first
     .order("created_at");
 
   // Fetch the most-recent review per location as a last-sync proxy
@@ -104,17 +106,34 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
               ? new Date(lastSync).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })
               : null;
             return (
-              <div key={loc.id} className="card px-5 py-4 flex items-center justify-between gap-4">
+              <div
+                key={loc.id}
+                className={`card px-5 py-4 flex items-center justify-between gap-4 ${!loc.active ? "opacity-60 border-dashed" : ""}`}
+              >
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                    <MapPin size={18} className="text-indigo-500" />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${loc.active ? "bg-indigo-50" : "bg-gray-100"}`}>
+                    <MapPin size={18} className={loc.active ? "text-indigo-500" : "text-gray-400"} />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm truncate">{loc.name}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-gray-900 text-sm truncate">{loc.name}</p>
+                      {!loc.active && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                          <AlertCircle size={10} />
+                          Desativado
+                        </span>
+                      )}
+                      {loc.active && loc.auto_publish && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                          <Zap size={10} />
+                          Auto {loc.auto_publish_min_rating ?? 3}★+
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500 mt-0.5 capitalize">
                       {loc.niche} · Tom: {loc.tone}
                     </p>
-                    {lastSyncLabel && (
+                    {lastSyncLabel && loc.active && (
                       <p className="flex items-center gap-1 text-[11px] text-gray-400 mt-0.5">
                         <RefreshCw size={9} />
                         Último review: {lastSyncLabel}
@@ -124,32 +143,38 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                 </div>
 
                 <div className="flex items-center gap-2.5 shrink-0">
-                  {/* Sync manual button — only for connected locations */}
-                  {isConnected && loc.google_location_name && (
+                  {/* Reactivate button for inactive locations */}
+                  {!loc.active && (
+                    <ReactivateLocationButton locationId={loc.id} />
+                  )}
+                  {/* Sync manual button — only for connected active locations */}
+                  {loc.active && isConnected && loc.google_location_name && (
                     <SyncNowButton locationId={loc.id} />
                   )}
-                  {isConnected && loc.google_location_name ? (
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
-                      <Wifi size={12} />
-                      Google conectado
-                    </div>
-                  ) : isConnected && !loc.google_location_name ? (
-                    <a
-                      href={`/api/google/auth?locationId=${loc.id}`}
-                      className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors"
-                      title="Local GMB não detectado — reconectar"
-                    >
-                      <Wifi size={12} />
-                      Reconectar Google
-                    </a>
-                  ) : (
-                    <a
-                      href={`/api/google/auth?locationId=${loc.id}`}
-                      className="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-full transition-colors"
-                    >
-                      <Plus size={12} />
-                      Conectar Google
-                    </a>
+                  {loc.active && (
+                    isConnected && loc.google_location_name ? (
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+                        <Wifi size={12} />
+                        Google conectado
+                      </div>
+                    ) : isConnected && !loc.google_location_name ? (
+                      <a
+                        href={`/api/google/auth?locationId=${loc.id}`}
+                        className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors"
+                        title="Local GMB não detectado — reconectar"
+                      >
+                        <Wifi size={12} />
+                        Reconectar Google
+                      </a>
+                    ) : (
+                      <a
+                        href={`/api/google/auth?locationId=${loc.id}`}
+                        className="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-full transition-colors"
+                      >
+                        <Plus size={12} />
+                        Conectar Google
+                      </a>
+                    )
                   )}
                   <Link
                     href={`/locations/${loc.id}`}

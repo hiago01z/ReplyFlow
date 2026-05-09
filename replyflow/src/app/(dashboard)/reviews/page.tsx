@@ -3,7 +3,10 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ExportCsvButton } from "@/components/reviews/ExportCsvButton";
 import { UpgradeBanner } from "@/components/reviews/UpgradeBanner";
+import { DemoSeedButton } from "@/components/reviews/DemoSeedButton";
 import { PLAN_LIMITS } from "@/types";
+import Link from "next/link";
+import { MapPin } from "lucide-react";
 
 interface ReviewsPageProps {
   searchParams: Promise<{ status?: string; rating?: string; locationId?: string; page?: string; highlight?: string; search?: string }>;
@@ -34,12 +37,46 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   const locationIds = (locations ?? []).map((l) => l.id);
 
   if (locationIds.length === 0) {
+    // Check if there are inactive locations (soft-deleted)
+    const { data: allLocations } = await serviceClient
+      .from("locations")
+      .select("id, name, active")
+      .eq("organization_id", userRecord!.organization_id);
+    const hasInactiveOnly = (allLocations ?? []).length > 0 && (allLocations ?? []).every((l) => !l.active);
+
     return (
       <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-8">Reviews</h1>
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
-          <div className="text-4xl mb-3">⭐</div>
-          <p className="text-gray-500">Nenhum local ativo. Adicione um local primeiro.</p>
+          <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <MapPin size={24} className="text-indigo-400" />
+          </div>
+          {hasInactiveOnly ? (
+            <>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">Seu local está desativado</h3>
+              <p className="text-sm text-gray-500 mb-5">
+                Você tem locais cadastrados mas desativados. Vá em <strong>Meus Locais</strong>, clique na engrenagem ⚙️ e reative o local.
+              </p>
+              <Link
+                href="/locations"
+                className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <MapPin size={14} />
+                Ir para Meus Locais
+              </Link>
+            </>
+          ) : (
+            <>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">Nenhum local ativo</h3>
+              <p className="text-sm text-gray-500 mb-5">Adicione um local para começar a monitorar reviews.</p>
+              <Link
+                href="/locations/new"
+                className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Adicionar local
+              </Link>
+            </>
+          )}
         </div>
       </div>
     );
@@ -63,6 +100,14 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   }
 
   const { data: reviews, count } = await query;
+
+  // ── Check if demo reviews exist for this org ───────────────────────────────
+  const { count: demoCount } = await serviceClient
+    .from("reviews")
+    .select("id", { count: "exact", head: true })
+    .in("location_id", locationIds)
+    .like("external_id", "demo%");
+  const hasDemo = (demoCount ?? 0) > 0;
 
   // ── Monthly response usage for upgrade banner (free plan only) ─────────────
   let monthlyUsed = 0;
@@ -94,7 +139,10 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
             {count ?? 0} review{(count ?? 0) !== 1 ? "s" : ""} encontrado{(count ?? 0) !== 1 ? "s" : ""}
           </p>
         </div>
-        <ExportCsvButton locationIds={locationIds} filters={{ status: params.status, rating: params.rating, locationId: params.locationId, search: params.search }} />
+        <div className="flex items-center gap-2">
+          <DemoSeedButton hasDemo={hasDemo} />
+          <ExportCsvButton locationIds={locationIds} filters={{ status: params.status, rating: params.rating, locationId: params.locationId, search: params.search }} />
+        </div>
       </div>
 
       {monthlyLimit !== null && (
