@@ -4,6 +4,7 @@ import { STRIPE_PLANS } from "@/lib/stripe/client";
 import Link from "next/link";
 import { CreditCard, CheckCircle2, Zap, Crown, Building2, ExternalLink, MapPin, Clock } from "lucide-react";
 import { CheckoutSuccessBanner } from "@/components/billing/CheckoutSuccessBanner";
+import { SyncPlanButton } from "@/components/billing/SyncPlanButton";
 
 export const dynamic = "force-dynamic";
 
@@ -144,9 +145,9 @@ export default async function BillingPage({
           </ul>
         </div>
 
-        {/* Manage subscription link */}
-        {org?.stripe_customer_id && (
-          <div className="mt-5 pt-5 border-t border-gray-100">
+        {/* Manage subscription link + sync button */}
+        <div className="mt-5 pt-5 border-t border-gray-100 flex items-center justify-between gap-4">
+          {org?.stripe_customer_id ? (
             <form action="/api/billing/portal" method="POST">
               <button type="submit" className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium">
                 <CreditCard size={14} />
@@ -154,8 +155,11 @@ export default async function BillingPage({
                 <ExternalLink size={12} />
               </button>
             </form>
-          </div>
-        )}
+          ) : (
+            <span />
+          )}
+          <SyncPlanButton />
+        </div>
       </div>
 
       {/* Upgrade grid */}

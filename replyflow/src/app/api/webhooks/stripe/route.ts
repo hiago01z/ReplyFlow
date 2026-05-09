@@ -4,10 +4,21 @@ import { stripe } from '@/lib/stripe/client'
 import { createServiceClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
+// Supports both price IDs (price_xxx) and product IDs (prod_xxx) as env var values.
+// Stripe sends price.id in subscriptions; if env vars accidentally contain product IDs
+// we fall back to matching on price.product.
 const PLAN_BY_PRICE: Record<string, string> = {
   [process.env.STRIPE_PRICE_STARTER_MONTHLY ?? '']: 'starter',
   [process.env.STRIPE_PRICE_PRO_MONTHLY ?? '']: 'pro',
   [process.env.STRIPE_PRICE_AGENCY_MONTHLY ?? '']: 'agency',
+}
+
+function resolvePlan(priceId: string, productId?: string | null): string {
+  return (
+    PLAN_BY_PRICE[priceId] ??
+    (productId ? PLAN_BY_PRICE[productId] : undefined) ??
+    'free'
+  )
 }
 
 export async function POST(request: Request) {
@@ -71,8 +82,10 @@ export async function POST(request: Request) {
             : session.subscription.id
 
           const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-          const priceId = subscription.items.data[0]?.price.id ?? ''
-          const plan    = PLAN_BY_PRICE[priceId] ?? 'free'
+          const priceItem = subscription.items.data[0]?.price
+          const priceId   = priceItem?.id ?? ''
+          const productId = typeof priceItem?.product === 'string' ? priceItem.product : null
+          const plan      = resolvePlan(priceId, productId)
 
           await supabase
             .from('organizations')
@@ -132,8 +145,10 @@ export async function POST(request: Request) {
         }
       } else {
         // ── Plano principal ──────────────────────────────────────────────────
-        const priceId = subscription.items.data[0]?.price.id ?? ''
-        const plan    = PLAN_BY_PRICE[priceId] ?? 'free'
+        const priceItem2 = subscription.items.data[0]?.price
+        const priceId    = priceItem2?.id ?? ''
+        const productId2 = typeof priceItem2?.product === 'string' ? priceItem2.product : null
+        const plan       = resolvePlan(priceId, productId2)
 
         // Lookup primário: metadata.organizationId (injetado em subscription_data.metadata)
         // Lookup secundário: stripe_customer_id (funciona para renewals e updates)

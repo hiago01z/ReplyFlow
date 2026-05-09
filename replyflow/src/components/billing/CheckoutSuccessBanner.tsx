@@ -11,8 +11,9 @@ interface Props {
 
 /**
  * Shown on /billing?success=1 after a Stripe checkout redirect.
- * Stripe webhooks are async — this component polls via router.refresh()
- * until the plan is no longer "free", then shows a success confirmation.
+ * On mount, calls /api/billing/sync to immediately fetch the subscription from
+ * Stripe and update the DB — this works even without webhooks configured.
+ * Falls back to polling via router.refresh() for webhook-based updates.
  */
 export function CheckoutSuccessBanner({ plan }: Props) {
   const router = useRouter();
@@ -20,10 +21,18 @@ export function CheckoutSuccessBanner({ plan }: Props) {
 
   useEffect(() => {
     if (planUpdated) return;
-    // Retry at 3 s, 7 s, 12 s — covers p95 webhook latency
+
+    // 1) Call sync immediately — queries Stripe directly and updates the DB.
+    //    This covers environments where the webhook isn't configured yet.
+    fetch("/api/billing/sync", { method: "POST" })
+      .then(() => router.refresh())
+      .catch(() => {/* silent — fallback polling covers it */});
+
+    // 2) Fallback polling in case sync takes a moment or the user hits the
+    //    page before the checkout.session.completed event fires in Stripe.
     const t1 = setTimeout(() => router.refresh(), 3_000);
-    const t2 = setTimeout(() => router.refresh(), 7_000);
-    const t3 = setTimeout(() => router.refresh(), 12_000);
+    const t2 = setTimeout(() => router.refresh(), 8_000);
+    const t3 = setTimeout(() => router.refresh(), 15_000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [router, planUpdated]);
 
