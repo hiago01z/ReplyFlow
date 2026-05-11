@@ -70,18 +70,16 @@ export default async function BillingPage({
   let syncResult: { plan: string; synced: boolean; reason?: string } | null = null;
 
   if ((params.verify === "1" || params.success === "1") && org?.id) {
-    const dbPlan = org.plan ?? "free";
-    // Only call Stripe if we currently show "free" — avoids unnecessary API calls
-    if (dbPlan === "free") {
-      syncResult = await syncPlanFromStripe(
-        org.id,
-        org.stripe_customer_id,
-        userRecord?.email ?? user?.email,
-      );
-    }
+    // Always sync when explicitly requested (?verify=1) or after checkout (?success=1).
+    // This ensures stale DB state is refreshed on every explicit user action.
+    syncResult = await syncPlanFromStripe(
+      org.id,
+      org.stripe_customer_id,
+      userRecord?.email ?? user?.email,
+    );
   }
 
-  // Use synced plan if we got one, otherwise fall back to DB value
+  // syncResult.plan is freshest (Stripe-sourced); org.plan is DB fallback
   const currentPlan  = syncResult?.synced ? syncResult.plan : (org?.plan ?? "free");
   const isActive     = org?.subscription_status === "active" || syncResult?.synced === true;
 

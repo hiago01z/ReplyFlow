@@ -25,8 +25,36 @@ const PLAN_MAP: Record<string, string> = {
   [process.env.STRIPE_PRICE_AGENCY_MONTHLY  ?? '']: 'agency',
 }
 
+const AMOUNT_TO_PLAN: Record<number, string> = {
+  9700:  'starter',
+  19700: 'pro',
+  49700: 'agency',
+}
+
 function resolvePlan(priceId: string, productId?: string | null): string {
   return PLAN_MAP[priceId] ?? (productId ? PLAN_MAP[productId] : undefined) ?? 'free'
+}
+
+async function resolvePlanFromStripePrice(priceId: string): Promise<string> {
+  try {
+    const price = await stripe.prices.retrieve(priceId, { expand: ['product'] })
+    const product = typeof price.product === 'object' && price.product !== null
+      ? (price.product as { id: string; name?: string; metadata?: Record<string, string> })
+      : null
+    if (product?.metadata?.plan) return product.metadata.plan
+    if (product?.name) {
+      const n = product.name.toLowerCase()
+      if (n.includes('agenc') || n.includes('agency')) return 'agency'
+      if (n.includes('pro'))                           return 'pro'
+      if (n.includes('starter'))                       return 'starter'
+    }
+    if (price.unit_amount && price.currency?.toLowerCase() === 'brl') {
+      return AMOUNT_TO_PLAN[price.unit_amount] ?? 'free'
+    }
+  } catch (err) {
+    console.error('[billing/sync] resolvePlanFromStripePrice error:', err)
+  }
+  return 'free'
 }
 
 async function findActiveSubForCustomer(
@@ -79,7 +107,8 @@ export async function POST() {
           : (typeof priceRaw?.product === 'string' ? priceRaw.product
               : (priceRaw?.product && typeof priceRaw.product === 'object')
                 ? (priceRaw.product as { id: string }).id : null)
-        const plan      = resolvePlan(priceId, productId)
+        let plan        = resolvePlan(priceId, productId)
+        if (plan === 'free' && priceId) plan = await resolvePlanFromStripePrice(priceId)
 
         await serviceClient.from('organizations').update({
           plan,
@@ -146,7 +175,8 @@ export async function POST() {
       : (typeof priceRaw?.product === 'string' ? priceRaw.product
           : (priceRaw?.product && typeof priceRaw.product === 'object')
             ? (priceRaw.product as { id: string }).id : null)
-    const plan      = resolvePlan(priceId, productId)
+    let plan        = resolvePlan(priceId, productId)
+    if (plan === 'free' && priceId) plan = await resolvePlanFromStripePrice(priceId)
 
     await serviceClient.from('organizations').update({
       plan,
