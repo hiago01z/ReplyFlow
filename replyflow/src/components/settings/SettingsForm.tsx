@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
-import { Building2, User, Mail, Smartphone, Bell, BellOff, Webhook, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
+import { Building2, User, Mail, Smartphone, Bell, BellOff, Webhook, Eye, EyeOff, CheckCircle2, AlertCircle, Send } from "lucide-react";
 
 interface SettingsFormProps {
   organization: {
@@ -33,6 +33,7 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
   const [showSecret,     setShowSecret]     = useState(false);
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [testResult,     setTestResult]     = useState<"ok" | "error" | null>(null);
+  const [testingAlert,   setTestingAlert]   = useState(false);
   const [saving,         setSaving]         = useState(false);
 
   const isPro = organization.plan === "pro" || organization.plan === "agency";
@@ -61,6 +62,23 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
       toastError("Erro ao salvar", "Ocorreu um erro. Tente novamente.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function sendTestAlert() {
+    setTestingAlert(true);
+    try {
+      const res = await fetch("/api/settings/alert-test", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        success("Email de teste enviado!", `Verifique a caixa de entrada de ${data.sentTo ?? "seu email"}.`);
+      } else {
+        toastError("Erro ao enviar", data.error ?? "Tente novamente.");
+      }
+    } catch {
+      toastError("Erro de rede", "Não foi possível enviar o email de teste.");
+    } finally {
+      setTestingAlert(false);
     }
   }
 
@@ -159,6 +177,21 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
               <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
                 Deixe em branco para usar <span className="font-medium">{user.email}</span>
               </p>
+            </div>
+          )}
+
+          {emailAlerts && (
+            <div className="flex items-center gap-3 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={sendTestAlert}
+                loading={testingAlert}
+              >
+                <Send size={13} className="mr-1.5" />
+                Enviar email de teste
+              </Button>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Envia um alerta de exemplo para o email acima.</p>
             </div>
           )}
 
