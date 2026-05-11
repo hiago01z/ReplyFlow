@@ -5,7 +5,7 @@ import { SyncNowButton } from "@/components/locations/SyncNowButton";
 import { ReactivateLocationButton } from "@/components/locations/ReactivateLocationButton";
 
 interface LocationsPageProps {
-  searchParams: Promise<{ success?: string; error?: string }>;
+  searchParams: Promise<{ success?: string; error?: string; loc?: string }>;
 }
 
 export default async function LocationsPage({ searchParams }: LocationsPageProps) {
@@ -63,23 +63,34 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
       {params.success === "google_connected" && (
         <div className="flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 mb-5">
           <CheckCircle2 size={16} className="text-green-600 shrink-0" />
-          Google Meu Negócio conectado! Local detectado automaticamente.
+          <span>
+            <strong>Google Meu Negócio conectado!</strong> Local detectado automaticamente.
+            Use o botão <strong>Sincronizar</strong> para buscar os reviews agora.
+          </span>
         </div>
       )}
       {params.success === "google_connected_no_location" && (
         <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 mb-5">
           <span className="shrink-0 mt-0.5">⚠️</span>
-          <span>
-            Google conectado, mas o local não foi detectado automaticamente.{" "}
-            <strong>Clique em ⚙️ (editar)</strong> no local abaixo e use o botão{" "}
-            <strong>&quot;Detectar locais automaticamente&quot;</strong> para vincular manualmente.
+          <span className="flex-1">
+            <strong>Google conectado</strong>, mas o local não foi detectado automaticamente.{" "}
+            {params.loc ? (
+              <Link
+                href={`/locations/${params.loc}`}
+                className="underline font-semibold hover:text-amber-900"
+              >
+                Clique aqui para vincular o local →
+              </Link>
+            ) : (
+              <>Clique em <strong>⚙️</strong> no local abaixo e use <strong>&quot;Detectar automaticamente&quot;</strong>.</>
+            )}
           </span>
         </div>
       )}
       {params.error && (
         <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-800 mb-5">
           <span className="shrink-0">⚠️</span>
-          Erro ao conectar Google. Tente novamente.
+          Erro ao conectar Google ({params.error}). Tente novamente.
         </div>
       )}
 

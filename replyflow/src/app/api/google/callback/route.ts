@@ -77,17 +77,20 @@ export async function GET(request: Request) {
     const gmb = new GoogleMyBusinessClient({
       accessToken:  tokens.access_token,
       refreshToken: tokens.refresh_token ?? null,
-      locationName: "", // não necessário para listAccounts/listLocations
+      locationName: "",
     });
 
     const accounts = await gmb.listAccounts();
-    if (accounts.length > 0) {
-      const account = accounts[0];
-      googleAccountId = account.name; // e.g. "accounts/123456789"
+    console.log(`[google/callback] found ${accounts.length} GMB account(s)`);
 
-      const locations = await gmb.listLocations(account.name);
-      if (locations.length > 0) {
-        googleLocationName = locations[0].name; // e.g. "accounts/123/locations/456"
+    // Iterate all accounts — pick first location found across any account
+    for (const account of accounts) {
+      if (googleLocationName) break;
+      const locs = await gmb.listLocations(account.name);
+      console.log(`[google/callback] account ${account.name} has ${locs.length} location(s)`);
+      if (locs.length > 0) {
+        googleAccountId    = account.name;
+        googleLocationName = locs[0].name;
       }
     }
   } catch (err) {
@@ -107,9 +110,11 @@ export async function GET(request: Request) {
     })
     .eq("id", locationId);
 
-  const successParam = googleLocationName
-    ? "google_connected"
-    : "google_connected_no_location";
-
-  return NextResponse.redirect(`${origin}/locations?success=${successParam}`);
+  if (googleLocationName) {
+    return NextResponse.redirect(`${origin}/locations?success=google_connected`);
+  }
+  // Pass locationId so the UI can show a direct "Fix it" link
+  return NextResponse.redirect(
+    `${origin}/locations?success=google_connected_no_location&loc=${locationId}`
+  );
 }
