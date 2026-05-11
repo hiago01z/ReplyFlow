@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { SettingsForm } from "@/components/settings/SettingsForm";
+import { TemplatesManager } from "@/components/settings/TemplatesManager";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -77,6 +78,10 @@ export default async function SettingsPage() {
           emailAlerts:  userRecord?.email_alerts ?? true,
         }}
       />
+
+      <div className="max-w-xl mt-5">
+        <TemplatesManager />
+      </div>
     </div>
   );
 }
