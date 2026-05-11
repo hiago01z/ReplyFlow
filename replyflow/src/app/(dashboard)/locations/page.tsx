@@ -70,8 +70,9 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
         <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 mb-5">
           <span className="shrink-0 mt-0.5">⚠️</span>
           <span>
-            Google conectado, mas não foi possível detectar o local automaticamente.
-            Tente desconectar e reconectar, ou verifique se sua conta Google tem acesso ao Google Meu Negócio.
+            Google conectado, mas o local não foi detectado automaticamente.{" "}
+            <strong>Clique em ⚙️ (editar)</strong> no local abaixo e use o botão{" "}
+            <strong>&quot;Detectar locais automaticamente&quot;</strong> para vincular manualmente.
           </span>
         </div>
       )}

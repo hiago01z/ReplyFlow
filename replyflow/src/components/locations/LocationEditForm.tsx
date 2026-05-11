@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { MapPin, Zap, Trash2, CheckCircle2 } from "lucide-react";
+import { MapPin, Zap, Trash2, CheckCircle2, Wifi, Search, ChevronDown, AlertCircle, Loader2 } from "lucide-react";
 import type { Location } from "@/types";
 
 const NICHES = [
@@ -28,6 +28,12 @@ interface LocationEditFormProps {
   location: Location;
 }
 
+interface GmbAccount {
+  accountName: string;
+  accountDisplayName: string;
+  locations: { name: string; title: string }[];
+}
+
 export function LocationEditForm({ location }: LocationEditFormProps) {
   const router = useRouter();
   const { success, error: toastError, info } = useToast();
@@ -40,6 +46,66 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
   const [saving,      setSaving]      = useState(false);
   const [deleting,    setDeleting]    = useState(false);
   const [confirmDel,  setConfirmDel]  = useState(false);
+
+  // GMB location picker
+  const [gmbAccounts,   setGmbAccounts]   = useState<GmbAccount[]>([]);
+  const [gmbSelected,   setGmbSelected]   = useState<string>(location.google_location_name ?? "");
+  const [gmbFetching,   setGmbFetching]   = useState(false);
+  const [gmbError,      setGmbError]      = useState<string | null>(null);
+  const [gmbSaving,     setGmbSaving]     = useState(false);
+  const [gmbManual,     setGmbManual]     = useState(false);
+  const [gmbManualVal,  setGmbManualVal]  = useState(location.google_location_name ?? "");
+
+  const hasToken = !!location.google_access_token;
+
+  async function fetchGmbLocations() {
+    setGmbFetching(true);
+    setGmbError(null);
+    setGmbAccounts([]);
+    try {
+      const res  = await fetch(`/api/google/locations?locationId=${location.id}`);
+      const data = await res.json();
+      if (data.ok) {
+        setGmbAccounts(data.accounts ?? []);
+        // Pre-select first location if none currently set
+        if (!gmbSelected && data.accounts?.[0]?.locations?.[0]?.name) {
+          setGmbSelected(data.accounts[0].locations[0].name);
+        }
+      } else {
+        setGmbError(data.message ?? "Não foi possível listar os locais.");
+      }
+    } catch {
+      setGmbError("Erro de rede. Verifique sua conexão e tente novamente.");
+    } finally {
+      setGmbFetching(false);
+    }
+  }
+
+  async function saveGmbLocation(locationName: string) {
+    if (!locationName.trim()) return;
+    setGmbSaving(true);
+    try {
+      // Derive google_account_id from resource name "accounts/xxx/locations/yyy"
+      const parts = locationName.split("/");
+      const googleAccountId = parts.length >= 2 ? `${parts[0]}/${parts[1]}` : null;
+
+      const res = await fetch(`/api/locations/${location.id}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          google_location_name: locationName,
+          google_account_id:    googleAccountId,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      success("Local GMB salvo!", "O local foi vinculado. Você pode sincronizar reviews agora.");
+      router.refresh();
+    } catch {
+      toastError("Erro", "Não foi possível salvar o local GMB.");
+    } finally {
+      setGmbSaving(false);
+    }
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -225,6 +291,182 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
           </div>
         )}
       </div>
+
+      {/* Google My Business — vincular local */}
+      {hasToken && (
+        <div className="card p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
+              <Wifi size={16} className="text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">Vincular local do Google Meu Negócio</h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {location.google_location_name
+                  ? "Local vinculado. Você pode alterá-lo abaixo."
+                  : "O local ainda não foi vinculado. Detecte ou insira manualmente."}
+              </p>
+            </div>
+          </div>
+
+          {/* Current state */}
+          {location.google_location_name && (
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              <CheckCircle2 size={13} className="text-green-600 shrink-0" />
+              <code className="text-xs text-green-800 break-all">{location.google_location_name}</code>
+            </div>
+          )}
+
+          {/* Detect button */}
+          {!gmbManual && (
+            <div className="flex gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={fetchGmbLocations}
+                disabled={gmbFetching}
+                className="inline-flex items-center gap-1.5 text-sm bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+              >
+                {gmbFetching
+                  ? <Loader2 size={13} className="animate-spin" />
+                  : <Search size={13} />
+                }
+                Detectar locais automaticamente
+              </button>
+              <button
+                type="button"
+                onClick={() => setGmbManual(true)}
+                className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                Inserir manualmente
+              </button>
+            </div>
+          )}
+
+          {/* Error from API */}
+          {gmbError && (
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+              <AlertCircle size={13} className="text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-800 space-y-1">
+                <p className="font-semibold">Não foi possível detectar automaticamente</p>
+                <p>{gmbError}</p>
+                <p className="text-amber-600">
+                  Use a opção &quot;Inserir manualmente&quot; se souber o nome do recurso,
+                  ou verifique se as APIs do Google Business Profile estão ativadas no Google Cloud Console.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Location list */}
+          {gmbAccounts.length > 0 && (
+            <div className="space-y-3">
+              {gmbAccounts.map((acc) => (
+                <div key={acc.accountName}>
+                  <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
+                    {acc.accountDisplayName}
+                  </p>
+                  <div className="space-y-1.5">
+                    {acc.locations.length === 0 ? (
+                      <p className="text-xs text-gray-400 italic">Nenhum local nesta conta.</p>
+                    ) : acc.locations.map((loc) => (
+                      <label
+                        key={loc.name}
+                        className={cn(
+                          "flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                          gmbSelected === loc.name
+                            ? "border-indigo-400 bg-indigo-50"
+                            : "border-gray-200 hover:bg-gray-50",
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="gmbLocation"
+                          value={loc.name}
+                          checked={gmbSelected === loc.name}
+                          onChange={() => setGmbSelected(loc.name)}
+                          className="mt-0.5 accent-indigo-600"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900">{loc.title}</p>
+                          <p className="text-[11px] text-gray-400 break-all mt-0.5">{loc.name}</p>
+                        </div>
+                        {gmbSelected === loc.name && (
+                          <CheckCircle2 size={15} className="text-indigo-500 shrink-0 mt-0.5" />
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => saveGmbLocation(gmbSelected)}
+                disabled={gmbSaving || !gmbSelected}
+                className="inline-flex items-center gap-1.5 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-60 transition-colors"
+              >
+                {gmbSaving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                Vincular local selecionado
+              </button>
+            </div>
+          )}
+
+          {/* Manual entry */}
+          {gmbManual && (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-500">
+                Insira o nome do recurso no formato{" "}
+                <code className="bg-gray-100 px-1 py-0.5 rounded text-[11px]">accounts/XXXXXXX/locations/YYYYYYY</code>.
+                Você encontra este ID no{" "}
+                <a
+                  href="https://business.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:underline"
+                >
+                  Google Business Profile
+                </a>{" "}
+                — URL do local após fazer login.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  value={gmbManualVal}
+                  onChange={(e) => setGmbManualVal(e.target.value)}
+                  placeholder="accounts/123456789/locations/987654321"
+                  className="flex-1 text-sm border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white dark:bg-[#18181f] text-gray-800 dark:text-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => saveGmbLocation(gmbManualVal)}
+                  disabled={gmbSaving || !gmbManualVal.trim()}
+                  className="inline-flex items-center gap-1.5 text-sm bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 disabled:opacity-60 transition-colors shrink-0"
+                >
+                  {gmbSaving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                  Salvar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGmbManual(false)}
+                  className="text-sm text-gray-400 hover:text-gray-600 px-2 shrink-0"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Help: if no token */}
+          <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
+            <ChevronDown size={13} className="text-blue-500 shrink-0 mt-0.5 rotate-[-90deg]" />
+            <p className="text-xs text-blue-700 leading-relaxed">
+              <strong>Não encontrou o local?</strong> Certifique-se de que{" "}
+              <strong>mybusinessbusinessinformation.googleapis.com</strong> e{" "}
+              <strong>mybusinessaccountmanagement.googleapis.com</strong> estão ativadas no Google Cloud Console
+              e que o OAuth consent screen está configurado com o escopo{" "}
+              <code className="bg-blue-100 px-1 rounded text-[10px]">business.manage</code>.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Botões */}
       <div className="flex items-center justify-between gap-3">

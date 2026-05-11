@@ -9,6 +9,9 @@ const updateSchema = z.object({
   auto_publish:            z.boolean().optional(),
   auto_publish_min_rating: z.number().int().min(1).max(5).optional(),
   active:                  z.boolean().optional(),
+  // GMB connection fields — set by location picker or manual entry
+  google_location_name: z.string().nullable().optional(),
+  google_account_id:    z.string().nullable().optional(),
 });
 
 async function getOwnedLocation(userId: string, locationId: string) {
