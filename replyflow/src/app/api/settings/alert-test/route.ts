@@ -23,7 +23,7 @@ export async function POST() {
   const email = userRecord?.email ?? user.email;
   if (!email) return NextResponse.json({ error: "No email found" }, { status: 400 });
 
-  const org = userRecord?.organization as { name: string } | null;
+  const org = userRecord?.organization as unknown as { name: string } | null;
 
   await sendNegativeReviewAlert({
     to:           email,
