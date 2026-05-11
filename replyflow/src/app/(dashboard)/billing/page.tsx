@@ -25,7 +25,7 @@ const PLAN_ICONS: Record<string, React.ReactNode> = {
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; canceled?: string }>;
+  searchParams: Promise<{ success?: string; canceled?: string; synced?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -61,9 +61,24 @@ export default async function BillingPage({
         <p className="text-sm text-gray-500 mt-1">Gerencie sua assinatura e forma de pagamento.</p>
       </div>
 
-      {/* Checkout success — auto-refresh until webhook updates the plan */}
-      {params.success === "1" && (
+      {/* Checkout success — auto-syncs with Stripe, navigates to ?synced=1 when done */}
+      {params.success === "1" && !params.synced && (
         <CheckoutSuccessBanner plan={currentPlan} />
+      )}
+
+      {/* Sync completed — shown after banner redirects here with ?synced=1 */}
+      {params.synced === "1" && currentPlan !== "free" && (
+        <div className="card border-green-200 bg-green-50 p-4 mb-5 flex items-center gap-3">
+          <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
+            <CheckCircle2 size={16} className="text-green-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-green-900">Assinatura ativada! 🎉</p>
+            <p className="text-xs text-green-700 mt-0.5">
+              Todos os recursos do plano <strong className="capitalize">{currentPlan}</strong> estão liberados.
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Checkout canceled */}
