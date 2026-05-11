@@ -22,7 +22,7 @@ export async function GET() {
     .eq('id', user.id)
     .single()
 
-  const org = userRecord?.organization as {
+  const org = userRecord?.organization as unknown as {
     id: string
     plan: string
     stripe_customer_id: string | null
