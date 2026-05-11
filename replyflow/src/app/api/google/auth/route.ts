@@ -40,7 +40,10 @@ export async function GET(request: Request) {
   ].join(" "));
   googleAuthUrl.searchParams.set("access_type", "offline");
   googleAuthUrl.searchParams.set("prompt",       "consent"); // always request refresh_token
-  googleAuthUrl.searchParams.set("state",        locationId);
+  // If from=onboarding, append suffix so callback knows to redirect back
+  const fromOnboarding = searchParams.get("from") === "onboarding";
+  const stateValue = fromOnboarding ? `${locationId}:ob` : locationId;
+  googleAuthUrl.searchParams.set("state", stateValue);
   // Pre-select the user's account so they don't have to pick — reduces friction
   if (loginHint) googleAuthUrl.searchParams.set("login_hint", loginHint);
 

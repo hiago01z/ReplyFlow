@@ -5,13 +5,17 @@ import { GoogleMyBusinessClient } from "@/lib/google/myBusiness";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const locationId = searchParams.get("state"); // locationId passado pelo state
+  const code  = searchParams.get("code");
+  const state = searchParams.get("state"); // locationId (or locationId:ob for onboarding)
   const error = searchParams.get("error");
 
-  if (error || !code || !locationId) {
+  if (error || !code || !state) {
     return NextResponse.redirect(`${origin}/locations?error=google_auth_failed`);
   }
+
+  // Parse onboarding suffix — state can be "locationId" or "locationId:ob"
+  const fromOnboarding = state.endsWith(":ob");
+  const locationId     = fromOnboarding ? state.slice(0, -3) : state;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -82,7 +86,10 @@ export async function GET(request: Request) {
   // Tentar detectar local em background — silencioso, nunca bloqueia nem exibe erro ao cliente
   void detectLocationSilently(serviceClient, locationId, tokens.access_token, tokens.refresh_token ?? null);
 
-  // Sempre redireciona como sucesso — o cron vai cuidar da detecção se necessário
+  // Redirect: back to onboarding (link step) or to locations list
+  if (fromOnboarding) {
+    return NextResponse.redirect(`${origin}/onboarding?gmb_done=1&loc=${locationId}`);
+  }
   return NextResponse.redirect(`${origin}/locations?success=google_connected`);
 }
 

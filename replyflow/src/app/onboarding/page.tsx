@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
-import { Building2, MapPin, Sparkles, CheckCircle2, Zap, Wifi } from "lucide-react";
+import {
+  Building2, MapPin, Sparkles, CheckCircle2, Zap, Wifi,
+  Check, Copy, AlertCircle, Loader2,
+} from "lucide-react";
 
 const NICHES = [
   { value: "clinica",     label: "Clínica / Saúde",       icon: "🏥" },
@@ -19,33 +22,112 @@ const NICHES = [
 ] as const;
 
 const TONES = [
-  { value: "amigavel",    label: "Amigável",     desc: "Próximo, caloroso e genuíno",       icon: "😊" },
-  { value: "formal",      label: "Formal",       desc: "Profissional e respeitoso",         icon: "👔" },
-  { value: "descontraido",label: "Descontraído", desc: "Informal mas profissional",         icon: "😎" },
+  { value: "amigavel",    label: "Amigável",     desc: "Próximo, caloroso e genuíno",  icon: "😊" },
+  { value: "formal",      label: "Formal",       desc: "Profissional e respeitoso",    icon: "👔" },
+  { value: "descontraido",label: "Descontraído", desc: "Informal mas profissional",    icon: "😎" },
 ] as const;
 
-type Step = "business" | "location" | "connect" | "done";
+// "link" is a sub-state of "connect" — same indicator dot, different content
+type Step = "business" | "location" | "connect" | "link" | "done";
 
-const STEPS: { key: Step; label: string; Icon: React.ElementType }[] = [
+const STEP_INDICATORS: { key: Step; label: string; Icon: React.ElementType; match?: Step[] }[] = [
   { key: "business",  label: "Empresa",  Icon: Building2 },
   { key: "location",  label: "Local",    Icon: MapPin },
-  { key: "connect",   label: "Google",   Icon: Wifi },
+  { key: "connect",   label: "Google",   Icon: Wifi, match: ["connect", "link"] },
   { key: "done",      label: "Pronto",   Icon: CheckCircle2 },
 ];
 
+// ── CopyButton ────────────────────────────────────────────────────────────────
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => navigator.clipboard.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })}
+      className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+    >
+      {copied ? <><Check size={11} /> Copiado!</> : <><Copy size={11} /> Copiar</>}
+    </button>
+  );
+}
+
+// ── Google SVG ────────────────────────────────────────────────────────────────
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
-  const router = useRouter();
+  return (
+    <Suspense fallback={<OnboardingShell />}>
+      <OnboardingContent />
+    </Suspense>
+  );
+}
+
+function OnboardingShell() {
+  return (
+    <div className="min-h-screen bg-[#f5f5fa] flex flex-col items-center justify-center px-4">
+      <div className="w-8 h-8 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+function OnboardingContent() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+
   const [step,    setStep]    = useState<Step>("business");
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
+
+  // Form state
   const [orgName,       setOrgName]       = useState("");
   const [locationName,  setLocationName]  = useState("");
   const [niche,         setNiche]         = useState("outro");
   const [tone,          setTone]          = useState("amigavel");
   const [locationId,    setLocationId]    = useState<string | null>(null);
 
-  const stepIndex = STEPS.findIndex((s) => s.key === step);
+  // Link step state (Business Profile ID)
+  const [profileId,     setProfileId]     = useState("");
+  const [linkSaving,    setLinkSaving]    = useState(false);
+  const [linkError,     setLinkError]     = useState<string | null>(null);
+  const [linkDone,      setLinkDone]      = useState(false);
 
+  // ── On mount: detect return from Google OAuth ──────────────────────────────
+  useEffect(() => {
+    const gmbDone = searchParams.get("gmb_done");
+    const loc     = searchParams.get("loc");
+    if (gmbDone === "1" && loc) {
+      setLocationId(loc);
+      setStep("link");
+      // Clean URL without reloading
+      window.history.replaceState({}, "", "/onboarding");
+    }
+  }, [searchParams]);
+
+  // ── Derived ────────────────────────────────────────────────────────────────
+  const activeIndicators = STEP_INDICATORS.filter((s) => s.key !== "done");
+
+  function activeIndicatorIndex() {
+    return activeIndicators.findIndex((s) => {
+      if (s.match) return s.match.includes(step);
+      return s.key === step;
+    });
+  }
+  const indicatorCur = activeIndicatorIndex();
+
+  // ── Step 1-2 handler ───────────────────────────────────────────────────────
   async function handleFinish() {
     if (!orgName.trim() || !locationName.trim()) { setError("Preencha todos os campos."); return; }
     setLoading(true); setError(null);
@@ -64,10 +146,59 @@ export default function OnboardingPage() {
       setStep("connect");
     } catch {
       setError("Algo deu errado. Tente novamente.");
+    } finally {
       setLoading(false);
     }
   }
 
+  // ── Link step: save Business Profile ID ───────────────────────────────────
+  async function handleLinkSave() {
+    const raw = profileId.trim();
+    if (!raw || !locationId) return;
+    setLinkSaving(true);
+    setLinkError(null);
+    try {
+      // Resolve full location name: try to get the real account sub first
+      let finalName = raw;
+      if (/^\d+$/.test(raw)) {
+        // Bare number — resolve to accounts/{sub}/locations/{id}
+        try {
+          const subRes = await fetch(`/api/google/account-id?locationId=${locationId}`);
+          if (subRes.ok) {
+            const { sub } = await subRes.json() as { sub?: string };
+            if (sub) finalName = `accounts/${sub}/locations/${raw}`;
+          }
+        } catch { /* fallback below */ }
+        if (/^\d+$/.test(finalName)) finalName = `locations/${raw}`;
+      }
+
+      const res = await fetch(`/api/locations/${locationId}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ google_location_name: finalName }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        setLinkError(data.error ?? "Não foi possível salvar. Tente novamente.");
+        return;
+      }
+      setLinkDone(true);
+      setStep("done");
+      setTimeout(() => router.push("/dashboard"), 1800);
+    } catch {
+      setLinkError("Erro de rede. Verifique sua conexão.");
+    } finally {
+      setLinkSaving(false);
+    }
+  }
+
+  // ── Skip to done ───────────────────────────────────────────────────────────
+  function skipToDone() {
+    setStep("done");
+    setTimeout(() => router.push("/dashboard"), 1600);
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#f5f5fa] flex flex-col items-center justify-center px-4 py-12">
       {/* Logo */}
@@ -81,11 +212,9 @@ export default function OnboardingPage() {
       {/* Step indicators */}
       {step !== "done" && (
         <div className="flex items-center gap-1 mb-8">
-          {STEPS.filter((s) => s.key !== "done").map((s, i) => {
-            const activeSteps = STEPS.filter((x) => x.key !== "done");
-            const cur = activeSteps.findIndex((x) => x.key === step);
-            const done = i < cur;
-            const active = i === cur;
+          {activeIndicators.map((s, i) => {
+            const done   = i < indicatorCur;
+            const active = i === indicatorCur;
             return (
               <div key={s.key} className="flex items-center gap-1">
                 <div className={cn(
@@ -94,13 +223,10 @@ export default function OnboardingPage() {
                   done    ? "bg-indigo-100 text-indigo-600"      : "",
                   !active && !done ? "bg-gray-100 text-gray-400" : "",
                 )}>
-                  {done
-                    ? <CheckCircle2 size={12} />
-                    : <s.Icon size={12} />
-                  }
+                  {done ? <CheckCircle2 size={12} /> : <s.Icon size={12} />}
                   {s.label}
                 </div>
-                {i < activeSteps.length - 1 && (
+                {i < activeIndicators.length - 1 && (
                   <div className={cn("w-6 h-px", done ? "bg-indigo-300" : "bg-gray-200")} />
                 )}
               </div>
@@ -112,7 +238,7 @@ export default function OnboardingPage() {
       {/* Card */}
       <div className="w-full max-w-md card p-7 animate-slide-up">
 
-        {/* Step: Business */}
+        {/* ── Step: Business ── */}
         {step === "business" && (
           <div>
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-5">
@@ -125,6 +251,7 @@ export default function OnboardingPage() {
                 type="text"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && orgName.trim() && setStep("location")}
                 placeholder="Ex: Clínica Sorriso Perfeito"
                 autoFocus
               />
@@ -140,7 +267,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step: Location */}
+        {/* ── Step: Location ── */}
         {step === "location" && (
           <div>
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-5">
@@ -228,7 +355,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step: Connect Google */}
+        {/* ── Step: Connect Google ── */}
         {step === "connect" && (
           <div>
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-5">
@@ -241,24 +368,18 @@ export default function OnboardingPage() {
 
             <div className="space-y-3">
               <a
-                href={locationId ? `/api/google/auth?locationId=${locationId}` : "/locations"}
+                href={locationId
+                  ? `/api/google/auth?locationId=${locationId}&from=onboarding`
+                  : "/locations"}
                 className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold text-sm hover:bg-indigo-100 transition-colors"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
+                <GoogleIcon />
                 Conectar com Google
               </a>
 
               <button
                 type="button"
-                onClick={() => {
-                  setStep("done");
-                  setTimeout(() => router.push("/dashboard"), 1600);
-                }}
+                onClick={skipToDone}
                 className="w-full py-2.5 px-4 text-sm text-gray-400 hover:text-gray-600 transition-colors"
               >
                 Pular por agora → conectar depois em Locais
@@ -273,16 +394,110 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Done */}
+        {/* ── Step: Link Google Location (after OAuth return) ── */}
+        {step === "link" && (
+          <div>
+            {/* Google connected badge */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center shrink-0">
+                <CheckCircle2 size={22} className="text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-green-700">Google conectado! ✓</p>
+                <p className="text-xs text-gray-500">Agora vincule o local do Google ao ReplyFlow.</p>
+              </div>
+            </div>
+
+            <h2 className="text-lg font-bold text-gray-900 mb-1">Cole o ID do Perfil do Negócio</h2>
+            <p className="text-sm text-gray-500 mb-5">
+              Encontre o ID em poucos passos:
+            </p>
+
+            {/* Step-by-step mini guide */}
+            <div className="space-y-2 mb-5">
+              {[
+                { n: 1, text: <span>Abra <a href="https://business.google.com" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline underline-offset-2">business.google.com</a></span> },
+                { n: 2, text: <span>Clique nos <strong>3 pontinhos ⋮</strong> → <strong>Configurações do Perfil da Empresa</strong></span> },
+                { n: 3, text: <span>Clique em <strong>Configurações avançadas</strong> → copie o <strong>ID do Perfil</strong></span> },
+              ].map(({ n, text }) => (
+                <div key={n} className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    {n}
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed">{text}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Example ID with copy */}
+            <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
+              <span>Ex:</span>
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-600 font-mono">7193183758438207469</code>
+              <CopyButton text="7193183758438207469" />
+            </div>
+
+            {/* ID Input */}
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={profileId}
+                onChange={(e) => {
+                  setProfileId(e.target.value.trim());
+                  setLinkError(null);
+                }}
+                onKeyDown={(e) => e.key === "Enter" && profileId && handleLinkSave()}
+                placeholder="Cole o ID aqui… ex: 7193183758438207469"
+                autoFocus
+                className="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono"
+              />
+
+              {linkError && (
+                <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  <AlertCircle size={13} className="shrink-0 mt-0.5" />
+                  {linkError}
+                </div>
+              )}
+
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={handleLinkSave}
+                disabled={!profileId || linkSaving}
+                loading={linkSaving}
+              >
+                {linkSaving
+                  ? <><Loader2 size={14} className="animate-spin" /> Vinculando…</>
+                  : <><Check size={14} /> Vincular local</>
+                }
+              </Button>
+
+              <button
+                type="button"
+                onClick={skipToDone}
+                className="w-full py-2.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Fazer depois → ir para o painel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Done ── */}
         {step === "done" && (
           <div className="text-center py-4">
             <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
               <CheckCircle2 size={30} className="text-green-600" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Tudo pronto! 🎉</h2>
-            <p className="text-sm text-gray-500">Redirecionando para o dashboard…</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {linkDone ? "Tudo configurado! 🎉" : "Tudo pronto! 🎉"}
+            </h2>
+            <p className="text-sm text-gray-500">
+              {linkDone
+                ? "Google vinculado. Primeiros reviews em alguns minutos…"
+                : "Redirecionando para o dashboard…"}
+            </p>
             <div className="mt-5 flex gap-1 justify-center">
-              {[0,1,2].map((i) => (
+              {[0, 1, 2].map((i) => (
                 <div key={i} className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
               ))}
             </div>

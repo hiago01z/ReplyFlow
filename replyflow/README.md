@@ -173,6 +173,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 32 (Rating Evolution Chart + Mobile polish) | ✅ Concluída |
 | Etapa 6 — Sprint 33 (Webhook personalizado de notificação) | ✅ Concluída |
 | Etapa 6 — Sprint 34 (Perfil público do local `/l/[slug]`) | ✅ Concluída |
+| Etapa 6 — Sprint 35 (Onboarding Google inline — step "link" após OAuth) | ✅ Concluída |
 
 ---
 
