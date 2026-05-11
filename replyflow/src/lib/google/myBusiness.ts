@@ -123,17 +123,13 @@ export class GoogleMyBusinessClient {
 
   /**
    * Busca os accounts (empresas) do usuário autenticado.
-   * Tenta primeiro via userinfo (sem quota) → fallback para accounts.list.
+   * Estratégia: userinfo sub → accounts.list fallback.
    */
   async listAccounts(): Promise<{ name: string; accountName: string }[]> {
-    // Estratégia 1: usar userinfo para construir account path sem quota
     try {
       const sub = await this.getGoogleUserId();
-      // Para contas pessoais, o account ID no Business Profile API = Google User ID (sub)
       return [{ name: `accounts/${sub}`, accountName: "Minha Conta" }];
-    } catch {
-      // Fallback: accounts.list (pode retornar 429 se quota=0)
-    }
+    } catch { /* fallback */ }
 
     const res = await this.doFetch(`${ACCOUNTS_BASE}/accounts`);
     if (!res.ok) throw new Error(`GMB list accounts failed: ${res.status}`);
@@ -145,12 +141,44 @@ export class GoogleMyBusinessClient {
    * Lista locais de um account.
    * @param accountName - e.g. "accounts/123456789"
    */
-  async listLocations(accountName: string): Promise<{ name: string; locationName: string; title: string }[]> {
+  async listLocations(accountName: string): Promise<{ name: string; title: string }[]> {
     const url = `${INFO_BASE}/${accountName}/locations?readMask=name,title`;
     const res = await this.doFetch(url);
     if (!res.ok) throw new Error(`GMB list locations failed: ${res.status} ${await res.text()}`);
-    const data = await res.json() as { locations?: { name: string; locationName: string; title: string }[] };
+    const data = await res.json() as { locations?: { name: string; title: string }[] };
     return data.locations ?? [];
+  }
+
+  /**
+   * Busca locais pelo nome do negócio — não precisa de account ID nem de quota do accounts.list.
+   * Usa googleLocations:search da Business Information API.
+   * @param query - nome do negócio (ex: "Clínica Sorriso")
+   */
+  async searchLocationsByName(query: string): Promise<{ name: string; title: string; address: string }[]> {
+    const url = `${INFO_BASE}/googleLocations:search`;
+    const res = await this.doFetch(url, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ query, pageSize: 10 }),
+    });
+    if (!res.ok) throw new Error(`GMB search locations failed: ${res.status} ${await res.text()}`);
+    const data = await res.json() as {
+      googleLocations?: {
+        name: string;
+        location?: {
+          title?: string;
+          storefrontAddress?: { addressLines?: string[]; locality?: string };
+        };
+      }[];
+    };
+    return (data.googleLocations ?? []).map((gl) => ({
+      name:    gl.name, // "googleLocations/XXXXXXXX" — need to strip prefix for final path
+      title:   gl.location?.title ?? gl.name,
+      address: [
+        ...(gl.location?.storefrontAddress?.addressLines ?? []),
+        gl.location?.storefrontAddress?.locality ?? "",
+      ].filter(Boolean).join(", "),
+    }));
   }
 
   // Converte starRating string para número

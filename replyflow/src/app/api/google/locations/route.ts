@@ -46,41 +46,57 @@ export async function GET(request: Request) {
       locationName: "",
     });
 
-    // List accounts
-    const accounts = await gmb.listAccounts();
-    if (accounts.length === 0) {
-      return NextResponse.json({
-        ok: false,
-        error: "no_accounts",
-        message: "Nenhuma conta Google Meu Negócio encontrada. Verifique se o e-mail autenticado tem acesso ao Google Business Profile.",
-        accounts: [],
-      });
+    // ── Estratégia 1: listar via account (userinfo sub → locations.list) ──────
+    let results: { accountName: string; accountDisplayName: string; locations: { name: string; title: string }[] }[] = [];
+
+    try {
+      const accounts = await gmb.listAccounts();
+      for (const account of accounts) {
+        const locs = await gmb.listLocations(account.name);
+        if (locs.length > 0) {
+          results.push({
+            accountName:        account.name,
+            accountDisplayName: account.accountName,
+            locations:          locs,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("[api/google/locations] account strategy failed:", e instanceof Error ? e.message : e);
     }
 
-    // List locations for each account
-    const results: {
-      accountName: string;
-      accountDisplayName: string;
-      locations: { name: string; title: string }[];
-    }[] = [];
+    // ── Estratégia 2: busca por nome (sem quota do accounts.list) ─────────────
+    // Usada como fallback ou para enriquecer os resultados
+    if (results.length === 0) {
+      // Fetch the location's name from the DB to use as search query
+      const { data: locRecord } = await serviceClient
+        .from("locations")
+        .select("name")
+        .eq("id", locationId)
+        .single();
 
-    for (const account of accounts) {
-      const locs = await gmb.listLocations(account.name);
-      results.push({
-        accountName:        account.name,
-        accountDisplayName: account.accountName,
-        locations:          locs.map((l) => ({ name: l.name, title: l.title ?? l.name })),
-      });
+      if (locRecord?.name) {
+        try {
+          const searched = await gmb.searchLocationsByName(locRecord.name);
+          if (searched.length > 0) {
+            results.push({
+              accountName:        "search",
+              accountDisplayName: "Resultado da busca",
+              locations:          searched.map((s) => ({ name: s.name, title: `${s.title}${s.address ? ` — ${s.address}` : ""}` })),
+            });
+          }
+        } catch (e) {
+          console.warn("[api/google/locations] search strategy failed:", e instanceof Error ? e.message : e);
+        }
+      }
     }
 
-    const totalLocations = results.reduce((n, a) => n + a.locations.length, 0);
-
-    if (totalLocations === 0) {
+    if (results.length === 0 || results.every((r) => r.locations.length === 0)) {
       return NextResponse.json({
         ok: false,
         error: "no_locations",
-        message: "Conta encontrada, mas sem locais cadastrados. Certifique-se de que você criou um perfil de empresa no Google Business Profile.",
-        accounts: results,
+        message: "Não encontramos nenhum local vinculado a esta conta. Certifique-se de que o perfil foi criado em business.google.com com o mesmo e-mail.",
+        accounts: [],
       });
     }
 

@@ -319,33 +319,34 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
 
               <Step n={2} label='Clique no seu negócio e depois em "Editar perfil"' />
 
-              <Step n={3} label="Olhe a URL do navegador e copie o número:" />
+              <Step n={3} label='Clique em "Ver no Maps" ou "Editar perfil" — olhe a URL:' />
               <div className="ml-8 space-y-2">
-                <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2.5 font-mono text-xs text-gray-600 dark:text-gray-400 break-all">
+                {/* URL example with highlight */}
+                <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2.5 font-mono text-[11px] text-gray-500 dark:text-gray-400 break-all leading-relaxed">
                   business.google.com/u/0/edit/l/
-                  <span className="bg-yellow-200 dark:bg-yellow-900/60 text-yellow-900 dark:text-yellow-200 px-1 rounded font-bold">
-                    NÚMERO_AQUI
+                  <span className="bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 px-1.5 py-0.5 rounded font-bold mx-0.5">
+                    1234567890123456
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Copie só o número amarelo — esse é o ID do local.
+                  Copie o número em amarelo — esse é o ID do seu negócio.
+                </p>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                  ⚠️ Não encontrou esse formato? Tente acessar pelo link acima (passo 1) e editar o perfil.
                 </p>
               </div>
 
-              <Step n={4} label="Cole o ID abaixo e clique em Vincular:" />
+              <Step n={4} label="Cole o número abaixo e clique em Vincular:" />
               <div className="ml-8 space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    value={manualInput}
-                    onChange={(e) => setManualInput(e.target.value)}
-                    placeholder="Ex: 7391827364819203"
-                    className="flex-1 text-sm border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white dark:bg-[#18181f] text-gray-800 dark:text-gray-200 font-mono"
-                  />
-                </div>
+                <input
+                  value={manualInput}
+                  onChange={(e) => setManualInput(e.target.value)}
+                  placeholder="1234567890123456"
+                  className="w-full text-sm border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white dark:bg-[#18181f] text-gray-800 dark:text-gray-200 font-mono"
+                />
                 <p className="text-[11px] text-gray-400 dark:text-gray-500">
-                  Pode colar só o número ou o caminho completo{" "}
-                  <span className="font-mono">accounts/xxx/locations/yyy</span>
-                  <CopyButton text="accounts/ACCOUNT_ID/locations/LOCATION_ID" />
+                  Cole só o número (ex: 1234567890123456) ou o caminho completo{" "}
+                  <span className="font-mono text-[10px]">accounts/xxx/locations/yyy</span>
                 </p>
               </div>
             </div>
