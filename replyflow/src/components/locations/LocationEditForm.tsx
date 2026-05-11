@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { MapPin, Zap, Trash2, CheckCircle2, Wifi, Search, ChevronDown, AlertCircle, Loader2 } from "lucide-react";
+import { MapPin, Zap, Trash2, CheckCircle2, Wifi, Search, AlertCircle, Loader2 } from "lucide-react";
 import type { Location } from "@/types";
 
 const NICHES = [
@@ -364,23 +364,13 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
               <div className="text-xs text-amber-800 space-y-1">
                 {gmbErrorCode === "rate_limit" ? (
                   <>
-                    <p className="font-semibold">Muitas requisições — aguarde e tente novamente</p>
-                    <p>{gmbError}</p>
-                    {gmbCooldown > 0 && (
-                      <p className="text-indigo-700 font-medium">
-                        Botão liberado em {gmbCooldown}s…
-                      </p>
-                    )}
-                  </>
-                ) : gmbErrorCode === "permission_denied" ? (
-                  <>
-                    <p className="font-semibold">Permissão negada (403)</p>
-                    <p>{gmbError}</p>
+                    <p className="font-semibold">Aguarde um momento…</p>
+                    <p>O Google limitou as requisições. {gmbCooldown > 0 ? `Tente novamente em ${gmbCooldown}s.` : "Tente novamente em breve."}</p>
                   </>
                 ) : gmbErrorCode === "unauthorized" ? (
                   <>
-                    <p className="font-semibold">Token expirado — reconecte o Google</p>
-                    <p>{gmbError}</p>
+                    <p className="font-semibold">Conexão expirada</p>
+                    <p>Sua conexão com o Google expirou.</p>
                     <a
                       href={`/api/google/auth?locationId=${location.id}`}
                       className="inline-block mt-1 text-indigo-700 underline font-semibold"
@@ -391,7 +381,7 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
                 ) : (
                   <>
                     <p className="font-semibold">Não foi possível detectar automaticamente</p>
-                    <p>{gmbError}</p>
+                    <p>Use a opção <strong>Inserir manualmente</strong> abaixo, ou tente novamente em alguns minutos.</p>
                   </>
                 )}
               </div>
@@ -495,17 +485,21 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
             </div>
           )}
 
-          {/* Help: if no token */}
-          <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
-            <ChevronDown size={13} className="text-blue-500 shrink-0 mt-0.5 rotate-[-90deg]" />
-            <p className="text-xs text-blue-700 leading-relaxed">
-              <strong>Não encontrou o local?</strong> Certifique-se de que{" "}
-              <strong>mybusinessbusinessinformation.googleapis.com</strong> e{" "}
-              <strong>mybusinessaccountmanagement.googleapis.com</strong> estão ativadas no Google Cloud Console
-              e que o OAuth consent screen está configurado com o escopo{" "}
-              <code className="bg-blue-100 px-1 rounded text-[10px]">business.manage</code>.
-            </p>
-          </div>
+          {/* Dica simples para o cliente */}
+          {!location.google_location_name && (
+            <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
+              <span className="text-blue-500 shrink-0 mt-0.5 text-xs">ℹ️</span>
+              <p className="text-xs text-blue-700 leading-relaxed">
+                <strong>Dica:</strong> Se o botão automático não encontrar o local, use{" "}
+                <strong>Inserir manualmente</strong> com o nome do recurso no formato{" "}
+                <code className="bg-blue-100 px-1 rounded text-[10px]">accounts/XXXXXXX/locations/YYYYYYY</code>.
+                Você encontra esse ID na URL do{" "}
+                <a href="https://business.google.com" target="_blank" rel="noopener noreferrer" className="underline">
+                  Google Business Profile
+                </a>.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

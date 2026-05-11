@@ -41,7 +41,47 @@ export async function GET(request: Request) {
     scheduled:      0,
     autoPublished:  0,
     alertsSent:     0,
+    detected:       0,
     errors:         0,
+  }
+
+  // ── PASS 0: Auto-detectar google_location_name para locais ainda não vinculados ─
+  // Locais com token mas sem location_name — tentativa silenciosa a cada cron run
+  const { data: unlinkedLocations } = await serviceClient
+    .from('locations')
+    .select('id, google_access_token, google_refresh_token')
+    .eq('active', true)
+    .not('google_access_token', 'is', null)
+    .is('google_location_name', null)
+
+  for (const loc of unlinkedLocations ?? []) {
+    try {
+      const gmb = new GoogleMyBusinessClient({
+        accessToken:  loc.google_access_token,
+        refreshToken: loc.google_refresh_token ?? null,
+        locationName: '',
+      })
+      const accounts = await gmb.listAccounts()
+      for (const account of accounts) {
+        const locs = await gmb.listLocations(account.name)
+        if (locs.length > 0) {
+          await serviceClient
+            .from('locations')
+            .update({
+              google_location_name: locs[0].name,
+              google_account_id:    account.name,
+              google_access_token:  gmb.currentAccessToken,
+            })
+            .eq('id', loc.id)
+          console.log(`[cron] PASS 0 detected location ${locs[0].name} for loc ${loc.id}`)
+          results.detected++
+          break
+        }
+      }
+    } catch (err) {
+      // Silent — will retry next cron run
+      console.warn(`[cron] PASS 0 detect failed for loc ${loc.id}:`, err instanceof Error ? err.message : err)
+    }
   }
 
   // ── PASS 1: Buscar novas reviews do GMB ──────────────────────────────────────
@@ -269,6 +309,7 @@ export async function GET(request: Request) {
     scheduled:          results.scheduled,
     autoPublished:      results.autoPublished,
     alertsSent:         results.alertsSent,
+    locationsDetected:  results.detected,
     errors:             results.errors,
     timestamp:          new Date().toISOString(),
   })

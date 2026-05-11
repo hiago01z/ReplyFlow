@@ -68,53 +68,54 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/locations?error=location_not_found`);
   }
 
-  // ── Auto-detectar google_location_name via GMB API ───────────────────────
-  // O cron exige este campo para buscar reviews e publicar respostas.
-  let googleLocationName: string | null = null;
-  let googleAccountId: string | null = null;
-
-  try {
-    const gmb = new GoogleMyBusinessClient({
-      accessToken:  tokens.access_token,
-      refreshToken: tokens.refresh_token ?? null,
-      locationName: "",
-    });
-
-    const accounts = await gmb.listAccounts();
-    console.log(`[google/callback] found ${accounts.length} GMB account(s)`);
-
-    // Iterate all accounts — pick first location found across any account
-    for (const account of accounts) {
-      if (googleLocationName) break;
-      const locs = await gmb.listLocations(account.name);
-      console.log(`[google/callback] account ${account.name} has ${locs.length} location(s)`);
-      if (locs.length > 0) {
-        googleAccountId    = account.name;
-        googleLocationName = locs[0].name;
-      }
-    }
-  } catch (err) {
-    // Não bloqueia o fluxo — o usuário pode selecionar manualmente depois
-    console.error("[google/callback] auto-detect location failed:", err);
-  }
-
-  // Salvar tokens + location name no local
+  // Salvar tokens — sempre persiste independente da detecção do local
+  // A detecção do google_location_name é feita em background pelo cron (PASS 0)
   await serviceClient
     .from("locations")
     .update({
       google_access_token:  tokens.access_token,
       google_refresh_token: tokens.refresh_token ?? null,
       google_token_expiry:  tokenExpiry,
-      ...(googleLocationName ? { google_location_name: googleLocationName } : {}),
-      ...(googleAccountId    ? { google_account_id:    googleAccountId    } : {}),
     })
     .eq("id", locationId);
 
-  if (googleLocationName) {
-    return NextResponse.redirect(`${origin}/locations?success=google_connected`);
+  // Tentar detectar local em background — silencioso, nunca bloqueia nem exibe erro ao cliente
+  void detectLocationSilently(serviceClient, locationId, tokens.access_token, tokens.refresh_token ?? null);
+
+  // Sempre redireciona como sucesso — o cron vai cuidar da detecção se necessário
+  return NextResponse.redirect(`${origin}/locations?success=google_connected`);
+}
+
+// ── Detecção silenciosa em background ────────────────────────────────────────
+// Fire-and-forget: tenta detectar google_location_name sem bloquear o redirect.
+// Se falhar (quota, rede, etc.) o cron PASS 0 tentará na próxima rodada.
+async function detectLocationSilently(
+  serviceClient: ReturnType<typeof createServiceClient>,
+  locationId: string,
+  accessToken: string,
+  refreshToken: string | null,
+) {
+  try {
+    const gmb = new GoogleMyBusinessClient({ accessToken, refreshToken, locationName: "" });
+    const accounts = await gmb.listAccounts();
+    for (const account of accounts) {
+      const locs = await gmb.listLocations(account.name);
+      if (locs.length > 0) {
+        await serviceClient
+          .from("locations")
+          .update({
+            google_location_name: locs[0].name,
+            google_account_id:    account.name,
+            google_access_token:  gmb.currentAccessToken, // persist refreshed token
+          })
+          .eq("id", locationId);
+        console.log(`[google/callback] auto-detected location: ${locs[0].name}`);
+        return;
+      }
+    }
+    console.log("[google/callback] no locations found — cron will retry");
+  } catch (err) {
+    // Completely silent — customer already sees success
+    console.warn("[google/callback] silent detect failed:", err instanceof Error ? err.message : err);
   }
-  // Pass locationId so the UI can show a direct "Fix it" link
-  return NextResponse.redirect(
-    `${origin}/locations?success=google_connected_no_location&loc=${locationId}`
-  );
 }

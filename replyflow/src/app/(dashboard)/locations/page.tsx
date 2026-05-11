@@ -64,33 +64,18 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
         <div className="flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 mb-5">
           <CheckCircle2 size={16} className="text-green-600 shrink-0" />
           <span>
-            <strong>Google Meu Negócio conectado!</strong> Local detectado automaticamente.
-            Use o botão <strong>Sincronizar</strong> para buscar os reviews agora.
+            <strong>Google Meu Negócio conectado com sucesso!</strong>{" "}
+            As avaliações serão importadas automaticamente em até 30 minutos.
+            Ou clique em <strong>Sincronizar</strong> para buscar agora.
           </span>
         </div>
       )}
-      {params.success === "google_connected_no_location" && (
-        <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 mb-5">
-          <span className="shrink-0 mt-0.5">⚠️</span>
-          <span className="flex-1">
-            <strong>Google conectado</strong>, mas o local não foi detectado automaticamente.{" "}
-            {params.loc ? (
-              <Link
-                href={`/locations/${params.loc}`}
-                className="underline font-semibold hover:text-amber-900"
-              >
-                Clique aqui para vincular o local →
-              </Link>
-            ) : (
-              <>Clique em <strong>⚙️</strong> no local abaixo e use <strong>&quot;Detectar automaticamente&quot;</strong>.</>
-            )}
-          </span>
-        </div>
-      )}
-      {params.error && (
+      {params.error === "google_auth_failed" && (
         <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-800 mb-5">
           <span className="shrink-0">⚠️</span>
-          Erro ao conectar Google ({params.error}). Tente novamente.
+          <span>
+            Não foi possível conectar o Google. Por favor, tente novamente.
+          </span>
         </div>
       )}
 
@@ -165,20 +150,19 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                   )}
                   {loc.active && (
                     isConnected && loc.google_location_name ? (
+                      // Totalmente vinculado — tudo OK
                       <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
                         <Wifi size={12} />
                         Google conectado
                       </div>
                     ) : isConnected && !loc.google_location_name ? (
-                      <a
-                        href={`/api/google/auth?locationId=${loc.id}`}
-                        className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors"
-                        title="Local GMB não detectado — reconectar"
-                      >
+                      // Token salvo, aguardando detecção automática — estado transitório
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-full" title="Aguardando sincronização automática">
                         <Wifi size={12} />
-                        Reconectar Google
-                      </a>
+                        Sincronizando…
+                      </div>
                     ) : (
+                      // Sem token — precisa conectar
                       <a
                         href={`/api/google/auth?locationId=${loc.id}`}
                         className="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-full transition-colors"
