@@ -51,7 +51,7 @@ export default async function BillingPage({
 
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("email, organization:organizations(id,plan,stripe_customer_id,stripe_subscription_id,subscription_status,extra_locations,trial_ends_at)")
+    .select("email, organization:organizations(id,plan,stripe_customer_id,stripe_subscription_id,subscription_status)")
     .eq("id", user!.id)
     .single();
 
@@ -61,8 +61,8 @@ export default async function BillingPage({
     stripe_customer_id: string | null;
     stripe_subscription_id: string | null;
     subscription_status: string | null;
-    extra_locations: number;
-    trial_ends_at: string | null;
+    extra_locations?: number;
+    trial_ends_at?: string | null;
   } | null;
 
   // ── Server-side Stripe sync (triggered by ?verify=1 link) ─────────────────
@@ -216,10 +216,6 @@ export default async function BillingPage({
                 )}
               </div>
               <p className="text-sm text-gray-500">Plano atual</p>
-              {/* debug: remove after confirming correct account */}
-              <p className="text-[10px] text-gray-400 mt-0.5">
-                {userRecord?.email ?? user?.email} · DB: {org?.plan ?? "null"}
-              </p>
             </div>
           </div>
 
