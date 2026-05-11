@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { createServiceClient } from '@/lib/supabase/server'
 import { GoogleMyBusinessClient } from '@/lib/google/myBusiness'
 import { generateReviewResponse } from '@/lib/openai/generateResponse'
@@ -12,7 +13,7 @@ import type { LocationNiche, LocationTone } from '@/types'
 //   Header:    Authorization: Bearer CRON_SECRET
 //   Query:     ?secret=CRON_SECRET
 
-// Vercel Hobby max is 60s; Pro allows up to 300s
+// waitUntil keeps the function alive after response; cron-job.org gets 200 in <2s
 export const maxDuration = 60
 
 export async function GET(request: Request) {
@@ -27,6 +28,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Return 200 immediately so cron-job.org doesn't timeout (30s limit on free plan).
+  // waitUntil keeps Vercel running the heavy work in background.
+  waitUntil(runSync())
+
+  return NextResponse.json({ success: true, status: 'processing', timestamp: new Date().toISOString() })
+}
+
+async function runSync() {
   const serviceClient = createServiceClient()
 
   // ── Helper: delay aleatório de 5-20 minutos para parecer natural ────────────
@@ -323,8 +332,7 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({
-    success:            true,
+  console.log('[cron] runSync completed', {
     locationsProcessed: results.processed,
     newReviews:         results.newReviews,
     scheduled:          results.scheduled,
@@ -332,7 +340,6 @@ export async function GET(request: Request) {
     alertsSent:         results.alertsSent,
     locationsDetected:  results.detected,
     errors:             results.errors,
-    timestamp:          new Date().toISOString(),
   })
 }
 
