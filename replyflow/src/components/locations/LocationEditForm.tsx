@@ -52,27 +52,41 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
   const [gmbSelected,   setGmbSelected]   = useState<string>(location.google_location_name ?? "");
   const [gmbFetching,   setGmbFetching]   = useState(false);
   const [gmbError,      setGmbError]      = useState<string | null>(null);
+  const [gmbErrorCode,  setGmbErrorCode]  = useState<string | null>(null);
   const [gmbSaving,     setGmbSaving]     = useState(false);
   const [gmbManual,     setGmbManual]     = useState(false);
   const [gmbManualVal,  setGmbManualVal]  = useState(location.google_location_name ?? "");
+  const [gmbCooldown,   setGmbCooldown]   = useState(0); // seconds remaining after rate limit
 
   const hasToken = !!location.google_access_token;
 
   async function fetchGmbLocations() {
+    if (gmbCooldown > 0) return;
     setGmbFetching(true);
     setGmbError(null);
+    setGmbErrorCode(null);
     setGmbAccounts([]);
     try {
       const res  = await fetch(`/api/google/locations?locationId=${location.id}`);
       const data = await res.json();
       if (data.ok) {
         setGmbAccounts(data.accounts ?? []);
-        // Pre-select first location if none currently set
         if (!gmbSelected && data.accounts?.[0]?.locations?.[0]?.name) {
           setGmbSelected(data.accounts[0].locations[0].name);
         }
       } else {
+        setGmbErrorCode(data.error ?? null);
         setGmbError(data.message ?? "Não foi possível listar os locais.");
+        // If rate limited, start a countdown so user knows when to retry
+        if (data.error === "rate_limit") {
+          let secs = 60;
+          setGmbCooldown(secs);
+          const timer = setInterval(() => {
+            secs--;
+            setGmbCooldown(secs);
+            if (secs <= 0) clearInterval(timer);
+          }, 1000);
+        }
       }
     } catch {
       setGmbError("Erro de rede. Verifique sua conexão e tente novamente.");
@@ -323,14 +337,15 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
               <button
                 type="button"
                 onClick={fetchGmbLocations}
-                disabled={gmbFetching}
+                disabled={gmbFetching || gmbCooldown > 0}
                 className="inline-flex items-center gap-1.5 text-sm bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-colors"
               >
                 {gmbFetching
-                  ? <Loader2 size={13} className="animate-spin" />
-                  : <Search size={13} />
+                  ? <><Loader2 size={13} className="animate-spin" /> Buscando…</>
+                  : gmbCooldown > 0
+                    ? <><Loader2 size={13} className="animate-spin" /> Aguarde {gmbCooldown}s</>
+                    : <><Search size={13} /> Detectar locais automaticamente</>
                 }
-                Detectar locais automaticamente
               </button>
               <button
                 type="button"
@@ -347,12 +362,38 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
             <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
               <AlertCircle size={13} className="text-amber-600 shrink-0 mt-0.5" />
               <div className="text-xs text-amber-800 space-y-1">
-                <p className="font-semibold">Não foi possível detectar automaticamente</p>
-                <p>{gmbError}</p>
-                <p className="text-amber-600">
-                  Use a opção &quot;Inserir manualmente&quot; se souber o nome do recurso,
-                  ou verifique se as APIs do Google Business Profile estão ativadas no Google Cloud Console.
-                </p>
+                {gmbErrorCode === "rate_limit" ? (
+                  <>
+                    <p className="font-semibold">Muitas requisições — aguarde e tente novamente</p>
+                    <p>{gmbError}</p>
+                    {gmbCooldown > 0 && (
+                      <p className="text-indigo-700 font-medium">
+                        Botão liberado em {gmbCooldown}s…
+                      </p>
+                    )}
+                  </>
+                ) : gmbErrorCode === "permission_denied" ? (
+                  <>
+                    <p className="font-semibold">Permissão negada (403)</p>
+                    <p>{gmbError}</p>
+                  </>
+                ) : gmbErrorCode === "unauthorized" ? (
+                  <>
+                    <p className="font-semibold">Token expirado — reconecte o Google</p>
+                    <p>{gmbError}</p>
+                    <a
+                      href={`/api/google/auth?locationId=${location.id}`}
+                      className="inline-block mt-1 text-indigo-700 underline font-semibold"
+                    >
+                      Reconectar Google →
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-semibold">Não foi possível detectar automaticamente</p>
+                    <p>{gmbError}</p>
+                  </>
+                )}
               </div>
             </div>
           )}

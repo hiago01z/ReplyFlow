@@ -96,11 +96,30 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: true, accounts: results });
   } catch (err) {
     console.error("[api/google/locations] error:", err);
-    const msg = err instanceof Error ? err.message : String(err);
+    const raw = err instanceof Error ? err.message : String(err);
+
+    // Friendly messages by error type
+    let userMessage = raw;
+    let errorCode   = "api_error";
+
+    if (raw.includes("429")) {
+      errorCode   = "rate_limit";
+      userMessage = "Muitas requisições em pouco tempo. Aguarde 1 minuto e tente novamente.";
+    } else if (raw.includes("403")) {
+      errorCode   = "permission_denied";
+      userMessage = "Permissão negada. Verifique se as APIs 'My Business Account Management' e 'My Business Business Information' estão ativadas no Google Cloud Console, e se o escopo 'business.manage' foi concedido no OAuth.";
+    } else if (raw.includes("401")) {
+      errorCode   = "unauthorized";
+      userMessage = "Token expirado. Desconecte e reconecte o Google para obter um novo token.";
+    } else if (raw.includes("404")) {
+      errorCode   = "not_found";
+      userMessage = "Nenhuma conta Google Business encontrada para este token. Certifique-se de que a conta Google autenticada é a mesma que gerencia o Google Meu Negócio.";
+    }
+
     return NextResponse.json({
       ok: false,
-      error: "api_error",
-      message: msg,
+      error: errorCode,
+      message: userMessage,
       accounts: [],
     });
   }

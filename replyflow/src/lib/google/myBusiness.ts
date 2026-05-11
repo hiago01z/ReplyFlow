@@ -139,20 +139,33 @@ export class GoogleMyBusinessClient {
   }
 
   /**
-   * Faz um fetch autenticado. Se receber 401, tenta renovar o token uma vez.
+   * Faz um fetch autenticado.
+   * - 401 → renova token e tenta uma vez
+   * - 429 → espera Retry-After (ou 10s) e tenta até 3 vezes
    */
   private async doFetch(url: string, init?: RequestInit): Promise<Response> {
-    const authHeaders = {
+    const buildHeaders = () => ({
       Authorization: `Bearer ${this._accessToken}`,
       ...(init?.headers as Record<string, string> ?? {}),
-    };
+    });
 
-    let res = await globalThis.fetch(url, { ...init, headers: authHeaders });
+    let res = await globalThis.fetch(url, { ...init, headers: buildHeaders() });
 
+    // 401 — renovar token uma vez
     if (res.status === 401 && this.refreshToken) {
       await this.refreshAccessToken();
-      const retryHeaders = { ...authHeaders, Authorization: `Bearer ${this._accessToken}` };
-      res = await globalThis.fetch(url, { ...init, headers: retryHeaders });
+      res = await globalThis.fetch(url, { ...init, headers: buildHeaders() });
+    }
+
+    // 429 — rate limit: aguarda e retenta até 3 vezes
+    let retries = 0;
+    while (res.status === 429 && retries < 3) {
+      const retryAfter = parseInt(res.headers.get("Retry-After") ?? "10", 10);
+      const waitMs     = (retryAfter || 10) * 1000;
+      console.warn(`[GMB] 429 rate limit — waiting ${waitMs}ms before retry ${retries + 1}/3`);
+      await new Promise((r) => setTimeout(r, waitMs));
+      res = await globalThis.fetch(url, { ...init, headers: buildHeaders() });
+      retries++;
     }
 
     return res;
