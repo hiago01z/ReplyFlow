@@ -1,13 +1,17 @@
 /**
- * Google My Business API wrapper
- * Documentação: https://developers.google.com/my-business/reference/rest
+ * Google My Business / Business Profile API wrapper
  *
- * Endpoints utilizados:
- * - accounts.locations.reviews.list
- * - accounts.locations.reviews.updateReply
+ * Uses the Business Profile APIs (v1) — the v4 legacy API was sunset in 2023.
+ *
+ * API base URLs:
+ *   Reviews  → https://mybusinessreviews.googleapis.com/v1
+ *   Accounts → https://mybusinessaccountmanagement.googleapis.com/v1
+ *   Info     → https://mybusinessbusinessinformation.googleapis.com/v1
  */
 
-const GMB_BASE = "https://mybusiness.googleapis.com/v4";
+const REVIEWS_BASE  = "https://mybusinessreviews.googleapis.com/v1";
+const ACCOUNTS_BASE = "https://mybusinessaccountmanagement.googleapis.com/v1";
+const INFO_BASE     = "https://mybusinessbusinessinformation.googleapis.com/v1";
 
 export interface GmbReview {
   reviewId: string;
@@ -17,7 +21,7 @@ export interface GmbReview {
   createTime: string;
   updateTime: string;
   reviewReply?: { comment: string; updateTime: string };
-  name: string; // full resource name
+  name: string; // full resource name e.g. accounts/123/locations/456/reviews/789
 }
 
 interface ListReviewsResponse {
@@ -35,7 +39,7 @@ const STAR_TO_NUMBER: Record<GmbReview["starRating"], number> = {
 };
 
 export class GoogleMyBusinessClient {
-  private accessToken: string;
+  private _accessToken: string;
   private refreshToken: string | null;
   private locationName: string; // e.g. "accounts/123/locations/456"
 
@@ -44,9 +48,17 @@ export class GoogleMyBusinessClient {
     refreshToken: string | null;
     locationName: string;
   }) {
-    this.accessToken = opts.accessToken;
+    this._accessToken = opts.accessToken;
     this.refreshToken = opts.refreshToken;
     this.locationName = opts.locationName;
+  }
+
+  /**
+   * Returns the current access token (possibly refreshed).
+   * Use this to persist the token back to the DB after cron operations.
+   */
+  get currentAccessToken(): string {
+    return this._accessToken;
   }
 
   /**
@@ -58,12 +70,12 @@ export class GoogleMyBusinessClient {
     let pageToken: string | undefined;
 
     do {
-      const url = new URL(`${GMB_BASE}/${this.locationName}/reviews`);
+      const url = new URL(`${REVIEWS_BASE}/${this.locationName}/reviews`);
       url.searchParams.set("pageSize", "50");
       if (pageToken) url.searchParams.set("pageToken", pageToken);
 
-      const res = await this.fetch(url.toString());
-      if (!res.ok) throw new Error(`GMB list reviews failed: ${res.status}`);
+      const res = await this.doFetch(url.toString());
+      if (!res.ok) throw new Error(`GMB list reviews failed: ${res.status} ${await res.text()}`);
 
       const data: ListReviewsResponse = await res.json();
       const reviews = data.reviews ?? [];
@@ -81,12 +93,12 @@ export class GoogleMyBusinessClient {
 
   /**
    * Publica ou atualiza resposta para um review.
-   * @param reviewName - full resource name do review (e.g. "accounts/.../reviews/abc")
-   * @param comment - texto da resposta
+   * @param reviewName - full resource name e.g. "accounts/123/locations/456/reviews/789"
+   * @param comment    - texto da resposta
    */
   async replyToReview(reviewName: string, comment: string): Promise<void> {
-    const url = `${GMB_BASE}/${reviewName}/reply`;
-    const res = await this.fetch(url, {
+    const url = `${REVIEWS_BASE}/${reviewName}/reply`;
+    const res = await this.doFetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ comment }),
@@ -103,7 +115,7 @@ export class GoogleMyBusinessClient {
    * Usado no onboarding para listar os locais disponíveis.
    */
   async listAccounts(): Promise<{ name: string; accountName: string }[]> {
-    const res = await this.fetch(`${GMB_BASE}/accounts`);
+    const res = await this.doFetch(`${ACCOUNTS_BASE}/accounts`);
     if (!res.ok) throw new Error(`GMB list accounts failed: ${res.status}`);
     const data = await res.json() as { accounts?: { name: string; accountName: string }[] };
     return data.accounts ?? [];
@@ -111,9 +123,11 @@ export class GoogleMyBusinessClient {
 
   /**
    * Lista locais de um account.
+   * @param accountName - e.g. "accounts/123456789"
    */
   async listLocations(accountName: string): Promise<{ name: string; locationName: string; title: string }[]> {
-    const res = await this.fetch(`${GMB_BASE}/${accountName}/locations?readMask=name,title`);
+    const url = `${INFO_BASE}/${accountName}/locations?readMask=name,title`;
+    const res = await this.doFetch(url);
     if (!res.ok) throw new Error(`GMB list locations failed: ${res.status}`);
     const data = await res.json() as { locations?: { name: string; locationName: string; title: string }[] };
     return data.locations ?? [];
@@ -125,19 +139,19 @@ export class GoogleMyBusinessClient {
   }
 
   /**
-   * Faz um fetch autenticado. Se receber 401, tenta renovar o token.
+   * Faz um fetch autenticado. Se receber 401, tenta renovar o token uma vez.
    */
-  private async fetch(url: string, init?: RequestInit): Promise<Response> {
-    const headers = {
-      Authorization: `Bearer ${this.accessToken}`,
+  private async doFetch(url: string, init?: RequestInit): Promise<Response> {
+    const authHeaders = {
+      Authorization: `Bearer ${this._accessToken}`,
       ...(init?.headers as Record<string, string> ?? {}),
     };
 
-    let res = await globalThis.fetch(url, { ...init, headers });
+    let res = await globalThis.fetch(url, { ...init, headers: authHeaders });
 
     if (res.status === 401 && this.refreshToken) {
       await this.refreshAccessToken();
-      const retryHeaders = { ...headers, Authorization: `Bearer ${this.accessToken}` };
+      const retryHeaders = { ...authHeaders, Authorization: `Bearer ${this._accessToken}` };
       res = await globalThis.fetch(url, { ...init, headers: retryHeaders });
     }
 
@@ -146,15 +160,16 @@ export class GoogleMyBusinessClient {
 
   /**
    * Renova o access_token usando o refresh_token.
+   * Atualiza this._accessToken — use currentAccessToken para persistir.
    */
   private async refreshAccessToken(): Promise<void> {
     const res = await globalThis.fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        grant_type: "refresh_token",
+        grant_type:    "refresh_token",
         refresh_token: this.refreshToken!,
-        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_id:     process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
       }),
     });
@@ -162,6 +177,7 @@ export class GoogleMyBusinessClient {
     if (!res.ok) throw new Error("Failed to refresh Google access token");
 
     const data = await res.json() as { access_token: string };
-    this.accessToken = data.access_token;
+    this._accessToken = data.access_token;
+    console.log("[GMB] access_token refreshed successfully");
   }
 }

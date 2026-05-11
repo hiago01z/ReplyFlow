@@ -17,9 +17,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "locationId required" }, { status: 400 });
   }
 
+  // Redirect URI: env var takes priority; fallback to request origin so prod works without config
+  const { origin } = new URL(request.url);
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${origin}/api/google/callback`;
+
   const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   googleAuthUrl.searchParams.set("client_id", process.env.GOOGLE_CLIENT_ID!);
-  googleAuthUrl.searchParams.set("redirect_uri", process.env.GOOGLE_REDIRECT_URI!);
+  googleAuthUrl.searchParams.set("redirect_uri", redirectUri);
   googleAuthUrl.searchParams.set("response_type", "code");
   googleAuthUrl.searchParams.set(
     "scope",

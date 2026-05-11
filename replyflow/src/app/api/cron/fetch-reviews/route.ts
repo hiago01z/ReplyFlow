@@ -161,10 +161,10 @@ export async function GET(request: Request) {
         }
       }
 
-      // Atualizar access_token se foi renovado pela GMB client
+      // Persistir access_token — pode ter sido renovado internamente pelo GMB client
       await serviceClient
         .from('locations')
-        .update({ google_access_token: location.google_access_token })
+        .update({ google_access_token: gmb.currentAccessToken })
         .eq('id', location.id)
 
       results.processed++
