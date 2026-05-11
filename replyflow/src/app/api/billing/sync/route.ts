@@ -37,6 +37,7 @@ async function findActiveSubForCustomer(
       customer: customerId,
       status,
       limit: 10,
+      expand: ['data.items.data.price'],
     })
     const sub = data.find((s) => s.metadata?.type !== 'extra_location')
     if (sub) return sub
@@ -71,9 +72,13 @@ export async function POST() {
     try {
       const sub = await findActiveSubForCustomer(org.stripe_customer_id)
       if (sub) {
-        const priceItem = sub.items.data[0]?.price
-        const priceId   = priceItem?.id ?? ''
-        const productId = typeof priceItem?.product === 'string' ? priceItem.product : null
+        const priceRaw  = sub.items.data[0]?.price
+        const priceId   = typeof priceRaw === 'string' ? priceRaw : (priceRaw?.id ?? '')
+        const productId = typeof priceRaw === 'string'
+          ? null
+          : (typeof priceRaw?.product === 'string' ? priceRaw.product
+              : (priceRaw?.product && typeof priceRaw.product === 'object')
+                ? (priceRaw.product as { id: string }).id : null)
         const plan      = resolvePlan(priceId, productId)
 
         await serviceClient.from('organizations').update({
@@ -134,9 +139,13 @@ export async function POST() {
       return NextResponse.json({ plan: 'free', synced: false, reason: 'no_subscription' })
     }
 
-    const priceItem = foundSub.items.data[0]?.price
-    const priceId   = priceItem?.id ?? ''
-    const productId = typeof priceItem?.product === 'string' ? priceItem.product : null
+    const priceRaw  = foundSub.items.data[0]?.price
+    const priceId   = typeof priceRaw === 'string' ? priceRaw : (priceRaw?.id ?? '')
+    const productId = typeof priceRaw === 'string'
+      ? null
+      : (typeof priceRaw?.product === 'string' ? priceRaw.product
+          : (priceRaw?.product && typeof priceRaw.product === 'object')
+            ? (priceRaw.product as { id: string }).id : null)
     const plan      = resolvePlan(priceId, productId)
 
     await serviceClient.from('organizations').update({

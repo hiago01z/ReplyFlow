@@ -26,7 +26,12 @@ function resolvePlan(priceId: string, productId?: string | null): string {
 
 async function findMainSub(customerId: string): Promise<Stripe.Subscription | null> {
   for (const status of ['active', 'trialing'] as const) {
-    const { data } = await stripe.subscriptions.list({ customer: customerId, status, limit: 10 })
+    const { data } = await stripe.subscriptions.list({
+      customer: customerId,
+      status,
+      limit: 10,
+      expand: ['data.items.data.price'],
+    })
     const sub = data.find((s) => s.metadata?.type !== 'extra_location')
     if (sub) return sub
   }
@@ -100,11 +105,17 @@ export async function syncPlanFromStripe(
     }
 
     // ── Resolve plan from price ID ───────────────────────────────────────────
-    const priceItem = foundSub.items.data[0]?.price
-    const priceId   = priceItem?.id ?? ''
-    const productId = typeof priceItem?.product === 'object' && priceItem.product !== null
-      ? (priceItem.product as { id: string }).id
-      : typeof priceItem?.product === 'string' ? priceItem.product : null
+    // When expand is used the price field is an object; without expand it's a string (the price ID itself).
+    // We handle both cases for safety.
+    const priceRaw  = foundSub.items.data[0]?.price
+    const priceId   = typeof priceRaw === 'string'
+      ? priceRaw
+      : (priceRaw?.id ?? '')
+    const productId = typeof priceRaw === 'string'
+      ? null
+      : (typeof priceRaw?.product === 'object' && priceRaw.product !== null
+          ? (priceRaw.product as { id: string }).id
+          : typeof priceRaw?.product === 'string' ? priceRaw.product : null)
 
     const plan = resolvePlan(priceId, productId)
 
