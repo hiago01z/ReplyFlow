@@ -1,21 +1,33 @@
 # 🚀 Guia de Deploy em Produção — ReplyFlow
 
-> Tempo estimado: 2–3 horas na primeira vez.
+> **Status (2026-05-11):** Todos os serviços abaixo já estão configurados e ativos.
+> Este guia serve de referência para futuros agentes e para reconfiguração se necessário.
 
 ---
 
 ## Pré-requisitos
 
-| Serviço | Conta | Plano mínimo |
-|---------|-------|-------------|
-| [Vercel](https://vercel.com) | Obrigatório | Hobby (gratuito) — Pro para crons nativos |
-| [Supabase](https://supabase.com) | Obrigatório | Free tier |
-| [Stripe](https://stripe.com) | Obrigatório | Free (modo teste → produção) |
-| [OpenAI](https://platform.openai.com) | Obrigatório | Pay-as-you-go |
-| [Resend](https://resend.com) | Obrigatório | Free (3.000 emails/mês) |
-| [Google Cloud Console](https://console.cloud.google.com) | Obrigatório | Free |
-| [Upstash](https://console.upstash.com) | Recomendado | Free tier |
-| [cron-job.org](https://cron-job.org) | Se Vercel Hobby | Free |
+| Serviço | Conta | Plano mínimo | Status |
+|---------|-------|-------------|--------|
+| [Vercel](https://vercel.com) | Obrigatório | Hobby (gratuito) — Pro para crons nativos | ✅ Configurado |
+| [Supabase](https://supabase.com) | Obrigatório | Free tier | ✅ Configurado |
+| [Stripe](https://stripe.com) | Obrigatório | Free (modo teste → produção) | ✅ Configurado |
+| [OpenAI](https://platform.openai.com) | Obrigatório | Pay-as-you-go | ✅ Configurado |
+| [Resend](https://resend.com) | Obrigatório | Free (3.000 emails/mês) | ✅ Configurado |
+| [Google Cloud Console](https://console.cloud.google.com) | Obrigatório | Free | ✅ Configurado |
+| [Upstash](https://console.upstash.com) | Recomendado | Free tier | ✅ Configurado |
+| [cron-job.org](https://cron-job.org) | Se Vercel Hobby | Free | ✅ Configurado |
+
+### O que já foi feito (não repetir)
+- Supabase: projeto criado, schema aplicado (`000_full_schema.sql` + migrations 007–012), Auth configurado (URL Configuration + Redirect URLs + Google provider)
+- Google Cloud: projeto criado, APIs habilitadas (Business Reviews, Account Management, Business Information, People), OAuth Client ID criado com redirect URIs de produção e localhost
+- Stripe: produtos criados (Starter R$97, Pro R$197, Agência R$497), webhook configurado, Price IDs copiados para env vars
+- Resend: API key criada, from email configurado
+- Upstash: Redis criado, credenciais nas env vars
+- Vercel: repositório importado, todas as env vars configuradas, deploy ativo
+- cron-job.org: cron configurado apontando para `/api/cron/fetch-reviews`
+
+> ⚠️ **Para agentes de código:** não pergunte ao usuário se os serviços estão configurados — estão. Foque em código e features.
 
 ---
 
