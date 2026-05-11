@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { MapPin, Zap, Trash2, CheckCircle2 } from "lucide-react";
+import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink } from "lucide-react";
 import type { Location } from "@/types";
 import { GmbLinkWizard } from "@/components/locations/GmbLinkWizard";
 
@@ -38,19 +38,61 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
   const [tone,        setTone]        = useState(location.tone);
   const [autoPublish,    setAutoPublish]    = useState(location.auto_publish);
   const [minRating,      setMinRating]      = useState(location.auto_publish_min_rating ?? 3);
+  const [isPublic,       setIsPublic]       = useState(location.is_public ?? false);
+  const [publicSlug,     setPublicSlug]     = useState(location.public_slug ?? "");
+  const [slugError,      setSlugError]      = useState<string | null>(null);
+  const [copied,         setCopied]         = useState(false);
   const [saving,      setSaving]      = useState(false);
   const [deleting,    setDeleting]    = useState(false);
   const [confirmDel,  setConfirmDel]  = useState(false);
 
+  // Derive a default slug from the location name (only used as placeholder)
+  const suggestedSlug = location.name
+    .toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")  // remove accents
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+
+  function validateSlug(value: string): string | null {
+    if (!value) return "O slug não pode estar vazio quando o perfil está público.";
+    if (!/^[a-z0-9-]{3,60}$/.test(value))
+      return "Apenas letras minúsculas, números e hífens (3–60 caracteres).";
+    return null;
+  }
+
+  async function copyProfileLink() {
+    const url = `${window.location.origin}/l/${publicSlug}`;
+    await navigator.clipboard.writeText(url).catch(() => null);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
+
+    // Validate slug if public profile is enabled
+    if (isPublic) {
+      const err = validateSlug(publicSlug);
+      if (err) { setSlugError(err); return; }
+    }
+    setSlugError(null);
+
     setSaving(true);
     try {
       const res = await fetch(`/api/locations/${location.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, niche, tone, auto_publish: autoPublish, auto_publish_min_rating: minRating }),
+        body: JSON.stringify({
+          name,
+          niche,
+          tone,
+          auto_publish: autoPublish,
+          auto_publish_min_rating: minRating,
+          is_public: isPublic,
+          public_slug: isPublic ? publicSlug.trim() : null,
+        }),
       });
       if (!res.ok) throw new Error();
       success("Salvo!", "As configurações do local foram atualizadas.");
@@ -223,6 +265,104 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
               {minRating === 4 && "✅ Apenas reviews positivos (4★+) serão publicados automaticamente."}
               {minRating === 5 && "✅ Apenas reviews 5 estrelas serão publicados automaticamente."}
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Perfil Público */}
+      <div className="card p-6 space-y-4">
+        {/* Header + toggle */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+              <Globe size={16} className="text-blue-500" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">Perfil público</h2>
+              <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                Gere um link compartilhável com suas avaliações e respostas.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsPublic((v) => !v)}
+            className={cn(
+              "relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none",
+              isPublic ? "bg-indigo-600" : "bg-gray-200",
+            )}
+            role="switch"
+            aria-checked={isPublic}
+          >
+            <span
+              className={cn(
+                "absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200",
+                isPublic ? "translate-x-5" : "translate-x-0",
+              )}
+            />
+          </button>
+        </div>
+
+        {/* Slug + copy link (visible when public) */}
+        {isPublic && (
+          <div className="border-t border-gray-100 pt-4 space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Slug do perfil
+              </label>
+              <p className="text-xs text-gray-400 mb-2">
+                Letras minúsculas, números e hífens. Ex.: <code className="bg-gray-100 px-1 rounded">{suggestedSlug || "meu-negocio"}</code>
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 shrink-0">/l/</span>
+                <input
+                  type="text"
+                  value={publicSlug}
+                  onChange={(e) => {
+                    setPublicSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+                    setSlugError(null);
+                  }}
+                  placeholder={suggestedSlug || "meu-negocio"}
+                  className={cn(
+                    "flex-1 text-sm border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400",
+                    slugError ? "border-red-300" : "border-gray-200",
+                  )}
+                />
+              </div>
+              {slugError && (
+                <p className="text-xs text-red-600 mt-1">{slugError}</p>
+              )}
+            </div>
+
+            {/* Link preview + copy */}
+            {publicSlug && !slugError && (
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                <span className="text-xs text-gray-500 flex-1 min-w-0 truncate">
+                  {typeof window !== "undefined" ? window.location.origin : ""}/l/{publicSlug}
+                </span>
+                <button
+                  type="button"
+                  onClick={copyProfileLink}
+                  title="Copiar link"
+                  className="shrink-0 text-gray-400 hover:text-indigo-600 transition-colors"
+                >
+                  {copied ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
+                </button>
+                <a
+                  href={`/l/${publicSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Abrir perfil"
+                  className="shrink-0 text-gray-400 hover:text-indigo-600 transition-colors"
+                >
+                  <ExternalLink size={14} />
+                </a>
+              </div>
+            )}
+
+            <p className="text-xs text-gray-400">
+              Apenas avaliações com status <strong>Publicado</strong> aparecem na página pública.
+            </p>
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw, Zap, AlertCircle } from "lucide-react";
+import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw, Zap, AlertCircle, Globe } from "lucide-react";
 import { SyncNowButton } from "@/components/locations/SyncNowButton";
 import { ReactivateLocationButton } from "@/components/locations/ReactivateLocationButton";
 
@@ -127,6 +127,12 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                           Auto {loc.auto_publish_min_rating ?? 3}★+
                         </span>
                       )}
+                      {loc.is_public && loc.public_slug && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                          <Globe size={10} />
+                          Público
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5 capitalize">
                       {loc.niche} · Tom: {loc.tone}
@@ -173,6 +179,18 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                         <span className="sm:hidden">Google</span>
                       </a>
                     )
+                  )}
+                  {/* Public profile link */}
+                  {loc.is_public && loc.public_slug && (
+                    <a
+                      href={`/l/${loc.public_slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Ver perfil público"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-blue-400 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                    >
+                      <Globe size={15} />
+                    </a>
                   )}
                   <Link
                     href={`/locations/${loc.id}`}

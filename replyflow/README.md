@@ -172,6 +172,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 31 (Templates de resposta por nicho/rating) | ✅ Concluída |
 | Etapa 6 — Sprint 32 (Rating Evolution Chart + Mobile polish) | ✅ Concluída |
 | Etapa 6 — Sprint 33 (Webhook personalizado de notificação) | ✅ Concluída |
+| Etapa 6 — Sprint 34 (Perfil público do local `/l/[slug]`) | ✅ Concluída |
 
 ---
 

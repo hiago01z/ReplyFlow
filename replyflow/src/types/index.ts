@@ -44,6 +44,8 @@ export interface Location {
   auto_publish: boolean
   auto_publish_min_rating: number
   active: boolean
+  is_public: boolean
+  public_slug: string | null
   created_at: string
   updated_at: string
 }
