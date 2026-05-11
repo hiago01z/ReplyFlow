@@ -97,7 +97,8 @@ export async function POST() {
     .like("external_id", `demo_${orgPrefix}_%`);
 
   if ((count ?? 0) > 0) {
-    return NextResponse.json({ message: "Demo data already exists", count });
+    // Já existem — retornar como sucesso para o cliente não mostrar erro
+    return NextResponse.json({ success: true, inserted: 0, alreadyExisted: true, count });
   }
 
   // Inserir reviews com external_id único por organização
@@ -121,11 +122,15 @@ export async function POST() {
 
     // Para reviews publicados, criar também o registro de response
     if (published_response) {
-      await serviceClient.from("responses").insert({
+      const { error: respErr } = await serviceClient.from("responses").insert({
         review_id: inserted.id,
         content: published_response,
+        ai_model: "demo",
         published_at: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(),
       });
+      if (respErr) {
+        console.error("[demo/seed] response insert error:", respErr);
+      }
     }
   }
 
