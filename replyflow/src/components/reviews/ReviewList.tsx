@@ -147,119 +147,120 @@ export function ReviewList({ reviews, locations, total, page, pageSize, currentF
   return (
     <div className="space-y-4">
       {/* ── Filter bar ── */}
-      <div className="card p-3 flex flex-wrap items-center gap-3">
-        {/* Search input */}
-        <div className="relative flex-1 min-w-[180px] max-w-xs">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          <input
-            type="text"
-            value={searchDraft}
-            onChange={(e) => setSearchDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && commitSearch(searchDraft)}
-            onBlur={() => commitSearch(searchDraft)}
-            placeholder="Buscar por autor ou texto…"
-            className="w-full h-8 pl-8 pr-7 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition-colors"
-          />
-          {searchDraft && (
-            <button
-              type="button"
-              onClick={() => { setSearchDraft(""); commitSearch(""); }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X size={12} />
-            </button>
-          )}
+      <div className="card p-3 space-y-2.5">
+        {/* Row 1: Search + count + actions */}
+        <div className="flex items-center gap-2">
+          {/* Search input */}
+          <div className="relative flex-1 min-w-0">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchDraft}
+              onChange={(e) => setSearchDraft(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && commitSearch(searchDraft)}
+              onBlur={() => commitSearch(searchDraft)}
+              placeholder="Buscar por autor ou texto…"
+              className="w-full h-8 pl-8 pr-7 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition-colors"
+            />
+            {searchDraft && (
+              <button
+                type="button"
+                onClick={() => { setSearchDraft(""); commitSearch(""); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* Count + select toggle + reset */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="hidden sm:inline text-xs text-gray-400">{total} review{total !== 1 ? "s" : ""}</span>
+            {hasActiveFilter && (
+              <button
+                onClick={() => router.push(pathname)}
+                className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+              >
+                Limpar
+              </button>
+            )}
+            {selectableIds.length > 0 && !selectMode && (
+              <button
+                onClick={() => setSelectMode(true)}
+                className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-indigo-600 border border-gray-200 hover:border-indigo-300 rounded-md px-2 py-1 transition-colors"
+              >
+                <CheckSquare size={12} />
+                <span className="hidden sm:inline">Selecionar</span>
+              </button>
+            )}
+            {selectMode && (
+              <button
+                onClick={exitSelectMode}
+                className="text-xs font-medium text-gray-400 hover:text-gray-600 border border-gray-200 rounded-md px-2 py-1"
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="w-px h-4 bg-gray-200 shrink-0" />
+        {/* Row 2: Filter chips (horizontal scroll on mobile) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+          <div className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
+            <SlidersHorizontal size={12} />
+          </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-gray-400 shrink-0">
-          <SlidersHorizontal size={13} />
-          <span className="font-medium">Filtrar</span>
-        </div>
+          {/* Status chips */}
+          <div className="flex gap-1 shrink-0">
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => updateFilter("status", f.value)}
+                className={cn(
+                  "px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap",
+                  (currentFilters.status ?? "") === f.value
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
 
-        <div className="w-px h-4 bg-gray-200 shrink-0" />
+          <div className="w-px h-4 bg-gray-200 shrink-0" />
 
-        {/* Status chips */}
-        <div className="flex gap-1 flex-wrap">
-          {STATUS_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => updateFilter("status", f.value)}
-              className={cn(
-                "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
-                (currentFilters.status ?? "") === f.value
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+          {/* Rating chips */}
+          <div className="flex gap-1 shrink-0">
+            {RATING_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => updateFilter("rating", f.value)}
+                className={cn(
+                  "px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap",
+                  (currentFilters.rating ?? "") === f.value
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
 
-        <div className="w-px h-4 bg-gray-200 shrink-0" />
-
-        {/* Rating chips */}
-        <div className="flex gap-1 flex-wrap">
-          {RATING_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => updateFilter("rating", f.value)}
-              className={cn(
-                "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
-                (currentFilters.rating ?? "") === f.value
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Location select */}
-        {locations.length > 1 && (
-          <>
-            <div className="w-px h-4 bg-gray-200 shrink-0" />
-            <select
-              value={currentFilters.locationId ?? ""}
-              onChange={(e) => updateFilter("locationId", e.target.value)}
-              className="text-xs bg-gray-100 border-0 rounded-md px-2.5 py-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-            >
-              <option value="">Todos os locais</option>
-              {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-            </select>
-          </>
-        )}
-
-        {/* Count + select toggle + reset */}
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-gray-400">{total} review{total !== 1 ? "s" : ""}</span>
-          {hasActiveFilter && (
-            <button
-              onClick={() => router.push(pathname)}
-              className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              Limpar
-            </button>
-          )}
-          {selectableIds.length > 0 && !selectMode && (
-            <button
-              onClick={() => setSelectMode(true)}
-              className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-indigo-600 border border-gray-200 hover:border-indigo-300 rounded-md px-2 py-1 transition-colors"
-            >
-              <CheckSquare size={12} />
-              Selecionar
-            </button>
-          )}
-          {selectMode && (
-            <button
-              onClick={exitSelectMode}
-              className="text-xs font-medium text-gray-400 hover:text-gray-600 border border-gray-200 rounded-md px-2 py-1"
-            >
-              Cancelar
-            </button>
+          {/* Location select */}
+          {locations.length > 1 && (
+            <>
+              <div className="w-px h-4 bg-gray-200 shrink-0" />
+              <select
+                value={currentFilters.locationId ?? ""}
+                onChange={(e) => updateFilter("locationId", e.target.value)}
+                className="text-xs bg-gray-100 border-0 rounded-md px-2.5 py-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shrink-0"
+              >
+                <option value="">Todos os locais</option>
+                {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+              </select>
+            </>
           )}
         </div>
       </div>
@@ -267,49 +268,65 @@ export function ReviewList({ reviews, locations, total, page, pageSize, currentF
       {/* ── Bulk action bar (floats when items selected) ── */}
       {selectMode && (
         <div className={cn(
-          "card p-3 flex items-center gap-3 border-indigo-200 bg-indigo-50/60 transition-all",
+          "card p-3 border-indigo-200 bg-indigo-50/60 transition-all",
           selectedCount > 0 ? "opacity-100" : "opacity-60",
         )}>
-          {/* Select all toggle */}
-          <button
-            onClick={toggleSelectAll}
-            className="flex items-center gap-1.5 text-xs font-medium text-indigo-700 hover:text-indigo-900 shrink-0"
-          >
-            <div className={cn(
-              "w-4 h-4 rounded border-2 flex items-center justify-center transition-colors",
-              allSelected ? "bg-indigo-600 border-indigo-600" : "border-gray-400 bg-white",
-            )}>
-              {allSelected && <X size={10} className="text-white" />}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Select all toggle */}
+            <button
+              onClick={toggleSelectAll}
+              className="flex items-center gap-1.5 text-xs font-medium text-indigo-700 hover:text-indigo-900 shrink-0"
+            >
+              <div className={cn(
+                "w-4 h-4 rounded border-2 flex items-center justify-center transition-colors",
+                allSelected ? "bg-indigo-600 border-indigo-600" : "border-gray-400 bg-white",
+              )}>
+                {allSelected && <X size={10} className="text-white" />}
+              </div>
+              <span className="hidden sm:inline">{allSelected ? "Desmarcar todos" : `Todos (${selectableIds.length})`}</span>
+            </button>
+
+            <div className="text-xs text-indigo-700 font-medium flex-1 min-w-0">
+              {selectedCount > 0 ? `${selectedCount} selecionado${selectedCount !== 1 ? "s" : ""}` : "Nenhum selecionado"}
             </div>
-            {allSelected ? "Desmarcar todos" : `Selecionar todos (${selectableIds.length})`}
-          </button>
 
-          <div className="flex-1 text-xs text-indigo-700 font-medium">
-            {selectedCount > 0 ? `${selectedCount} selecionado${selectedCount !== 1 ? "s" : ""}` : "Nenhum selecionado"}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => handleBulk("generate")}
+                disabled={selectedCount === 0 || !!bulkLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {bulkLoading === "generate"
+                  ? <Loader2 size={12} className="animate-spin" />
+                  : <Sparkles size={12} />}
+                <span className="hidden sm:inline">Gerar</span> respostas
+              </button>
+              <button
+                onClick={() => handleBulk("publish")}
+                disabled={selectedCount === 0 || !!bulkLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {bulkLoading === "publish"
+                  ? <Loader2 size={12} className="animate-spin" />
+                  : <Send size={12} />}
+                Publicar
+              </button>
+            </div>
           </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => handleBulk("generate")}
-              disabled={selectedCount === 0 || !!bulkLoading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              {bulkLoading === "generate"
-                ? <Loader2 size={12} className="animate-spin" />
-                : <Sparkles size={12} />}
-              Gerar respostas
-            </button>
-            <button
-              onClick={() => handleBulk("publish")}
-              disabled={selectedCount === 0 || !!bulkLoading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              {bulkLoading === "publish"
-                ? <Loader2 size={12} className="animate-spin" />
-                : <Send size={12} />}
-              Publicar
-            </button>
-          </div>
+          {bulkLoading && bulkProgress.total > 0 && (
+            <div className="mt-2">
+              <div className="flex justify-between text-[10px] text-indigo-600 mb-1">
+                <span>Processando…</span>
+                <span>{bulkProgress.done}/{bulkProgress.total}</span>
+              </div>
+              <div className="h-1 bg-indigo-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500 rounded-full transition-all"
+                  style={{ width: `${(bulkProgress.done / bulkProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 

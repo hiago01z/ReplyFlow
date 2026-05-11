@@ -4,18 +4,21 @@ import { useState, useEffect, useCallback } from "react";
 import { TrendingUp, Star, MessageSquare, Clock, BarChart2, RefreshCw } from "lucide-react";
 import { ReviewsBarChart } from "./ReviewsBarChart";
 import { RatingBarChart } from "./RatingBarChart";
+import { RatingLineChart } from "./RatingLineChart";
 import { cn } from "@/lib/utils";
 
-interface DayData      { date: string; total: number; published: number }
-interface RatingData   { stars: number; count: number; label: string }
-interface StatusData   { status: string; count: number; label: string }
-interface LocationData { id: string; name: string; total: number; published: number }
+interface DayData       { date: string; total: number; published: number }
+interface RatingData    { stars: number; count: number; label: string }
+interface StatusData    { status: string; count: number; label: string }
+interface LocationData  { id: string; name: string; total: number; published: number }
+interface RatingPoint   { date: string; avgRating: number; count: number }
 
 interface AnalyticsData {
   reviewsPerDay:   DayData[];
   ratingBreakdown: RatingData[];
   statusBreakdown: StatusData[];
   topLocations:    LocationData[];
+  ratingEvolution: RatingPoint[];
   totals: {
     total:     number;
     published: number;
@@ -90,14 +93,14 @@ export function AnalyticsDashboard() {
   return (
     <div className="animate-fade-in space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <p className="text-xs font-medium text-indigo-600 uppercase tracking-widest mb-1">Analytics</p>
           <h1 className="text-2xl font-bold text-gray-900">Relatório de Reputação</h1>
           <p className="text-sm text-gray-500 mt-1">Acompanhe o desempenho dos seus reviews ao longo do tempo.</p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           {/* Location filter */}
           {data && data.locations.length > 1 && (
             <select
@@ -191,35 +194,66 @@ export function AnalyticsDashboard() {
 
       {/* Charts row */}
       {!loading && data && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Reviews over time — 2/3 width */}
-          <div className="card p-5 lg:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <BarChart2 size={16} className="text-indigo-500" />
-              <h2 className="text-sm font-semibold text-gray-900">
-                Reviews {days > 14 ? "por semana" : "por dia"}
-              </h2>
+        <>
+          {/* Row 1: Reviews volume + Rating breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Reviews over time — 2/3 width */}
+            <div className="card p-5 lg:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <BarChart2 size={16} className="text-indigo-500" />
+                <h2 className="text-sm font-semibold text-gray-900">
+                  Reviews {days > 14 ? "por semana" : "por dia"}
+                </h2>
+              </div>
+              {data.reviewsPerDay.every((d) => d.total === 0) ? (
+                <EmptyChart message="Nenhum review neste período" />
+              ) : (
+                <ReviewsBarChart data={data.reviewsPerDay} days={days} />
+              )}
             </div>
-            {data.reviewsPerDay.every((d) => d.total === 0) ? (
-              <EmptyChart message="Nenhum review neste período" />
-            ) : (
-              <ReviewsBarChart data={data.reviewsPerDay} days={days} />
-            )}
+
+            {/* Rating breakdown — 1/3 width */}
+            <div className="card p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Star size={16} className="text-amber-500" />
+                <h2 className="text-sm font-semibold text-gray-900">Distribuição de estrelas</h2>
+              </div>
+              {data.ratingBreakdown.every((d) => d.count === 0) ? (
+                <EmptyChart message="Nenhum review neste período" />
+              ) : (
+                <RatingBarChart data={data.ratingBreakdown} />
+              )}
+            </div>
           </div>
 
-          {/* Rating breakdown — 1/3 width */}
+          {/* Row 2: Rating evolution — full width */}
           <div className="card p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Star size={16} className="text-amber-500" />
-              <h2 className="text-sm font-semibold text-gray-900">Distribuição de estrelas</h2>
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <div className="flex items-center gap-2">
+                <TrendingUp size={16} className="text-amber-500" />
+                <h2 className="text-sm font-semibold text-gray-900">Evolução da nota média</h2>
+              </div>
+              {data.totals.avgRating > 0 && (
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full">
+                  <Star size={11} className="fill-amber-400 text-amber-400" />
+                  {data.totals.avgRating.toFixed(1)} média geral
+                </div>
+              )}
             </div>
-            {data.ratingBreakdown.every((d) => d.count === 0) ? (
-              <EmptyChart message="Nenhum review neste período" />
+            <p className="text-xs text-gray-400 mb-4">
+              Nota média {days <= 14 ? "por dia" : "por semana"} nos últimos {days} dias
+            </p>
+            {data.ratingEvolution.every((d) => d.count === 0) ? (
+              <EmptyChart message="Nenhum review com nota neste período" />
             ) : (
-              <RatingBarChart data={data.ratingBreakdown} />
+              <RatingLineChart
+                data={data.ratingEvolution}
+                days={days}
+                overallAvg={data.totals.avgRating}
+              />
             )}
           </div>
-        </div>
+        </>
       )}
 
       {/* Bottom row */}

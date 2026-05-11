@@ -207,12 +207,12 @@ export default async function DashboardPage() {
 
       {/* Reply rate banner */}
       {totalTotal !== null && totalTotal > 0 && (
-        <div className="card p-5 mb-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-              <Star size={20} className="text-white fill-white" />
+        <div className="card p-5 mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+              <Star size={18} className="text-white fill-white" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900">Taxa de resposta</p>
               <p className="text-xs text-gray-500 mt-0.5">
                 {totalPublished ?? 0} de {totalTotal} reviews respondidos
@@ -220,9 +220,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <div className="text-right">
-              <div className="text-2xl font-bold text-indigo-600">{replyRate}%</div>
-            </div>
+            <div className="text-2xl font-bold text-indigo-600">{replyRate}%</div>
             <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-indigo-600 rounded-full transition-all"
@@ -301,12 +299,12 @@ export default async function DashboardPage() {
           </Link>
         </div>
       ) : (totalPending ?? 0) > 0 ? (
-        <div className="card p-5 flex items-center justify-between gap-4 border-amber-200 bg-amber-50">
-          <div className="flex items-center gap-3">
+        <div className="card p-5 flex flex-wrap items-center justify-between gap-4 border-amber-200 bg-amber-50">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
               <Clock size={18} className="text-amber-600" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-semibold text-amber-900">
                 {totalPending} review{(totalPending ?? 0) > 1 ? "s" : ""} aguardando resposta
               </p>

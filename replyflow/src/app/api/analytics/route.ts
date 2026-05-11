@@ -134,11 +134,67 @@ export async function GET(request: Request) {
     : 0
   const replyRate = total > 0 ? Math.round((published / total) * 100) : 0
 
+  // ─── Rating evolution (avg rating per period) ─────────────────────────────
+  // Group by week when days > 14, by day otherwise — same buckets as reviewsPerDay
+  const bucket = days > 14 ? 'week' : 'day'
+
+  const ratingEvolution: { date: string; avgRating: number; count: number }[] = []
+
+  if (bucket === 'day') {
+    // Reuse dayMap keys; compute avg rating per day
+    const dayRatings: Record<string, number[]> = {}
+    for (const key of Object.keys(dayMap)) dayRatings[key] = []
+    for (const r of allReviews) {
+      const key = r.created_at.slice(0, 10)
+      if (dayRatings[key] && r.rating !== null) dayRatings[key].push(r.rating as number)
+    }
+    for (const key of Object.keys(dayMap).sort()) {
+      const arr = dayRatings[key]
+      ratingEvolution.push({
+        date:      key,
+        avgRating: arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : 0,
+        count:     arr.length,
+      })
+    }
+  } else {
+    // Weekly buckets — Monday as anchor
+    const weekMap: Record<string, number[]> = {}
+    for (const r of allReviews) {
+      const d = new Date(r.created_at)
+      const day = d.getDay() // 0=Sun
+      const monday = new Date(d)
+      monday.setDate(d.getDate() - ((day + 6) % 7))
+      const key = monday.toISOString().slice(0, 10)
+      if (!weekMap[key]) weekMap[key] = []
+      if (r.rating !== null) weekMap[key].push(r.rating as number)
+    }
+    // Fill in all weeks in range (same as reviewsPerDay week logic)
+    const weeksSeen = new Set<string>()
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const day = d.getDay()
+      const monday = new Date(d)
+      monday.setDate(d.getDate() - ((day + 6) % 7))
+      const key = monday.toISOString().slice(0, 10)
+      weeksSeen.add(key)
+    }
+    for (const key of [...weeksSeen].sort()) {
+      const arr = weekMap[key] ?? []
+      ratingEvolution.push({
+        date:      key,
+        avgRating: arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : 0,
+        count:     arr.length,
+      })
+    }
+  }
+
   return NextResponse.json({
     reviewsPerDay,
     ratingBreakdown,
     statusBreakdown,
     topLocations,
+    ratingEvolution,
     totals: { total, published, pending, avgRating, replyRate },
     locations: (locations ?? []).map((l) => ({ id: l.id, name: l.name })),
   })

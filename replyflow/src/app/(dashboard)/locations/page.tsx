@@ -105,15 +105,16 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
             return (
               <div
                 key={loc.id}
-                className={`card px-5 py-4 flex items-center justify-between gap-4 ${!loc.active ? "opacity-60 border-dashed" : ""}`}
+                className={`card px-4 py-4 flex flex-wrap items-center gap-3 ${!loc.active ? "opacity-60 border-dashed" : ""}`}
               >
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${loc.active ? "bg-indigo-50" : "bg-gray-100"}`}>
-                    <MapPin size={18} className={loc.active ? "text-indigo-500" : "text-gray-400"} />
+                {/* Left: icon + info */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${loc.active ? "bg-indigo-50" : "bg-gray-100"}`}>
+                    <MapPin size={16} className={loc.active ? "text-indigo-500" : "text-gray-400"} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-gray-900 text-sm truncate">{loc.name}</p>
+                      <p className="font-semibold text-gray-900 text-sm truncate max-w-[160px] sm:max-w-none">{loc.name}</p>
                       {!loc.active && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
                           <AlertCircle size={10} />
@@ -139,7 +140,8 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 shrink-0">
+                {/* Right: action buttons */}
+                <div className="flex items-center gap-2 shrink-0">
                   {/* Reactivate button for inactive locations */}
                   {!loc.active && (
                     <ReactivateLocationButton locationId={loc.id} />
@@ -150,25 +152,25 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                   )}
                   {loc.active && (
                     isConnected && loc.google_location_name ? (
-                      // Totalmente vinculado — tudo OK
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1.5 rounded-full">
                         <Wifi size={12} />
-                        Google conectado
+                        <span className="hidden sm:inline">Google conectado</span>
+                        <span className="sm:hidden">Conectado</span>
                       </div>
                     ) : isConnected && !loc.google_location_name ? (
-                      // Token salvo, aguardando detecção automática — estado transitório
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-full" title="Aguardando sincronização automática">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 px-2.5 py-1.5 rounded-full" title="Aguardando sincronização automática">
                         <Wifi size={12} />
-                        Sincronizando…
+                        <span className="hidden sm:inline">Sincronizando…</span>
+                        <span className="sm:hidden">Sync…</span>
                       </div>
                     ) : (
-                      // Sem token — precisa conectar
                       <a
                         href={`/api/google/auth?locationId=${loc.id}`}
-                        className="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-full transition-colors"
+                        className="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-2.5 py-1.5 rounded-full transition-colors"
                       >
                         <Plus size={12} />
-                        Conectar Google
+                        <span className="hidden sm:inline">Conectar Google</span>
+                        <span className="sm:hidden">Google</span>
                       </a>
                     )
                   )}
