@@ -48,9 +48,10 @@ export async function POST(
     return NextResponse.json({ error: "No organization" }, { status: 403 });
   }
 
-  const { data: location } = await serviceClient
+  // ── Step 1: fetch location (no org join to avoid failure if migration not applied) ──
+  const { data: location, error: locError } = await serviceClient
     .from("locations")
-    .select("*, organization:organizations(plan, alert_email)")
+    .select("id, name, organization_id, google_access_token, google_refresh_token, google_location_name, auto_publish, auto_publish_min_rating")
     .eq("id", id)
     .eq("organization_id", userRecord.organization_id)
     .eq("active", true)
@@ -58,14 +59,33 @@ export async function POST(
     .not("google_location_name", "is", null)
     .single();
 
-  if (!location) {
+  if (locError || !location) {
+    console.warn("[sync] location query failed:", locError?.message ?? "not found", { id, orgId: userRecord.organization_id });
     return NextResponse.json(
-      { error: "Location not found or Google not connected" },
+      { error: "Location not found or Google not connected", detail: locError?.message },
       { status: 404 },
     );
   }
 
-  const result = await syncLocationReviews(location as Parameters<typeof syncLocationReviews>[0]);
+  // ── Step 2: fetch org data separately (tolerant of missing columns) ──────────
+  let orgPlan: string = "free";
+  let orgAlertEmail: string | null = null;
+  try {
+    const { data: orgData } = await serviceClient
+      .from("organizations")
+      .select("plan, alert_email")
+      .eq("id", userRecord.organization_id)
+      .single();
+    orgPlan       = orgData?.plan ?? "free";
+    orgAlertEmail = (orgData as Record<string, unknown>)?.alert_email as string | null ?? null;
+  } catch { /* ignore — org data is optional for sync */ }
+
+  const result = await syncLocationReviews({
+    ...location,
+    google_refresh_token: location.google_refresh_token ?? null,
+    auto_publish_min_rating: location.auto_publish_min_rating ?? 3,
+    organization: { plan: orgPlan, alert_email: orgAlertEmail },
+  });
 
   return NextResponse.json({
     success:    true,

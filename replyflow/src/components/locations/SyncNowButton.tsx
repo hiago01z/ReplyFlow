@@ -31,9 +31,9 @@ export function SyncNowButton({ locationId }: Props) {
       } else if (res.status === 429) {
         toastError("Aguarde", data.message ?? "Limite de sincronizações atingido. Tente em 2 minutos.");
       } else if (res.status === 404) {
-        toastError("Google não conectado", "Conecte o Google Meu Negócio primeiro.");
+        toastError("Local não configurado", data.detail ?? "Verifique se o local está ativo e o Google Meu Negócio está vinculado nas configurações.");
       } else {
-        toastError("Erro", data.message ?? "Não foi possível sincronizar.");
+        toastError("Erro na sincronização", data.message ?? data.detail ?? "Não foi possível sincronizar. Tente novamente.");
       }
     } catch {
       toastError("Erro de rede", "Verifique sua conexão e tente novamente.");

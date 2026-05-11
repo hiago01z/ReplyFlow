@@ -39,10 +39,31 @@ export async function syncLocationReviews(location: LocationRow): Promise<SyncRe
   const serviceClient = createServiceClient();
   const result: SyncResult = { newReviews: 0, scheduled: 0, alertsSent: 0, errors: 0 };
 
+  // Normalise google_location_name: resolve "accounts/me/" to real sub
+  let locationName = location.google_location_name;
+  if (locationName.startsWith("accounts/me/")) {
+    try {
+      const tempGmb = new GoogleMyBusinessClient({
+        accessToken:  location.google_access_token,
+        refreshToken: location.google_refresh_token,
+        locationName: "",
+      });
+      const sub = await tempGmb.getGoogleUserId();
+      locationName = locationName.replace("accounts/me/", `accounts/${sub}/`);
+      // Persist the corrected name so we don't need to do this again
+      await serviceClient
+        .from("locations")
+        .update({ google_location_name: locationName, google_account_id: `accounts/${sub}` })
+        .eq("id", location.id);
+    } catch (e) {
+      console.warn("[syncLocation] could not resolve 'accounts/me' sub:", e);
+    }
+  }
+
   const gmb = new GoogleMyBusinessClient({
     accessToken:  location.google_access_token,
     refreshToken: location.google_refresh_token,
-    locationName: location.google_location_name,
+    locationName,
   });
 
   let gmbReviews: Awaited<ReturnType<typeof gmb.listUnansweredReviews>>;

@@ -104,13 +104,28 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
   async function save(locationName: string) {
     if (!locationName.trim()) return;
     setSaving(true);
+    setErrorCode(null);
     try {
-      const parts           = locationName.split("/");
+      // Resolve proper format if user entered bare number or "locations/..." format
+      let finalName = locationName.trim();
+      if (!finalName.includes("/")) {
+        // Bare number — fetch user's account sub to build real path
+        try {
+          const infoRes = await fetch(`/api/google/account-id?locationId=${locationId}`);
+          if (infoRes.ok) {
+            const { sub } = await infoRes.json();
+            if (sub) finalName = `accounts/${sub}/locations/${finalName}`;
+          }
+        } catch { /* fallback to locations/ prefix */ }
+        // If sub lookup failed, use locations/ prefix which the API may accept
+        if (!finalName.includes("/")) finalName = `locations/${finalName}`;
+      }
+      const parts           = finalName.split("/");
       const googleAccountId = parts.length >= 2 ? `${parts[0]}/${parts[1]}` : null;
       const res = await fetch(`/api/locations/${locationId}`, {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ google_location_name: locationName, google_account_id: googleAccountId }),
+        body:    JSON.stringify({ google_location_name: finalName, google_account_id: googleAccountId }),
       });
       if (!res.ok) throw new Error();
       setSaved(true);
@@ -304,7 +319,7 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
 
             {/* Step-by-step guide */}
             <div className="space-y-3">
-              <Step n={1} label="Abra o Google Business Profile" />
+              <Step n={1} label="Pesquise seu negócio no Google ou acesse pelo link:" />
               <div className="ml-8">
                 <a
                   href="https://business.google.com"
@@ -317,36 +332,40 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
                 </a>
               </div>
 
-              <Step n={2} label='Clique no seu negócio e depois em "Editar perfil"' />
-
-              <Step n={3} label='Clique em "Ver no Maps" ou "Editar perfil" — olhe a URL:' />
-              <div className="ml-8 space-y-2">
-                {/* URL example with highlight */}
-                <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2.5 font-mono text-[11px] text-gray-500 dark:text-gray-400 break-all leading-relaxed">
-                  business.google.com/u/0/edit/l/
-                  <span className="bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 px-1.5 py-0.5 rounded font-bold mx-0.5">
-                    1234567890123456
-                  </span>
+              <Step n={2} label="Clique nos 3 pontinhos (⋮) do seu negócio:" />
+              <div className="ml-8">
+                <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2.5 text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  <p>⋮ menu → <strong>Configurações do Perfil da Empresa</strong></p>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Copie o número em amarelo — esse é o ID do seu negócio.
-                </p>
-                <p className="text-[11px] text-gray-400 dark:text-gray-500">
-                  ⚠️ Não encontrou esse formato? Tente acessar pelo link acima (passo 1) e editar o perfil.
-                </p>
               </div>
 
-              <Step n={4} label="Cole o número abaixo e clique em Vincular:" />
+              <Step n={3} label='Clique em "Configurações avançadas":' />
+              <div className="ml-8">
+                <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2.5 text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  <p>Configurações do Perfil da Empresa → <strong>Configurações avançadas</strong></p>
+                  <p className="text-gray-400 dark:text-gray-500">Veja o campo <em>"ID do Perfil da Empresa"</em></p>
+                </div>
+              </div>
+
+              <Step n={4} label="Copie o número e cole abaixo:" />
               <div className="ml-8 space-y-2">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+                  <p className="text-xs text-amber-800 dark:text-amber-300 font-medium">Exemplo: ID do Perfil da Empresa</p>
+                  <div className="font-mono text-sm text-amber-900 dark:text-amber-200 mt-0.5 flex items-center gap-2">
+                    <span className="bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 px-2 py-0.5 rounded font-bold">
+                      7193183758438207469
+                    </span>
+                    <CopyButton text="7193183758438207469" />
+                  </div>
+                </div>
                 <input
                   value={manualInput}
                   onChange={(e) => setManualInput(e.target.value)}
-                  placeholder="1234567890123456"
+                  placeholder="Cole o ID aqui (ex: 7193183758438207469)"
                   className="w-full text-sm border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white dark:bg-[#18181f] text-gray-800 dark:text-gray-200 font-mono"
                 />
                 <p className="text-[11px] text-gray-400 dark:text-gray-500">
-                  Cole só o número (ex: 1234567890123456) ou o caminho completo{" "}
-                  <span className="font-mono text-[10px]">accounts/xxx/locations/yyy</span>
+                  Cole apenas o número — o sistema resolve o caminho completo automaticamente.
                 </p>
               </div>
             </div>
