@@ -88,10 +88,12 @@ export async function POST(
   });
 
   return NextResponse.json({
-    success:    true,
-    newReviews: result.newReviews,
-    alertsSent: result.alertsSent,
-    errors:     result.errors,
-    timestamp:  new Date().toISOString(),
+    success:        true,
+    fetchedFromGmb: result.fetchedFromGmb,
+    newReviews:     result.newReviews,
+    alreadyExisted: result.alreadyExisted,
+    alertsSent:     result.alertsSent,
+    errors:         result.errors,
+    timestamp:      new Date().toISOString(),
   });
 }

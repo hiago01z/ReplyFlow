@@ -22,11 +22,28 @@ export function SyncNowButton({ locationId }: Props) {
       const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        const n = data.newReviews ?? 0;
-        success(
-          n > 0 ? `${n} novo${n !== 1 ? "s" : ""} review${n !== 1 ? "s" : ""} encontrado${n !== 1 ? "s" : ""}!` : "Tudo atualizado",
-          n > 0 ? "Reviews sincronizados com sucesso." : "Nenhum review novo desde a última sincronização.",
-        );
+        const fetched  = data.fetchedFromGmb  ?? 0;
+        const n        = data.newReviews       ?? 0;
+        const existing = data.alreadyExisted   ?? 0;
+
+        if (n > 0) {
+          success(
+            `${n} novo${n !== 1 ? "s" : ""} review${n !== 1 ? "s" : ""} encontrado${n !== 1 ? "s" : ""}!`,
+            "Reviews sincronizados com sucesso.",
+          );
+        } else if (fetched === 0) {
+          success(
+            "Nenhum review encontrado no Google",
+            "A API do Google não retornou reviews. Novos reviews podem levar algumas horas para aparecer após serem publicados.",
+          );
+        } else if (existing > 0) {
+          success(
+            "Tudo atualizado",
+            `${fetched} review${fetched !== 1 ? "s" : ""} encontrado${fetched !== 1 ? "s" : ""} no Google — já estão sincronizados. Veja em Reviews.`,
+          );
+        } else {
+          success("Tudo atualizado", "Nenhum review novo desde a última sincronização.");
+        }
         router.refresh();
       } else if (res.status === 429) {
         toastError("Aguarde", data.message ?? "Limite de sincronizações atingido. Tente em 2 minutos.");

@@ -62,10 +62,11 @@ export class GoogleMyBusinessClient {
   }
 
   /**
-   * Busca todos os reviews não respondidos do local.
+   * Busca todos os reviews do local (com e sem resposta).
+   * Usado pelo cron/sync para ter visão completa do estado atual.
    * Faz paginação automática.
    */
-  async listUnansweredReviews(): Promise<GmbReview[]> {
+  async listAllReviews(): Promise<GmbReview[]> {
     const all: GmbReview[] = [];
     let pageToken: string | undefined;
 
@@ -78,17 +79,21 @@ export class GoogleMyBusinessClient {
       if (!res.ok) throw new Error(`GMB list reviews failed: ${res.status} ${await res.text()}`);
 
       const data: ListReviewsResponse = await res.json();
-      const reviews = data.reviews ?? [];
-
-      // Filtrar apenas sem resposta
-      for (const r of reviews) {
-        if (!r.reviewReply) all.push(r);
-      }
-
+      all.push(...(data.reviews ?? []));
       pageToken = data.nextPageToken;
     } while (pageToken);
 
     return all;
+  }
+
+  /**
+   * Busca todos os reviews não respondidos do local.
+   * @deprecated Use listAllReviews() para visibilidade completa.
+   * Faz paginação automática.
+   */
+  async listUnansweredReviews(): Promise<GmbReview[]> {
+    const reviews = await this.listAllReviews();
+    return reviews.filter((r) => !r.reviewReply);
   }
 
   /**
