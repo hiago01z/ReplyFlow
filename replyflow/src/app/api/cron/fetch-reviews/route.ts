@@ -11,6 +11,9 @@ import type { LocationNiche, LocationTone } from '@/types'
 //   Header:    Authorization: Bearer CRON_SECRET
 //   Query:     ?secret=CRON_SECRET
 
+// Allow up to 5 min on Vercel Pro / 60s on Hobby (default is 10s which is too short)
+export const maxDuration = 300
+
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
   const { searchParams } = new URL(request.url)
