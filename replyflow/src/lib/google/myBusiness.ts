@@ -111,10 +111,30 @@ export class GoogleMyBusinessClient {
   }
 
   /**
+   * Retorna o Google User ID (sub) via userinfo — nunca tem quota limitada.
+   * Usado para construir o account path sem precisar chamar accounts.list.
+   */
+  async getGoogleUserId(): Promise<string> {
+    const res = await this.doFetch("https://www.googleapis.com/oauth2/v3/userinfo");
+    if (!res.ok) throw new Error(`userinfo failed: ${res.status}`);
+    const data = await res.json() as { sub: string; email?: string };
+    return data.sub; // numeric Google account ID
+  }
+
+  /**
    * Busca os accounts (empresas) do usuário autenticado.
-   * Usado no onboarding para listar os locais disponíveis.
+   * Tenta primeiro via userinfo (sem quota) → fallback para accounts.list.
    */
   async listAccounts(): Promise<{ name: string; accountName: string }[]> {
+    // Estratégia 1: usar userinfo para construir account path sem quota
+    try {
+      const sub = await this.getGoogleUserId();
+      // Para contas pessoais, o account ID no Business Profile API = Google User ID (sub)
+      return [{ name: `accounts/${sub}`, accountName: "Minha Conta" }];
+    } catch {
+      // Fallback: accounts.list (pode retornar 429 se quota=0)
+    }
+
     const res = await this.doFetch(`${ACCOUNTS_BASE}/accounts`);
     if (!res.ok) throw new Error(`GMB list accounts failed: ${res.status}`);
     const data = await res.json() as { accounts?: { name: string; accountName: string }[] };
@@ -128,7 +148,7 @@ export class GoogleMyBusinessClient {
   async listLocations(accountName: string): Promise<{ name: string; locationName: string; title: string }[]> {
     const url = `${INFO_BASE}/${accountName}/locations?readMask=name,title`;
     const res = await this.doFetch(url);
-    if (!res.ok) throw new Error(`GMB list locations failed: ${res.status}`);
+    if (!res.ok) throw new Error(`GMB list locations failed: ${res.status} ${await res.text()}`);
     const data = await res.json() as { locations?: { name: string; locationName: string; title: string }[] };
     return data.locations ?? [];
   }
