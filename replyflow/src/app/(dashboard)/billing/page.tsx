@@ -216,6 +216,10 @@ export default async function BillingPage({
                 )}
               </div>
               <p className="text-sm text-gray-500">Plano atual</p>
+              {/* debug: remove after confirming correct account */}
+              <p className="text-[10px] text-gray-400 mt-0.5">
+                {userRecord?.email ?? user?.email} · DB: {org?.plan ?? "null"}
+              </p>
             </div>
           </div>
 
