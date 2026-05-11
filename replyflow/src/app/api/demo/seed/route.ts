@@ -81,24 +81,30 @@ export async function POST() {
 
   const orgPrefix = userRecord.organization_id.slice(0, 8); // prefixo único por org
 
+  // Usar o mesmo filtro do dashboard (apenas locations ativas)
   const { data: location } = await serviceClient
     .from("locations").select("id")
     .eq("organization_id", userRecord.organization_id)
+    .eq("active", true)
     .order("created_at").limit(1).single();
 
   if (!location) {
-    return NextResponse.json({ error: "No location found. Complete onboarding first." }, { status: 400 });
+    return NextResponse.json({ error: "No active location found. Complete onboarding first." }, { status: 400 });
   }
 
-  // Verificar se já existe para esta org
-  const { count } = await serviceClient
-    .from("reviews").select("id", { count: "exact", head: true })
-    .eq("location_id", location.id)
-    .like("external_id", `demo_${orgPrefix}_%`);
+  // Busca TODOS os locais da org para limpar demos antigos (inclusive inativos)
+  const { data: allLocations } = await serviceClient
+    .from("locations").select("id")
+    .eq("organization_id", userRecord.organization_id);
+  const allLocationIds = (allLocations ?? []).map((l) => l.id);
 
-  if ((count ?? 0) > 0) {
-    // Já existem — retornar como sucesso para o cliente não mostrar erro
-    return NextResponse.json({ success: true, inserted: 0, alreadyExisted: true, count });
+  // Deleta qualquer demo existente antes de re-inserir (idempotente)
+  if (allLocationIds.length > 0) {
+    await serviceClient
+      .from("reviews")
+      .delete()
+      .in("location_id", allLocationIds)
+      .like("external_id", "demo_%");
   }
 
   // Inserir reviews com external_id único por organização

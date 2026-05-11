@@ -23,16 +23,13 @@ export function DemoSeedButton({ hasDemo = false }: DemoSeedButtonProps) {
       const res = await fetch("/api/demo/seed", { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erro desconhecido");
-      if (data.alreadyExisted) {
-        success("Dados de demo já carregados!", "Os reviews de demonstração já estão no painel.");
-      } else {
-        success("Dados de demo carregados!", `${data.inserted ?? 6} reviews de exemplo foram adicionados.`);
-      }
+      success("Dados de demo carregados!", `${data.inserted ?? 6} reviews de exemplo foram adicionados.`);
       router.refresh();
       setTimeout(() => router.push("/dashboard"), 300);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Tente novamente.";
       error("Erro ao carregar demo", msg);
+    } finally {
       setLoading(false);
     }
   }
