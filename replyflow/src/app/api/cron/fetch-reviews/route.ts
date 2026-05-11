@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { GoogleMyBusinessClient } from '@/lib/google/myBusiness'
 import { generateReviewResponse } from '@/lib/openai/generateResponse'
 import { sendNegativeReviewAlert, sendWhatsAppAlert } from '@/lib/email/alerts'
+import { sendWebhook, type WebhookPayload } from '@/lib/webhooks/sendWebhook'
 import type { LocationNiche, LocationTone } from '@/types'
 
 // ─── Proteção de segurança ────────────────────────────────────────────────────
@@ -88,7 +89,7 @@ export async function GET(request: Request) {
   // Apenas locais com google_location_name configurado (necessário para a API GMB)
   const { data: gmbLocations, error: gmbError } = await serviceClient
     .from('locations')
-    .select('*, organization:organizations(id, plan, subscription_status, alert_email)')
+    .select('*, organization:organizations(id, plan, subscription_status, alert_email, webhook_url, webhook_secret)')
     .eq('active', true)
     .not('google_access_token', 'is', null)
     .not('google_location_name', 'is', null)
@@ -146,6 +147,7 @@ export async function GET(request: Request) {
 
           const org = location.organization as unknown as {
             plan: string; subscription_status: string; alert_email: string | null;
+            webhook_url: string | null; webhook_secret: string | null;
           } | null
 
           // Use custom alert email if set, otherwise fall back to user's login email
@@ -189,6 +191,25 @@ export async function GET(request: Request) {
             }
 
             results.alertsSent++
+          }
+
+          // ── Webhook personalizado (Pro/Agency) ───────────────────────────
+          const isProOrAgency = (org?.plan === 'pro' || org?.plan === 'agency')
+          if (isProOrAgency && org?.webhook_url) {
+            const webhookPayload: WebhookPayload = {
+              event:         'review.negative',
+              review_id:     inserted.id,
+              location_id:   location.id,
+              business_name: location.name,
+              author_name:   gmbReview.reviewer.displayName,
+              rating,
+              content:       gmbReview.comment ?? null,
+              platform:      'google',
+              review_url:    `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow.com.br'}/reviews?highlight=${inserted.id}`,
+              timestamp:     new Date().toISOString(),
+            }
+            await sendWebhook(org.webhook_url, org.webhook_secret ?? null, webhookPayload)
+              .catch((err) => console.warn(`[cron] webhook failed for org ${location.organization_id}:`, err instanceof Error ? err.message : err))
           }
         }
 

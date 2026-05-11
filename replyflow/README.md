@@ -170,6 +170,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 29 (Trial system 7 dias + Stripe webhook fix) | ✅ Concluída |
 | Etapa 6 — Sprint 30 (UpgradeModal — gate visual de plano) | ✅ Concluída |
 | Etapa 6 — Sprint 31 (Templates de resposta por nicho/rating) | ✅ Concluída |
+| Etapa 6 — Sprint 32 (Rating Evolution Chart + Mobile polish) | ✅ Concluída |
+| Etapa 6 — Sprint 33 (Webhook personalizado de notificação) | ✅ Concluída |
 
 ---
 
@@ -195,7 +197,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/google/callback` | GET | Callback OAuth Google |
 | `/api/billing/checkout` | POST | Criar Checkout Session Stripe |
 | `/api/billing/portal` | POST | Redirecionar para Portal Stripe |
-| `/api/settings` | PATCH | Atualizar nome da empresa, perfil e WhatsApp |
+| `/api/settings` | PATCH | Atualizar nome da empresa, perfil, WhatsApp e webhook |
+| `/api/settings/webhook/test` | POST | Enviar payload de teste para a URL de webhook configurada (Pro/Agency) |
 | `/api/analytics` | GET | Métricas de reviews por período (7/30/90 dias) |
 | `/api/demo/seed` | POST/DELETE | Inserir/remover reviews de demonstração |
 

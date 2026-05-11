@@ -4,11 +4,13 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const schema = z.object({
-  orgName:      z.string().min(2).max(100).optional(),
-  alertEmail:   z.string().email().max(200).optional().nullable(),
-  userName:     z.string().max(100).optional(),
-  whatsapp:     z.string().max(20).optional().nullable(),
-  emailAlerts:  z.boolean().optional(),
+  orgName:       z.string().min(2).max(100).optional(),
+  alertEmail:    z.string().email().max(200).optional().nullable(),
+  userName:      z.string().max(100).optional(),
+  whatsapp:      z.string().max(20).optional().nullable(),
+  emailAlerts:   z.boolean().optional(),
+  webhookUrl:    z.string().url().max(500).optional().nullable(),
+  webhookSecret: z.string().max(200).optional().nullable(),
 });
 
 export async function PATCH(request: Request) {
@@ -41,8 +43,10 @@ export async function PATCH(request: Request) {
   const updates: PromiseLike<unknown>[] = [];
 
   const orgUpdate: Record<string, unknown> = {};
-  if (parsed.data.orgName    !== undefined) orgUpdate.name        = parsed.data.orgName;
-  if (parsed.data.alertEmail !== undefined) orgUpdate.alert_email = parsed.data.alertEmail;
+  if (parsed.data.orgName       !== undefined) orgUpdate.name           = parsed.data.orgName;
+  if (parsed.data.alertEmail    !== undefined) orgUpdate.alert_email    = parsed.data.alertEmail;
+  if (parsed.data.webhookUrl    !== undefined) orgUpdate.webhook_url    = parsed.data.webhookUrl;
+  if (parsed.data.webhookSecret !== undefined) orgUpdate.webhook_secret = parsed.data.webhookSecret;
 
   if (Object.keys(orgUpdate).length > 0) {
     updates.push(

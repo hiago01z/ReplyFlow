@@ -19,7 +19,7 @@ export default async function SettingsPage() {
 
   const { data: full, error: fullErr } = await serviceClient
     .from("users")
-    .select("name, email, whatsapp, email_alerts, organization:organizations(id, name, plan, alert_email)")
+    .select("name, email, whatsapp, email_alerts, organization:organizations(id, name, plan, alert_email, webhook_url, webhook_secret)")
     .eq("id", user!.id)
     .single();
 
@@ -37,6 +37,7 @@ export default async function SettingsPage() {
 
   const org = userRecord?.organization as unknown as {
     id: string; name: string; plan: string; alert_email?: string | null;
+    webhook_url?: string | null; webhook_secret?: string | null;
   } | null;
 
   if (!org) {
@@ -65,10 +66,12 @@ export default async function SettingsPage() {
 
       <SettingsForm
         organization={{
-          id:          org.id,
-          name:        org.name,
-          plan:        org.plan,
-          alert_email: org.alert_email ?? null,
+          id:             org.id,
+          name:           org.name,
+          plan:           org.plan,
+          alert_email:    org.alert_email ?? null,
+          webhook_url:    org.webhook_url ?? null,
+          webhook_secret: org.webhook_secret ?? null,
         }}
         user={{
           id:           user!.id,

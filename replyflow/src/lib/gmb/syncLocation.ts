@@ -23,10 +23,12 @@ interface LocationRow {
 }
 
 export interface SyncResult {
-  newReviews:  number;
-  scheduled:   number;
-  alertsSent:  number;
-  errors:      number;
+  fetchedFromGmb: number;  // total retornado pela API do Google
+  newReviews:     number;  // inseridos agora (não existiam no banco)
+  alreadyExisted: number;  // já estavam no banco (ignorados pelo upsert)
+  scheduled:      number;
+  alertsSent:     number;
+  errors:         number;
 }
 
 function randomDelayMs(): number {
@@ -37,7 +39,7 @@ function randomDelayMs(): number {
 
 export async function syncLocationReviews(location: LocationRow): Promise<SyncResult> {
   const serviceClient = createServiceClient();
-  const result: SyncResult = { newReviews: 0, scheduled: 0, alertsSent: 0, errors: 0 };
+  const result: SyncResult = { fetchedFromGmb: 0, newReviews: 0, alreadyExisted: 0, scheduled: 0, alertsSent: 0, errors: 0 };
 
   // Normalise google_location_name: resolve "accounts/me/" to real sub
   let locationName = location.google_location_name;
@@ -66,17 +68,22 @@ export async function syncLocationReviews(location: LocationRow): Promise<SyncRe
     locationName,
   });
 
-  let gmbReviews: Awaited<ReturnType<typeof gmb.listUnansweredReviews>>;
+  let gmbReviews: Awaited<ReturnType<typeof gmb.listAllReviews>>;
   try {
-    gmbReviews = await gmb.listUnansweredReviews();
+    gmbReviews = await gmb.listAllReviews();
   } catch (err) {
     console.error("[syncLocation] GMB API error:", err);
     result.errors++;
     return result;
   }
 
+  result.fetchedFromGmb = gmbReviews.length;
+  console.log(`[syncLocation] GMB returned ${gmbReviews.length} reviews for location ${location.id}`);
+
   for (const gmbReview of gmbReviews) {
     const rating = GoogleMyBusinessClient.starRatingToNumber(gmbReview.starRating);
+    // Se o review já tem resposta no Google, marcar como published; senão, pending
+    const statusToSet = gmbReview.reviewReply ? "published" : "pending";
 
     const { data: inserted, error: insertError } = await serviceClient
       .from("reviews")
@@ -90,14 +97,17 @@ export async function syncLocationReviews(location: LocationRow): Promise<SyncRe
           rating,
           content:               gmbReview.comment ?? null,
           platform_published_at: gmbReview.createTime,
-          status:                "pending",
+          status:                statusToSet,
         },
         { onConflict: "platform,external_id", ignoreDuplicates: true },
       )
       .select("id, rating, status")
       .single();
 
-    if (insertError || !inserted) continue; // already exists
+    if (insertError || !inserted) {
+      result.alreadyExisted++;
+      continue; // already exists
+    }
 
     result.newReviews++;
 
