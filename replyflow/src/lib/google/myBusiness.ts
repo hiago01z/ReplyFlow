@@ -202,23 +202,23 @@ export class GoogleMyBusinessClient {
       ...(init?.headers as Record<string, string> ?? {}),
     });
 
-    let res = await globalThis.fetch(url, { ...init, headers: buildHeaders() });
+    const fetchWithTimeout = (opts: RequestInit) =>
+      globalThis.fetch(url, { ...opts, signal: AbortSignal.timeout(12000) });
+
+    let res = await fetchWithTimeout({ ...init, headers: buildHeaders() });
 
     // 401 — renovar token uma vez
     if (res.status === 401 && this.refreshToken) {
       await this.refreshAccessToken();
-      res = await globalThis.fetch(url, { ...init, headers: buildHeaders() });
+      res = await fetchWithTimeout({ ...init, headers: buildHeaders() });
     }
 
-    // 429 — rate limit: aguarda e retenta até 3 vezes
-    let retries = 0;
-    while (res.status === 429 && retries < 3) {
-      const retryAfter = parseInt(res.headers.get("Retry-After") ?? "10", 10);
-      const waitMs     = (retryAfter || 10) * 1000;
-      console.warn(`[GMB] 429 rate limit — waiting ${waitMs}ms before retry ${retries + 1}/3`);
-      await new Promise((r) => setTimeout(r, waitMs));
-      res = await globalThis.fetch(url, { ...init, headers: buildHeaders() });
-      retries++;
+    // 429 — rate limit: aguarda no máximo 5s e retenta uma vez
+    if (res.status === 429) {
+      const retryAfter = Math.min(parseInt(res.headers.get("Retry-After") ?? "5", 10), 5);
+      console.warn(`[GMB] 429 rate limit — waiting ${retryAfter}s`);
+      await new Promise((r) => setTimeout(r, retryAfter * 1000));
+      res = await fetchWithTimeout({ ...init, headers: buildHeaders() });
     }
 
     return res;
