@@ -1,14 +1,4 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/fetch-reviews",
-      "schedule": "*/30 * * * *"
-    },
-    {
-      "path": "/api/cron/weekly-digest",
-      "schedule": "0 8 * * 1"
-    }
-  ],
   "headers": [
     {
       "source": "/api/(.*)",
