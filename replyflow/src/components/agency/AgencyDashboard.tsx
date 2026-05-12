@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Building2, Plus, Users, Clock, CheckCircle2, Loader2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Building2, Plus, Users, Clock, CheckCircle2, Loader2, X, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ClientOrg {
@@ -22,6 +23,7 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 export function AgencyDashboard() {
+  const router = useRouter();
   const [clients,     setClients]     = useState<ClientOrg[]>([]);
   const [agencyName,  setAgencyName]  = useState("");
   const [loading,     setLoading]     = useState(true);
@@ -179,14 +181,19 @@ export function AgencyDashboard() {
       ) : (
         <div className="space-y-3">
           {clients.map((client) => (
-            <div key={client.id} className="card px-5 py-4 flex items-center justify-between gap-4">
+            <button
+              key={client.id}
+              type="button"
+              onClick={() => router.push(`/agency/clients/${client.id}`)}
+              className="card w-full px-5 py-4 flex items-center justify-between gap-4 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all text-left group"
+            >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center shrink-0 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
                   <Building2 size={17} className="text-indigo-500" />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-sm text-gray-900 truncate">{client.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{client.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {client.locations} local{client.locations !== 1 ? "is" : ""} · {client.total} review{client.total !== 1 ? "s" : ""}
                   </p>
                 </div>
@@ -197,14 +204,15 @@ export function AgencyDashboard() {
                     {client.pending > 99 ? "99+" : client.pending}
                   </span>
                 )}
-                <span className="text-[11px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-full">
                   {PLAN_LABELS[client.plan] ?? client.plan}
                 </span>
-                <span className="text-[11px] text-gray-400">
+                <span className="text-[11px] text-gray-400 dark:text-gray-500">
                   desde {new Date(client.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" })}
                 </span>
+                <ChevronRight size={14} className="text-gray-300 dark:text-gray-600 group-hover:text-indigo-400 transition-colors" />
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
