@@ -93,7 +93,7 @@ export interface Alert {
 // Limites por plano
 export const PLAN_LIMITS: Record<Plan, { locations: number; platforms: number; responsesPerMonth: number | null }> = {
   free: { locations: 1, platforms: 2, responsesPerMonth: 10 },
-  starter: { locations: 1, platforms: 3, responsesPerMonth: null },
+  starter: { locations: 1, platforms: 3, responsesPerMonth: 100 },
   pro: { locations: 3, platforms: 10, responsesPerMonth: null },
   agency: { locations: 3, platforms: 10, responsesPerMonth: null },
 }

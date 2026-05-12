@@ -18,7 +18,7 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   free:    { locations: 1, aiResponsesPerMonth: 10,   agencyClients: null, agencyClientLocations: 0 },
-  starter: { locations: 1, aiResponsesPerMonth: 50,   agencyClients: null, agencyClientLocations: 0 },
+  starter: { locations: 1, aiResponsesPerMonth: 100,  agencyClients: null, agencyClientLocations: 0 },
   pro:     { locations: 3, aiResponsesPerMonth: null,  agencyClients: null, agencyClientLocations: 0 },
   // Agência: 3 locais próprios (mesmo que Pro) + 3 locais por cada cliente no painel
   agency:  { locations: 3, aiResponsesPerMonth: null,  agencyClients: 10,  agencyClientLocations: 3 },
