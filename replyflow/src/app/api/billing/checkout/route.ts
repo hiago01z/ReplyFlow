@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/onboarding", request.url));
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.replyflow.com.br";
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://app.replyflow.com.br").replace(/\/$/, "");
 
   if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: 'Stripe não configurado. Adicione STRIPE_SECRET_KEY nas variáveis de ambiente.' }, { status: 503 })

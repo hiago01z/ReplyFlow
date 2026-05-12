@@ -13,28 +13,35 @@ import { createServiceClient } from "@/lib/supabase/server";
 
 // Env vars obrigatórias para o app funcionar
 const REQUIRED_ENV: { key: string; label: string }[] = [
-  { key: "NEXT_PUBLIC_SUPABASE_URL",   label: "Supabase URL" },
+  { key: "NEXT_PUBLIC_SUPABASE_URL",      label: "Supabase URL" },
   { key: "NEXT_PUBLIC_SUPABASE_ANON_KEY", label: "Supabase Anon Key" },
-  { key: "SUPABASE_SERVICE_ROLE_KEY",  label: "Supabase Service Key" },
-  { key: "OPENAI_API_KEY",             label: "OpenAI API Key" },
-  { key: "STRIPE_SECRET_KEY",          label: "Stripe Secret Key" },
-  { key: "STRIPE_WEBHOOK_SECRET",      label: "Stripe Webhook Secret" },
-  { key: "RESEND_API_KEY",             label: "Resend API Key" },
-  { key: "GOOGLE_CLIENT_ID",           label: "Google Client ID" },
-  { key: "GOOGLE_CLIENT_SECRET",       label: "Google Client Secret" },
-  { key: "CRON_SECRET",                label: "Cron Secret" },
+  { key: "SUPABASE_SERVICE_ROLE_KEY",     label: "Supabase Service Key" },
+  { key: "OPENAI_API_KEY",                label: "OpenAI API Key" },
+  { key: "STRIPE_SECRET_KEY",             label: "Stripe Secret Key" },
+  { key: "STRIPE_WEBHOOK_SECRET",         label: "Stripe Webhook Secret" },
+  { key: "RESEND_API_KEY",                label: "Resend API Key" },
+  { key: "GOOGLE_CLIENT_ID",              label: "Google Client ID" },
+  { key: "GOOGLE_CLIENT_SECRET",          label: "Google Client Secret" },
+  { key: "CRON_SECRET",                   label: "Cron Secret" },
 ];
 
 // Opcionais (avisos, não erros)
 const OPTIONAL_ENV: { key: string; label: string }[] = [
-  { key: "UPSTASH_REDIS_REST_URL",    label: "Upstash Redis URL" },
-  { key: "UPSTASH_REDIS_REST_TOKEN",  label: "Upstash Redis Token" },
+  { key: "UPSTASH_REDIS_REST_URL",       label: "Upstash Redis URL" },
+  { key: "UPSTASH_REDIS_REST_TOKEN",     label: "Upstash Redis Token" },
   { key: "STRIPE_PRICE_STARTER_MONTHLY", label: "Stripe Price Starter" },
   { key: "STRIPE_PRICE_PRO_MONTHLY",     label: "Stripe Price Pro" },
   { key: "STRIPE_PRICE_AGENCY_MONTHLY",  label: "Stripe Price Agency" },
-  { key: "NEXT_PUBLIC_APP_URL",       label: "App URL" },
-  { key: "GOOGLE_REDIRECT_URI",       label: "Google Redirect URI" },
+  { key: "STRIPE_PRICE_EXTRA_LOCATION",  label: "Stripe Price Extra Location" },
+  { key: "NEXT_PUBLIC_APP_URL",          label: "App URL" },
+  { key: "GOOGLE_REDIRECT_URI",          label: "Google Redirect URI" },
 ];
+
+// Valores placeholder detectados — indicam config incompleta
+const PLACEHOLDER_PATTERNS = [/^whsec_\.\.\.$/, /^sk_test_\.\.\.$/, /^price_\.\.\.$/, /^prod_/, /^https:\/\/\.\.\./];
+function isPlaceholder(value: string) {
+  return PLACEHOLDER_PATTERNS.some((p) => p.test(value));
+}
 
 export async function GET() {
   const start = Date.now();
@@ -48,6 +55,20 @@ export async function GET() {
   const warnings: string[] = [];
   for (const { key, label } of OPTIONAL_ENV) {
     if (!process.env[key]) warnings.push(label);
+  }
+
+  // Detect placeholder / unconfigured values (set but still default)
+  const placeholders: string[] = [];
+  for (const { key, label } of [...REQUIRED_ENV, ...OPTIONAL_ENV]) {
+    const val = process.env[key];
+    if (val && isPlaceholder(val)) placeholders.push(label);
+  }
+  // Price IDs should start with price_, not prod_
+  for (const key of ["STRIPE_PRICE_STARTER_MONTHLY", "STRIPE_PRICE_PRO_MONTHLY", "STRIPE_PRICE_AGENCY_MONTHLY", "STRIPE_PRICE_EXTRA_LOCATION"]) {
+    const val = process.env[key];
+    if (val && val.startsWith("prod_")) {
+      placeholders.push(`${key} (produto ID — deve ser price_xxx)`);
+    }
   }
 
   // ── 2. Check DB connectivity ───────────────────────────────────────────────
@@ -77,9 +98,10 @@ export async function GET() {
       env:      missing.length === 0 ? "ok" : `missing: ${missing.join(", ")}`,
       database: dbOk ? "ok" : `error: ${dbError}`,
     },
-    warnings: warnings.length > 0
-      ? `optional missing: ${warnings.join(", ")}`
-      : undefined,
+    warnings: [
+      ...(warnings.length > 0 ? [`optional missing: ${warnings.join(", ")}`] : []),
+      ...(placeholders.length > 0 ? [`placeholder values detected: ${placeholders.join(", ")}`] : []),
+    ].join(" | ") || undefined,
     version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
   };
 
