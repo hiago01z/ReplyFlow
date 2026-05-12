@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Wifi, CheckCircle2, Loader2, Search, ExternalLink,
-  ChevronRight, Copy, Check, AlertCircle, RefreshCw,
+  ChevronRight, Check, AlertCircle, RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,26 +37,6 @@ function Step({ n, label, done }: { n: number; label: string; done?: boolean }) 
   );
 }
 
-// ── Copy button ──────────────────────────────────────────────────────────────
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  function copy() {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
-  return (
-    <button
-      type="button"
-      onClick={copy}
-      className="ml-1 inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-[11px] font-medium transition-colors"
-    >
-      {copied ? <><Check size={10} /> Copiado!</> : <><Copy size={10} /> Copiar</>}
-    </button>
-  );
-}
-
 // ── Main wizard ──────────────────────────────────────────────────────────────
 export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToken }: GmbLinkWizardProps) {
   const router = useRouter();
@@ -67,7 +47,7 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
   const [fetching,     setFetching]     = useState(false);
   const [errorCode,    setErrorCode]    = useState<string | null>(null);
   const [cooldown,     setCooldown]     = useState(0);
-  const [manualInput,  setManualInput]  = useState(googleLocationName ?? "");
+  const [manualInput,  setManualInput]  = useState("");
   const [saving,       setSaving]       = useState(false);
   const [saved,        setSaved]        = useState(false);
 
@@ -149,7 +129,7 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
         </div>
         <button
           type="button"
-          onClick={() => { setMode("manual"); setManualInput(googleLocationName); }}
+          onClick={() => { setMode("manual"); setManualInput(""); }}
           className="text-xs text-green-700 hover:text-green-900 underline shrink-0"
         >
           Alterar
@@ -258,7 +238,6 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{loc.title}</p>
-                    <p className="text-[11px] text-gray-400 truncate">{loc.name}</p>
                   </div>
                   {selected === loc.name && <CheckCircle2 size={15} className="text-indigo-500 shrink-0" />}
                 </label>
@@ -352,7 +331,7 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
               <div className="ml-8 space-y-2">
                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
                   <p className="text-xs text-amber-800 dark:text-amber-300 font-medium">O ID fica em Configurações avançadas, campo "ID do Perfil da Empresa"</p>
-                  <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1">Formato: número de 18-19 dígitos, ex: <span className="font-mono font-semibold">1234567890123456789</span></p>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1">Formato: número de 18-19 dígitos, ex: <span className="font-mono font-semibold">382910475629301847</span></p>
                 </div>
                 <input
                   value={manualInput}
