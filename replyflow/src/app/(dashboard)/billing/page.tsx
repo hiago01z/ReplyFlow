@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { CheckoutSuccessBanner } from "@/components/billing/CheckoutSuccessBanner";
 import { ManageSubscriptionButton } from "@/components/billing/ManageSubscriptionButton";
+import { ChangePlanButton } from "@/components/billing/ChangePlanButton";
 
 export const dynamic = "force-dynamic";
 
@@ -258,54 +259,75 @@ export default async function BillingPage({
         </div>
       </div>
 
-      {/* ── Upgrade grid (only shown when plan is free AND no active subscription) */}
-      {currentPlan === "free" && !isActive && (() => {
+      {/* ── Planos disponíveis (sempre visível) ──────────────────────────────── */}
+      {(() => {
         const planKeys = ["starter", "pro", "agency"] as const;
-        const selectorPlans = planKeys.map((key) => ({
-          key,
-          name:           STRIPE_PLANS[key].name,
-          priceId:        STRIPE_PLANS[key].priceId,
-          price:          STRIPE_PLANS[key].price,
-          annualPriceId:  STRIPE_ANNUAL_PLANS[key].priceId,
-          annualPrice:    STRIPE_ANNUAL_PLANS[key].price,
-          annualMonthly:  STRIPE_ANNUAL_PLANS[key].monthlyEquiv,
-          features:       PLAN_FEATURES[key] ?? [],
-        }));
-        const annualEnabled = selectorPlans.some((p) => !!p.annualPriceId);
+        // Para free sem stripe ativo → mostrar selector completo com toggle anual
+        if (currentPlan === "free" && !isActive) {
+          const selectorPlans = planKeys.map((key) => ({
+            key,
+            name:           STRIPE_PLANS[key].name,
+            priceId:        STRIPE_PLANS[key].priceId,
+            price:          STRIPE_PLANS[key].price,
+            annualPriceId:  STRIPE_ANNUAL_PLANS[key].priceId,
+            annualPrice:    STRIPE_ANNUAL_PLANS[key].price,
+            annualMonthly:  STRIPE_ANNUAL_PLANS[key].monthlyEquiv,
+            features:       PLAN_FEATURES[key] ?? [],
+          }));
+          const annualEnabled = selectorPlans.some((p) => !!p.annualPriceId);
+          return (
+            <>
+              <p className="text-sm font-semibold text-gray-700 mb-4">Escolha um plano</p>
+              <BillingPlanSelector plans={selectorPlans} annualEnabled={annualEnabled} />
+              <p className="text-xs text-center text-gray-400 mt-2">
+                Todos os planos incluem 7 dias grátis. Sem fidelidade. Cancele quando quiser.
+              </p>
+            </>
+          );
+        }
+
+        // Para assinantes ativos → grid compacto com botão Upgrade/Downgrade
         return (
-          <>
-            <p className="text-sm font-semibold text-gray-700 mb-4">Escolha um plano</p>
-            <BillingPlanSelector plans={selectorPlans} annualEnabled={annualEnabled} />
-            <p className="text-xs text-center text-gray-400 mt-2">
-              Todos os planos incluem 7 dias grátis. Sem fidelidade. Cancele quando quiser.
-            </p>
-          </>
-        );
-      })()}
-
-      {/* ── Paid plan sections ───────────────────────────────────────────────── */}
-
-      {/* Agency upsell (for Starter or Pro) */}
-      {(currentPlan === "starter" || currentPlan === "pro") && (
-        <div className="card bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200 p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Building2 size={20} className="text-indigo-500 shrink-0" />
-            <div>
-              <p className="font-semibold text-gray-900 text-sm">Tem uma agência ou múltiplos clientes?</p>
-              <p className="text-xs text-gray-500 mt-0.5">10 clientes · 3 locais cada · IA ilimitada — R$497/mês.</p>
+          <div className="mb-4">
+            <p className="text-sm font-semibold text-gray-700 mb-3">Trocar plano</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {planKeys.map((key) => {
+                const plan = STRIPE_PLANS[key];
+                return (
+                  <div
+                    key={key}
+                    className={`card p-4 space-y-3 ${key === currentPlan ? "border-indigo-300 bg-indigo-50/40" : ""}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {PLAN_ICONS[key]}
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{plan.name}</p>
+                        <p className="text-xs text-gray-500">R$ {plan.price}/mês</p>
+                      </div>
+                    </div>
+                    <ul className="space-y-1">
+                      {(PLAN_FEATURES[key] ?? []).map((f) => (
+                        <li key={f} className="flex items-start gap-1.5 text-[11px] text-gray-600">
+                          <CheckCircle2 size={10} className="text-indigo-400 mt-0.5 shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    <ChangePlanButton
+                      priceId={plan.priceId}
+                      planKey={key}
+                      planName={plan.name}
+                      planPrice={plan.price}
+                      currentPlan={currentPlan}
+                      hasStripe={hasStripe}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <form action="/api/billing/checkout" method="POST" className="shrink-0">
-            <input type="hidden" name="priceId" value={STRIPE_PLANS.agency.priceId} />
-            <button
-              type="submit"
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-700 transition-colors"
-            >
-              Ver plano Agência →
-            </button>
-          </form>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Agency plan features summary */}
       {currentPlan === "agency" && (
