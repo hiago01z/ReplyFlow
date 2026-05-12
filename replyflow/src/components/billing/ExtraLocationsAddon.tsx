@@ -20,7 +20,7 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
   const [saved,    setSaved]    = useState(false);
 
   const total = baseLocations === Infinity ? Infinity : baseLocations + quantity;
-  const addedCost = quantity * 17; // R$17/mês por local extra
+  const addedCost = quantity * 49; // R$49/mês por local extra
   const changed = quantity !== currentExtra;
 
   async function handleUpdate() {
@@ -28,7 +28,7 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
     setError("");
     setSaved(false);
     try {
-      const res = await fetch("/api/billing/extra-locations", {
+      const res = await fetch("/api/billing/extra-location", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ quantity }),
@@ -68,7 +68,7 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-900">Locais Adicionais</p>
-          <p className="text-xs text-gray-500">R$ 17/mês por local extra</p>
+          <p className="text-xs text-gray-500">R$ 49/mês por local extra</p>
         </div>
       </div>
 
@@ -117,7 +117,7 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
       {/* Cost hint */}
       {addedCost > 0 && (
         <p className="text-xs text-indigo-600 font-medium mt-3">
-          + R$ {addedCost}/mês pelos locais extras
+          + R$ {addedCost}/mês {quantity === 1 ? "pelo local extra" : "pelos locais extras"}
         </p>
       )}
 
