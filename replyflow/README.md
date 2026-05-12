@@ -178,6 +178,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 37 (Gerenciar assinatura — fix Safari iOS + Stripe Portal) | ✅ Concluída |
 | Etapa 6 — Sprint 39 (Limites de plano + locais agência + add-on R$17/local) | ✅ Concluída |
 | Etapa 6 — Sprint 40 (Fix limite agência: 3 locais próprios + 3/cliente) | ✅ Concluída |
+| Etapa 6 — Sprint 41 (Compra de local extra via Stripe direto dos painéis) | ✅ Concluída |
 
 ---
 
@@ -209,6 +210,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/demo/seed` | POST/DELETE | Inserir/remover reviews de demonstração |
 | `/api/agency/clients/[id]/locations` | POST | Criar local para cliente da agência (máx 3) |
 | `/api/billing/extra-locations` | POST | Ajustar quantidade de locais extras no Stripe |
+| `/api/agency/clients/[id]/extra-location` | POST | Comprar +1 local extra para cliente da agência (débito na assinatura da agência) |
 
 ---
 
