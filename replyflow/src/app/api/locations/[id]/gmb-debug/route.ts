@@ -58,6 +58,20 @@ export async function GET(
     locationName: location.google_location_name,
   });
 
+  // Listar contas e locais disponíveis para diagnóstico
+  let availableLocations: Array<{ account: string; locationName: string }> = [];
+  try {
+    const accounts = await gmb.listAccounts();
+    for (const account of accounts) {
+      const locs = await gmb.listLocations(account.name);
+      for (const loc of locs) {
+        availableLocations.push({ account: account.name, locationName: loc.name });
+      }
+    }
+  } catch (e) {
+    availableLocations = [{ account: "error", locationName: String(e) }];
+  }
+
   try {
     const reviews = await gmb.listAllReviews();
 
@@ -68,22 +82,28 @@ export async function GET(
       .eq("location_id", id);
 
     return NextResponse.json({
-      ok:              true,
-      locationName:    location.google_location_name,
-      reviewsFromGmb:  reviews.length,
-      reviewsInDb:     dbCount ?? 0,
-      tokenRefreshed:  gmb.currentAccessToken !== location.google_access_token,
+      ok:                  true,
+      storedLocationName:  location.google_location_name,
+      reviewsFromGmb:      reviews.length,
+      reviewsInDb:         dbCount ?? 0,
+      tokenRefreshed:      gmb.currentAccessToken !== location.google_access_token,
+      availableLocations,
       reviews: reviews.map((r) => ({
-        reviewId:    r.reviewId,
-        starRating:  r.starRating,
-        author:      r.reviewer.displayName,
-        hasReply:    !!r.reviewReply,
-        createTime:  r.createTime,
-        snippet:     r.comment?.slice(0, 80) ?? "(sem texto)",
+        reviewId:   r.reviewId,
+        starRating: r.starRating,
+        author:     r.reviewer.displayName,
+        hasReply:   !!r.reviewReply,
+        createTime: r.createTime,
+        snippet:    r.comment?.slice(0, 80) ?? "(sem texto)",
       })),
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ ok: false, error: msg }, { status: 502 });
+    return NextResponse.json({
+      ok:                 false,
+      error:              msg,
+      storedLocationName: location.google_location_name,
+      availableLocations,
+    }, { status: 502 });
   }
 }
