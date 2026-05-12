@@ -47,10 +47,10 @@ ReplyFlow é um SaaS que responde automaticamente reviews do Google Meu Negócio
 
 | Plano | Preço | Locais | Destaque |
 |-------|-------|--------|---------|
-| Free | Grátis | 1 | 10 respostas/mês |
-| Starter | R$ 97/mês | 1 | Respostas ilimitadas |
-| **Pro** | **R$ 197/mês** | **3** | **Alerta WhatsApp + aprovação 1 clique** |
-| Agência | R$ 497/mês | Ilimitado | Painel multi-cliente |
+| Free | Grátis | 1 | 10 respostas IA/mês |
+| Starter | R$ 97/mês | 1 | 50 respostas IA/mês · add-on +R$17/local |
+| **Pro** | **R$ 197/mês** | **3** | **IA ilimitada · Alerta WhatsApp · aprovação 1 clique** |
+| Agência | R$ 497/mês | Ilimitado | Painel multi-cliente · 10 clientes · 3 locais/cliente |
 
 ---
 
@@ -174,6 +174,9 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 33 (Webhook personalizado de notificação) | ✅ Concluída |
 | Etapa 6 — Sprint 34 (Perfil público do local `/l/[slug]`) | ✅ Concluída |
 | Etapa 6 — Sprint 35 (Onboarding Google inline — step "link" após OAuth) | ✅ Concluída |
+| Etapa 6 — Sprint 36 (Planos anuais "2 meses grátis" + toggle mensal/anual) | ✅ Concluída |
+| Etapa 6 — Sprint 37 (Gerenciar assinatura — fix Safari iOS + Stripe Portal) | ✅ Concluída |
+| Etapa 6 — Sprint 39 (Limites de plano + locais agência + add-on R$17/local) | ✅ Concluída |
 
 ---
 
@@ -203,6 +206,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/settings/webhook/test` | POST | Enviar payload de teste para a URL de webhook configurada (Pro/Agency) |
 | `/api/analytics` | GET | Métricas de reviews por período (7/30/90 dias) |
 | `/api/demo/seed` | POST/DELETE | Inserir/remover reviews de demonstração |
+| `/api/agency/clients/[id]/locations` | POST | Criar local para cliente da agência (máx 3) |
+| `/api/billing/extra-locations` | POST | Ajustar quantidade de locais extras no Stripe |
 
 ---
 
