@@ -11,7 +11,7 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.replyflow.com.br";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com";
 
 // Plans that can access monthly reports
 const REPORT_PLANS = new Set(["pro", "agency"]);

@@ -368,7 +368,7 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
   "rating": 2,
   "content": "Texto do review...",
   "platform": "google",
-  "review_url": "https://replyflow.com.br/reviews?highlight=uuid",
+  "review_url": "https://replyflow-hivi.com/reviews?highlight=uuid",
   "timestamp": "2026-05-11T12:00:00.000Z"
 }`}</pre>
             </details>

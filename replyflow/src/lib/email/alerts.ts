@@ -1,8 +1,8 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = process.env.RESEND_FROM_EMAIL ?? 'noreply@replyflow.com.br'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.replyflow.com.br'
+const FROM = process.env.RESEND_FROM_EMAIL ?? 'noreply@replyflow-hivi.com'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow-hivi.com'
 
 interface NegativeReviewAlertParams {
   to: string
@@ -309,7 +309,7 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
           <td style="padding:20px 40px;border-top:1px solid #f3f4f6">
             <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6">
               ReplyFlow · Sua reputação no piloto automático.<br>
-              Você recebe este e-mail porque criou uma conta em replyflow.com.br
+              Você recebe este e-mail porque criou uma conta em replyflow-hivi.com
             </p>
           </td>
         </tr>

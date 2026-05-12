@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     rating:        2,
     content:       'Este é um payload de teste enviado pelo ReplyFlow para validar sua configuração de webhook.',
     platform:      'google',
-    review_url:    `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow.com.br'}/reviews`,
+    review_url:    `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow-hivi.com'}/reviews`,
     timestamp:     new Date().toISOString(),
   }
 

@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://app.replyflow.com.br").replace(/\/$/, "");
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com").replace(/\/$/, "");
 
   const session = await stripe.checkout.sessions.create({
     mode:                 "subscription",

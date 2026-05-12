@@ -12,7 +12,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { verifyApprovalToken } from "@/lib/approvalToken";
 import { GoogleMyBusinessClient } from "@/lib/google/myBusiness";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.replyflow.com.br";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com";
 
 function htmlPage(title: string, emoji: string, body: string, color: string) {
   return new Response(

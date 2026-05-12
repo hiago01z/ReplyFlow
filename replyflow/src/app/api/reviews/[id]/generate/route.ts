@@ -8,7 +8,7 @@ import { createApprovalToken } from '@/lib/approvalToken'
 import { sendWhatsAppApproval } from '@/lib/email/alerts'
 import type { Location, Plan } from '@/types'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.replyflow.com.br'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow-hivi.com'
 
 export async function POST(
   _request: Request,

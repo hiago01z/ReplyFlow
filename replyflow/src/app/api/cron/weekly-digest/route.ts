@@ -15,8 +15,8 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 
 const resend  = new Resend(process.env.RESEND_API_KEY);
-const FROM    = process.env.RESEND_FROM_EMAIL ?? "noreply@replyflow.com.br";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.replyflow.com.br";
+const FROM    = process.env.RESEND_FROM_EMAIL ?? "noreply@replyflow-hivi.com";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com";
 
 export async function GET(request: Request) {
   const authHeader  = request.headers.get("authorization");

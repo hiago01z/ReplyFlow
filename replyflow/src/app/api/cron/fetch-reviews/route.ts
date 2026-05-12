@@ -214,7 +214,7 @@ async function runSync() {
               rating,
               content:       gmbReview.comment ?? null,
               platform:      'google',
-              review_url:    `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow.com.br'}/reviews?highlight=${inserted.id}`,
+              review_url:    `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow-hivi.com'}/reviews?highlight=${inserted.id}`,
               timestamp:     new Date().toISOString(),
             }
             await sendWebhook(org.webhook_url, org.webhook_secret ?? null, webhookPayload)

@@ -262,7 +262,7 @@ export default async function PublicProfilePage({ params }: Props) {
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
       <div className="mt-12 text-center">
         <a
-          href="https://replyflow.com.br"
+          href="https://replyflow-hivi.com"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
