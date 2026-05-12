@@ -233,16 +233,14 @@ export default async function BillingPage({
         {/* Actions row */}
         <div className="mt-5 pt-5 border-t border-gray-100 flex items-center justify-between gap-4 flex-wrap">
           {org?.stripe_customer_id ? (
-            <form action="/api/billing/portal" method="POST">
-              <button
-                type="submit"
-                className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-              >
-                <CreditCard size={14} />
-                Gerenciar assinatura
-                <ExternalLink size={12} />
-              </button>
-            </form>
+            <a
+              href="/api/billing/portal"
+              className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+            >
+              <CreditCard size={14} />
+              Gerenciar assinatura
+              <ExternalLink size={12} />
+            </a>
           ) : (
             <span />
           )}
