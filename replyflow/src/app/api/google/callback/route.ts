@@ -13,9 +13,19 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/locations?error=google_auth_failed`);
   }
 
-  // Parse onboarding suffix — state can be "locationId" or "locationId:ob"
+  // Parse state:
+  //   "locationId"             — normal flow
+  //   "locationId:ob"          — from onboarding
+  //   "locationId:agency:cid"  — from agency panel (cid = client org ID)
   const fromOnboarding = state.endsWith(":ob");
-  const locationId     = fromOnboarding ? state.slice(0, -3) : state;
+  const agencyMatch    = state.match(/^(.+):agency:([^:]+)$/);
+  const fromAgency     = !!agencyMatch;
+  const locationId     = fromOnboarding
+    ? state.slice(0, -3)
+    : fromAgency
+      ? agencyMatch![1]
+      : state;
+  const agencyClientId = fromAgency ? agencyMatch![2] : null;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -54,19 +64,46 @@ export async function GET(request: Request) {
 
   const serviceClient = createServiceClient();
 
-  // Verificar que o local pertence ao usuário
+  // Verificar que o local pertence ao usuário (ou a um cliente da agência)
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("organization_id")
+    .select("organization_id, organization:organizations(plan)")
     .eq("id", user.id)
     .single();
 
-  const { data: location } = await serviceClient
-    .from("locations")
-    .select("id, organization_id")
-    .eq("id", locationId)
-    .eq("organization_id", userRecord?.organization_id)
-    .single();
+  const userOrgId  = userRecord?.organization_id;
+  const userPlan   = (userRecord?.organization as { plan?: string } | null)?.plan;
+
+  let location: { id: string; organization_id: string } | null = null;
+
+  if (fromAgency && userPlan === "agency" && agencyClientId) {
+    // Para o fluxo agência: verificar que o local pertence a um cliente da agência
+    const { data: clientOrg } = await serviceClient
+      .from("organizations")
+      .select("id")
+      .eq("id", agencyClientId)
+      .eq("parent_agency_id", userOrgId)
+      .single();
+
+    if (clientOrg) {
+      const { data: loc } = await serviceClient
+        .from("locations")
+        .select("id, organization_id")
+        .eq("id", locationId)
+        .eq("organization_id", agencyClientId)
+        .single();
+      location = loc ?? null;
+    }
+  } else {
+    // Fluxo normal: local pertence à org do usuário
+    const { data: loc } = await serviceClient
+      .from("locations")
+      .select("id, organization_id")
+      .eq("id", locationId)
+      .eq("organization_id", userOrgId)
+      .single();
+    location = loc ?? null;
+  }
 
   if (!location) {
     return NextResponse.redirect(`${origin}/locations?error=location_not_found`);
@@ -86,9 +123,12 @@ export async function GET(request: Request) {
   // Tentar detectar local em background — silencioso, nunca bloqueia nem exibe erro ao cliente
   void detectLocationSilently(serviceClient, locationId, tokens.access_token, tokens.refresh_token ?? null);
 
-  // Redirect: back to onboarding (link step) or to locations list
+  // Redirect according to context
   if (fromOnboarding) {
     return NextResponse.redirect(`${origin}/onboarding?gmb_done=1&loc=${locationId}`);
+  }
+  if (fromAgency && agencyClientId) {
+    return NextResponse.redirect(`${origin}/agency/clients/${agencyClientId}?tab=locations&success=google_connected`);
   }
   return NextResponse.redirect(`${origin}/locations?success=google_connected`);
 }

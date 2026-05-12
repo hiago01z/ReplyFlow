@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Building2, MapPin, Star, Clock, CheckCircle2,
-  Sparkles, Send, ChevronDown, ChevronUp, Loader2, Wifi, WifiOff, Trash2, Save, Plus, X,
+  Sparkles, Send, ChevronDown, ChevronUp, Loader2, Wifi, WifiOff, Trash2, Save, Plus, X, ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +29,7 @@ const TONES = [
 
 interface ClientLocation {
   id: string; name: string; niche: string | null;
-  active: boolean; google_connected: boolean; auto_publish: boolean;
+  active: boolean; google_connected: boolean; has_google_token: boolean; auto_publish: boolean;
 }
 
 interface ClientDetail {
@@ -203,17 +203,19 @@ function AgencyReviewCard({
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export function AgencyClientDetail({ clientId }: { clientId: string }) {
-  const router = useRouter();
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+
+  // Se callback do Google redirecionou para ?tab=locations&success=google_connected
+  const initialTab = searchParams.get("tab") === "locations" ? "locations" : "reviews";
+  const googleSuccess = searchParams.get("success") === "google_connected";
 
   const [client,       setClient]       = useState<ClientDetail | null>(null);
   const [locations,    setLocations]    = useState<ClientLocation[]>([]);
   const [reviews,      setReviews]      = useState<ReviewItem[]>([]);
   const [loading,      setLoading]      = useState(true);
-  const [tab,          setTab]          = useState<"reviews" | "locations">("reviews");
+  const [tab,          setTab]          = useState<"reviews" | "locations">(initialTab);
   const [removing,     setRemoving]     = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string>("");
-  const [savingPlan,   setSavingPlan]   = useState(false);
-  const [planSaved,    setPlanSaved]    = useState(false);
 
   // Modal de criar local
   const [showAddLocation, setShowAddLocation] = useState(false);
@@ -234,8 +236,6 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
         const d = await detailRes.json();
         setClient(d.client);
         setLocations(d.locations ?? []);
-        setSelectedPlan(d.client?.plan ?? "free");
-        setPlanSaved(true);
       }
       if (reviewsRes.ok) {
         const r = await reviewsRes.json();
@@ -247,24 +247,6 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   }, [clientId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-
-  async function handleSavePlan() {
-    if (!selectedPlan || selectedPlan === client?.plan) return;
-    setSavingPlan(true);
-    try {
-      const res = await fetch(`/api/agency/clients/${clientId}`, {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ plan: selectedPlan }),
-      });
-      if (res.ok) {
-        setClient((prev) => prev ? { ...prev, plan: selectedPlan } : prev);
-        setPlanSaved(true);
-      }
-    } finally {
-      setSavingPlan(false);
-    }
-  }
 
   async function handleRemoveClient() {
     if (!confirm(`Remover "${client?.name}" da agência? Os dados do cliente não serão deletados.`)) return;
@@ -343,30 +325,12 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
           <div>
             <p className="text-xs font-medium text-indigo-600 uppercase tracking-widest mb-0.5">Agência → Cliente</p>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{client.name}</h1>
-            {/* Seletor de plano inline */}
+            {/* Badge de plano — Pro fixo (benefício do plano Agência) */}
             <div className="flex items-center gap-2 mt-1">
-              <select
-                value={selectedPlan}
-                onChange={(e) => { setSelectedPlan(e.target.value); setPlanSaved(false); }}
-                className="h-7 text-xs font-medium px-2 pr-6 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-white/10 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer appearance-none"
-              >
-                <option value="free">Free</option>
-                <option value="starter">Starter</option>
-                <option value="pro">Pro</option>
-              </select>
-              {!planSaved && (
-                <button
-                  onClick={handleSavePlan}
-                  disabled={savingPlan}
-                  className="inline-flex items-center gap-1 h-7 px-2.5 text-xs font-semibold text-white bg-indigo-600 rounded-full hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-                >
-                  {savingPlan ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
-                  Salvar
-                </button>
-              )}
-              {planSaved && (
-                <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Salvo</span>
-              )}
+              <span className="inline-flex items-center h-6 px-2.5 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full">
+                Pro
+              </span>
+              <span className="text-[11px] text-gray-400">incluído no plano Agência</span>
             </div>
           </div>
         </div>
@@ -445,6 +409,14 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
       {/* Locations tab */}
       {tab === "locations" && (
         <div className="animate-slide-up">
+          {/* Toast: Google conectado com sucesso */}
+          {googleSuccess && (
+            <div className="flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 mb-4">
+              <CheckCircle2 size={15} className="text-green-600 shrink-0" />
+              <span><strong>Google Meu Negócio conectado!</strong> As avaliações serão importadas automaticamente.</span>
+            </div>
+          )}
+
           {/* Header com botão ou badge de limite */}
           <div className="flex items-center justify-between mb-4">
             <p className="text-xs text-gray-500">
@@ -491,10 +463,17 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
                       <span className="flex items-center gap-1 text-[11px] font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">
                         <Wifi size={10} /> Google conectado
                       </span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-[11px] font-medium text-gray-400 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-full">
-                        <WifiOff size={10} /> Sem conexão
+                    ) : loc.has_google_token ? (
+                      <span className="flex items-center gap-1 text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                        <Wifi size={10} /> Sincronizando…
                       </span>
+                    ) : (
+                      <a
+                        href={`/api/google/auth?locationId=${loc.id}&from=agency&clientId=${clientId}`}
+                        className="flex items-center gap-1 text-[11px] font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-2.5 py-1 rounded-full transition-colors"
+                      >
+                        <ExternalLink size={10} /> Conectar Google
+                      </a>
                     )}
                     {loc.auto_publish && (
                       <span className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">

@@ -40,9 +40,15 @@ export async function GET(request: Request) {
   ].join(" "));
   googleAuthUrl.searchParams.set("access_type", "offline");
   googleAuthUrl.searchParams.set("prompt",       "consent"); // always request refresh_token
-  // If from=onboarding, append suffix so callback knows to redirect back
-  const fromOnboarding = searchParams.get("from") === "onboarding";
-  const stateValue = fromOnboarding ? `${locationId}:ob` : locationId;
+  // State encodes context so callback knows where to redirect:
+  //   "locationId"             — normal flow → /locations
+  //   "locationId:ob"          — from onboarding → /onboarding
+  //   "locationId:agency:cid"  — from agency panel → /agency/clients/[cid]
+  const from = searchParams.get("from");
+  const clientId = searchParams.get("clientId") ?? "";
+  let stateValue = locationId;
+  if (from === "onboarding") stateValue = `${locationId}:ob`;
+  else if (from === "agency" && clientId) stateValue = `${locationId}:agency:${clientId}`;
   googleAuthUrl.searchParams.set("state", stateValue);
   // Pre-select the user's account so they don't have to pick — reduces friction
   if (loginHint) googleAuthUrl.searchParams.set("login_hint", loginHint);

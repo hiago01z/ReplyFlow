@@ -127,11 +127,12 @@ export async function POST(request: Request) {
   }
 
   // Create the client organization linked to this agency
+  // Clientes da agência iniciam com plano Pro (benefícios incluídos no plano Agência)
   const { data: newOrg, error } = await serviceClient
     .from("organizations")
     .insert({
       name:             parsed.data.name,
-      plan:             "free",
+      plan:             "pro",
       parent_agency_id: agency.orgId,
     })
     .select("id, name, plan, created_at")

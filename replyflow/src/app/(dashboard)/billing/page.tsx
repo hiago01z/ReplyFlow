@@ -290,12 +290,15 @@ export default async function BillingPage({
 
       {/* ── Paid plan sections ───────────────────────────────────────────────── */}
 
-      {/* Extra-location add-on (planos pagos com Stripe) */}
-      {currentPlan !== "free" && currentPlan !== "agency" && (
+      {/* Extra-location add-on (todos os planos pagos) */}
+      {currentPlan !== "free" && (
         <div className="mb-4">
           <ExtraLocationsAddon
             currentExtra={org?.extra_locations ?? 0}
-            baseLocations={currentPlan === "pro" ? 3 : 1}
+            baseLocations={
+              currentPlan === "agency" ? Infinity :
+              currentPlan === "pro"    ? 3        : 1
+            }
             hasStripe={hasStripe}
           />
         </div>

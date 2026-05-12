@@ -51,7 +51,7 @@ export async function GET(
   // Busca locais do cliente com stats
   const { data: locations } = await serviceClient
     .from("locations")
-    .select("id, name, niche, active, google_location_name, auto_publish")
+    .select("id, name, niche, active, google_location_name, google_access_token, auto_publish")
     .eq("organization_id", id)
     .order("name");
 
@@ -79,8 +79,13 @@ export async function GET(
       stats: { pending, published, total, locations: locIds.length },
     },
     locations: (locations ?? []).map((l) => ({
-      ...l,
-      google_connected: !!l.google_location_name,
+      id:              l.id,
+      name:            l.name,
+      niche:           l.niche,
+      active:          l.active,
+      auto_publish:    l.auto_publish,
+      google_connected:   !!l.google_location_name,
+      has_google_token:   !!l.google_access_token,
     })),
   });
 }
