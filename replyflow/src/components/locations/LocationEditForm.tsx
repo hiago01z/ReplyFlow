@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink } from "lucide-react";
+import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw } from "lucide-react";
 import type { Location } from "@/types";
 import { GmbLinkWizard } from "@/components/locations/GmbLinkWizard";
 
@@ -45,6 +45,7 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
   const [saving,      setSaving]      = useState(false);
   const [deleting,    setDeleting]    = useState(false);
   const [confirmDel,  setConfirmDel]  = useState(false);
+  const [relinking,   setRelinking]   = useState(false);
 
   // Derive a default slug from the location name (only used as placeholder)
   const suggestedSlug = location.name
@@ -59,6 +60,31 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
     if (!/^[a-z0-9-]{3,60}$/.test(value))
       return "Apenas letras minúsculas, números e hífens (3–60 caracteres).";
     return null;
+  }
+
+  async function handleRelink() {
+    setRelinking(true);
+    try {
+      const res = await fetch(`/api/locations/${location.id}/gmb-relink`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        if (data.newLocationName !== data.previousName) {
+          success(
+            "Local re-vinculado!",
+            `Novo ID: ${data.newLocationName}. Reviews encontrados: ${data.reviewCount ?? 0}.`,
+          );
+          router.refresh();
+        } else {
+          info("Nenhuma mudança", `O ID já estava correto: ${data.newLocationName}.`);
+        }
+      } else {
+        toastError("Falha no re-vínculo", data.error ?? "Tente novamente.");
+      }
+    } catch {
+      toastError("Erro de rede", "Não foi possível re-vincular.");
+    } finally {
+      setRelinking(false);
+    }
   }
 
   async function copyProfileLink() {
@@ -389,11 +415,30 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
         </div>
 
         {location.google_access_token ? (
-          <GmbLinkWizard
-            locationId={location.id}
-            googleLocationName={location.google_location_name}
-            googleAccessToken={location.google_access_token}
-          />
+          <>
+            <GmbLinkWizard
+              locationId={location.id}
+              googleLocationName={location.google_location_name}
+              googleAccessToken={location.google_access_token}
+            />
+            {/* Re-detect button: shown when a location name is set but reviews might be broken */}
+            {location.google_location_name && (
+              <div className="flex items-center gap-2 mt-2 pt-3 border-t border-gray-100 dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={handleRelink}
+                  disabled={relinking}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw size={13} className={relinking ? "animate-spin" : ""} />
+                  {relinking ? "Re-detectando..." : "Re-detectar local automaticamente"}
+                </button>
+                <span className="text-xs text-gray-400 dark:text-gray-600">
+                  Use se as reviews não estiverem aparecendo.
+                </span>
+              </div>
+            )}
+          </>
         ) : (
           /* Not connected yet — show connect button */
           <a

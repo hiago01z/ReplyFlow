@@ -62,7 +62,7 @@ export async function syncLocationReviews(location: LocationRow): Promise<SyncRe
     }
   }
 
-  const gmb = new GoogleMyBusinessClient({
+  let gmb = new GoogleMyBusinessClient({
     accessToken:  location.google_access_token,
     refreshToken: location.google_refresh_token,
     locationName,
@@ -72,9 +72,54 @@ export async function syncLocationReviews(location: LocationRow): Promise<SyncRe
   try {
     gmbReviews = await gmb.listAllReviews();
   } catch (err) {
-    console.error("[syncLocation] GMB API error:", err);
-    result.errors++;
-    return result;
+    const msg = err instanceof Error ? err.message : String(err);
+
+    // ── Auto-relink: if 404, the stored location ID is wrong — try to discover the real one ──
+    if (msg.includes("404")) {
+      console.warn(`[syncLocation] 404 for ${locationName} — attempting auto-relink via listLocations`);
+      try {
+        const tempGmb = new GoogleMyBusinessClient({
+          accessToken:  location.google_access_token,
+          refreshToken: location.google_refresh_token,
+          locationName: "",
+        });
+        const accounts = await tempGmb.listAccounts();
+        let detectedName: string | null = null;
+        for (const account of accounts) {
+          const locs = await tempGmb.listLocations(account.name);
+          if (locs.length > 0) {
+            detectedName = locs[0].name;
+            break;
+          }
+        }
+        if (detectedName) {
+          console.log(`[syncLocation] auto-relink found: ${detectedName} (was: ${locationName})`);
+          await serviceClient
+            .from("locations")
+            .update({ google_location_name: detectedName, google_access_token: tempGmb.currentAccessToken })
+            .eq("id", location.id);
+          // Retry with correct location name
+          gmb = new GoogleMyBusinessClient({
+            accessToken:  tempGmb.currentAccessToken,
+            refreshToken: location.google_refresh_token,
+            locationName: detectedName,
+          });
+          gmbReviews = await gmb.listAllReviews();
+        } else {
+          console.warn("[syncLocation] auto-relink: no locations found in any account");
+          result.errors++;
+          return result;
+        }
+      } catch (relinkErr) {
+        console.error("[syncLocation] auto-relink failed:", relinkErr instanceof Error ? relinkErr.message : relinkErr);
+        result.errors++;
+        return result;
+      }
+    } else {
+      console.error("[syncLocation] GMB API error:", err);
+      result.errors++;
+      return result;
+    }
   }
 
   result.fetchedFromGmb = gmbReviews.length;
