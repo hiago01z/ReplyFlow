@@ -24,7 +24,7 @@ async function verifyAgencyOwnership(userId: string, clientId: string) {
 
   const { data: client } = await serviceClient
     .from("organizations")
-    .select("id, name, plan, created_at, parent_agency_id")
+    .select("id, name, plan, created_at, parent_agency_id, extra_locations")
     .eq("id", clientId)
     .eq("parent_agency_id", agencyOrgId)
     .single();
@@ -76,6 +76,7 @@ export async function GET(
   return NextResponse.json({
     client: {
       ...client,
+      extra_locations: (client as { extra_locations?: number }).extra_locations ?? 0,
       stats: { pending, published, total, locations: locIds.length },
     },
     locations: (locations ?? []).map((l) => ({

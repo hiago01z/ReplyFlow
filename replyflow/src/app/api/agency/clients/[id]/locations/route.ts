@@ -31,13 +31,13 @@ async function verifyAgencyOwnership(userId: string, clientId: string) {
 
   const { data: client } = await serviceClient
     .from("organizations")
-    .select("id, name, plan, parent_agency_id")
+    .select("id, name, plan, parent_agency_id, extra_locations")
     .eq("id", clientId)
     .eq("parent_agency_id", agencyOrgId)
     .single();
 
   if (!client) return null;
-  return { agencyOrgId, client, serviceClient };
+  return { agencyOrgId, client: client as typeof client & { extra_locations: number }, serviceClient };
 }
 
 export async function POST(
@@ -68,9 +68,13 @@ export async function POST(
     .eq("organization_id", clientId)
     .eq("active", true);
 
-  if (!canAddClientLocation(count ?? 0)) {
+  const clientExtra = (ctx.client as { extra_locations?: number }).extra_locations ?? 0;
+  if (!canAddClientLocation(count ?? 0, clientExtra)) {
     return NextResponse.json(
-      { error: "location_limit", message: "Limite de 3 locais por cliente atingido." },
+      {
+        error:   "location_limit",
+        message: `Limite de ${3 + clientExtra} locais por cliente atingido. Compre um local extra (R$49/mês) na área Agência.`,
+      },
       { status: 403 },
     );
   }

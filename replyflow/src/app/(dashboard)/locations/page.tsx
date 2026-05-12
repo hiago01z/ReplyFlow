@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw, Zap, AlertCircle, Globe } from "lucide-react";
 import { SyncNowButton } from "@/components/locations/SyncNowButton";
 import { ReactivateLocationButton } from "@/components/locations/ReactivateLocationButton";
+import { BuyExtraLocationButton } from "@/components/locations/BuyExtraLocationButton";
 import { PLAN_LIMITS, getEffectiveLocationLimit, type Plan } from "@/lib/plan-limits";
 
 interface LocationsPageProps {
@@ -68,13 +69,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
           <p className="text-sm text-gray-500 mt-1">Gerencie os locais monitorados pelo ReplyFlow.</p>
         </div>
         {atLimit ? (
-          <Link
-            href="/billing"
-            className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-          >
-            <Plus size={15} />
-            Adicionar local
-          </Link>
+          <BuyExtraLocationButton currentExtra={extraLocations} />
         ) : (
           <Link
             href="/locations/new"
@@ -118,12 +113,10 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
             </div>
           </div>
           {atLimit && (
-            <Link
-              href="/billing"
-              className="shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap"
-            >
-              + Adicionar local →
-            </Link>
+            <BuyExtraLocationButton
+              currentExtra={extraLocations}
+              className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap bg-transparent p-0 border-0 disabled:opacity-60 cursor-pointer"
+            />
           )}
         </div>
 

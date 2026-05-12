@@ -34,6 +34,7 @@ interface ClientLocation {
 
 interface ClientDetail {
   id: string; name: string; plan: string; created_at: string;
+  extra_locations: number;
   stats: { pending: number; published: number; total: number; locations: number };
 }
 
@@ -225,6 +226,10 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   const [creatingLoc, setCreatingLoc] = useState(false);
   const [locError,  setLocError]  = useState("");
 
+  // Compra de local extra para este cliente
+  const [buyingExtra,   setBuyingExtra]   = useState(false);
+  const [buyExtraError, setBuyExtraError] = useState("");
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -281,6 +286,28 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
       setLocError("Erro de rede. Tente novamente.");
     } finally {
       setCreatingLoc(false);
+    }
+  }
+
+  async function handleBuyExtra() {
+    setBuyingExtra(true);
+    setBuyExtraError("");
+    try {
+      const res  = await fetch(`/api/agency/clients/${clientId}/extra-location`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setBuyExtraError(data.error ?? "Erro ao processar pagamento.");
+        return;
+      }
+      // Atualizar dados locais (novo slot disponível)
+      await fetchData();
+      // Abrir modal de criar local imediatamente
+      setShowAddLocation(true);
+      setLocError("");
+    } catch {
+      setBuyExtraError("Erro de rede. Tente novamente.");
+    } finally {
+      setBuyingExtra(false);
     }
   }
 
@@ -418,26 +445,45 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
           )}
 
           {/* Header com botão ou badge de limite */}
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-xs text-gray-500">
-              {locations.length} / {AGENCY_CLIENT_LOCATION_LIMIT} locais
-            </p>
-            {locations.length >= AGENCY_CLIENT_LOCATION_LIMIT ? (
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">
-                <MapPin size={11} />
-                Limite atingido ({AGENCY_CLIENT_LOCATION_LIMIT}/{AGENCY_CLIENT_LOCATION_LIMIT})
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => { setShowAddLocation(true); setLocError(""); }}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
-              >
-                <Plus size={13} />
-                Adicionar local
-              </button>
-            )}
-          </div>
+          {(() => {
+            const clientExtra    = client?.extra_locations ?? 0;
+            const effectiveLimit = AGENCY_CLIENT_LOCATION_LIMIT + clientExtra;
+            const atClientLimit  = locations.length >= effectiveLimit;
+            return (
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs text-gray-500">
+                  {locations.length} / {effectiveLimit} locais
+                </p>
+                <div className="flex flex-col items-end gap-1">
+                  {atClientLimit ? (
+                    <button
+                      type="button"
+                      onClick={handleBuyExtra}
+                      disabled={buyingExtra}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
+                    >
+                      {buyingExtra
+                        ? <Loader2 size={12} className="animate-spin" />
+                        : <Plus size={12} />}
+                      {buyingExtra ? "Processando…" : "Adicionar local (+R$49/mês)"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddLocation(true); setLocError(""); }}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+                    >
+                      <Plus size={13} />
+                      Adicionar local
+                    </button>
+                  )}
+                  {buyExtraError && (
+                    <p className="text-[11px] text-red-600">{buyExtraError}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           {locations.length === 0 ? (
             <div className="card p-10 text-center">

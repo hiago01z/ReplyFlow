@@ -54,7 +54,7 @@ export function canAddAgencyClient(currentClientCount: number): boolean {
   return currentClientCount < limit;
 }
 
-/** Verifica se um cliente da agência pode ter mais um local. */
-export function canAddClientLocation(currentCount: number): boolean {
-  return currentCount < PLAN_LIMITS.agency.agencyClientLocations;
+/** Verifica se um cliente da agência pode ter mais um local (base 3 + extras comprados). */
+export function canAddClientLocation(currentCount: number, extraLocations: number = 0): boolean {
+  return currentCount < PLAN_LIMITS.agency.agencyClientLocations + extraLocations;
 }
