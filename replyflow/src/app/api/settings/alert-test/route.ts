@@ -25,7 +25,7 @@ export async function POST() {
 
   const org = userRecord?.organization as unknown as { name: string } | null;
 
-  await sendNegativeReviewAlert({
+  const result = await sendNegativeReviewAlert({
     to:           email,
     businessName: org?.name ?? "Meu Negócio (Teste)",
     authorName:   "Cliente Teste",
@@ -34,5 +34,14 @@ export async function POST() {
     reviewId:     "00000000-0000-0000-0000-000000000000",
   });
 
-  return NextResponse.json({ success: true, sentTo: email });
+  // Expõe o erro do Resend para diagnóstico
+  if (result?.error) {
+    console.error("[alert-test] Resend error:", result.error);
+    return NextResponse.json(
+      { error: `Resend: ${(result.error as { message?: string }).message ?? JSON.stringify(result.error)}` },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ success: true, sentTo: email, resendId: result?.data?.id });
 }
