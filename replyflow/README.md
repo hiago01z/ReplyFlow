@@ -177,6 +177,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 36 (Planos anuais "2 meses grátis" + toggle mensal/anual) | ✅ Concluída |
 | Etapa 6 — Sprint 37 (Gerenciar assinatura — fix Safari iOS + Stripe Portal) | ✅ Concluída |
 | Etapa 6 — Sprint 39 (Limites de plano + locais agência + add-on R$17/local) | ✅ Concluída |
+| Etapa 6 — Sprint 40 (Fix limite agência: 3 locais próprios + 3/cliente) | ✅ Concluída |
 
 ---
 
