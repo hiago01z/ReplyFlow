@@ -6,7 +6,7 @@
 export type Plan = 'free' | 'starter' | 'pro' | 'agency';
 
 export interface PlanLimits {
-  /** Locais base incluídos. Infinity = ilimitado (agency). */
+  /** Locais base incluídos no plano. Extras comprados via add-on R$49/mês. */
   locations: number;
   /** Respostas IA por mês. null = ilimitado. */
   aiResponsesPerMonth: number | null;

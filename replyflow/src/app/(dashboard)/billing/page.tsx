@@ -296,8 +296,8 @@ export default async function BillingPage({
           <ExtraLocationsAddon
             currentExtra={org?.extra_locations ?? 0}
             baseLocations={
-              currentPlan === "agency" ? Infinity :
-              currentPlan === "pro"    ? 3        : 1
+              currentPlan === "agency" ? 3 :
+              currentPlan === "pro"    ? 3 : 1
             }
             hasStripe={hasStripe}
           />

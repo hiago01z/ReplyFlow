@@ -80,7 +80,7 @@ export async function POST(request: Request) {
   const plan           = orgData?.plan ?? "free";
   const extraLocations = orgData?.extra_locations ?? 0;
   const baseLimit      = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]?.locations ?? 1;
-  const limit          = baseLimit === Infinity ? Infinity : baseLimit + extraLocations;
+  const limit          = baseLimit + extraLocations;
 
   // Verificar limite de locais
   const { count } = await serviceClient
@@ -89,14 +89,12 @@ export async function POST(request: Request) {
     .eq("organization_id", orgId)
     .eq("active", true);
 
-  if (limit !== Infinity && (count ?? 0) >= limit) {
+  if ((count ?? 0) >= limit) {
     return NextResponse.json(
       {
         error:   "plan_limit",
-        message: plan === "starter"
-          ? `Seu plano Starter permite ${limit} local(is). Compre um local extra (R$49/mês) ou faça upgrade para o Pro.`
-          : `Seu plano ${plan} permite até ${limit} local(is). Faça upgrade para adicionar mais.`,
-        canBuyAddon: plan === "starter",
+        message: `Seu plano permite até ${limit} local(is). Compre locais extras (R$49/mês cada) na página de Billing.`,
+        canBuyAddon: plan !== "free",
       },
       { status: 403 }
     );

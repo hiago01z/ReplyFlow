@@ -19,7 +19,7 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
   const [error,    setError]    = useState("");
   const [saved,    setSaved]    = useState(false);
 
-  const total = baseLocations === Infinity ? Infinity : baseLocations + quantity;
+  const total = baseLocations + quantity;
   const addedCost = quantity * 49; // R$49/mês por local extra
   const changed = quantity !== currentExtra;
 
@@ -77,7 +77,7 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
         <div className="flex items-center justify-between py-1">
           <span className="text-sm text-gray-500">Locais base (incluídos no plano)</span>
           <span className="text-sm font-semibold text-gray-700">
-            {baseLocations === Infinity ? "Ilimitados" : baseLocations}
+            {baseLocations}
           </span>
         </div>
 
@@ -109,7 +109,7 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
         <div className="flex items-center justify-between py-1 border-t border-gray-100">
           <span className="text-sm font-medium text-gray-700">Total de locais</span>
           <span className="text-sm font-bold text-indigo-700">
-            {total === Infinity ? "Ilimitados" : total}
+            {total}
           </span>
         </div>
       </div>
