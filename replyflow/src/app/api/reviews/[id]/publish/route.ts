@@ -80,11 +80,22 @@ export async function POST(
 
   const now = new Date().toISOString()
 
-  // Atualizar response como publicada
+  // Upsert da resposta: salva content (editado pelo usuário) e marca como publicada.
+  // Usa upsert para cobrir dois casos:
+  //  1. Resposta gerada pela IA → existe registro → atualiza content + timestamps
+  //  2. Resposta digitada manualmente → não existe registro → insere
   await serviceClient
     .from('responses')
-    .update({ published_at: now, approved_at: now, approved_by: user.id })
-    .eq('review_id', id)
+    .upsert(
+      {
+        review_id:    id,
+        content:      parsed.data.responseContent,
+        published_at: now,
+        approved_at:  now,
+        approved_by:  user.id,
+      },
+      { onConflict: 'review_id', ignoreDuplicates: false }
+    )
 
   // Atualizar status do review
   await serviceClient
