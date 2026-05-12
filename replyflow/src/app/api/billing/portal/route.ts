@@ -38,10 +38,32 @@ export async function POST(request: Request) {
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com").replace(/\/$/, "");
 
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: org.stripe_customer_id,
-    return_url: `${appUrl}/billing`,
-  });
+  try {
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: org.stripe_customer_id,
+      return_url: `${appUrl}/billing`,
+    });
+    return NextResponse.json({ url: portalSession.url });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[billing/portal] Stripe error:", msg);
 
-  return NextResponse.json({ url: portalSession.url });
+    // Mensagens específicas para diagnóstico
+    if (msg.includes("No such customer")) {
+      return NextResponse.json(
+        { error: "customer_not_found", message: "Cliente não encontrado no Stripe. O ID pode ser de outro ambiente (teste vs. produção)." },
+        { status: 404 },
+      );
+    }
+    if (msg.includes("portal") || msg.includes("configuration")) {
+      return NextResponse.json(
+        { error: "portal_not_configured", message: "Customer Portal não configurado. Acesse Stripe Dashboard → Settings → Billing → Customer portal." },
+        { status: 503 },
+      );
+    }
+    return NextResponse.json(
+      { error: "stripe_error", message: msg },
+      { status: 500 },
+    );
+  }
 }

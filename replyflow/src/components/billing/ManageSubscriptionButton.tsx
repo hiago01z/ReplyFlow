@@ -17,14 +17,14 @@ export function ManageSubscriptionButton() {
     setError("");
     try {
       const res  = await fetch("/api/billing/portal", { method: "POST" });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.url) {
-        setError("Não foi possível abrir o portal. Tente novamente.");
+        setError(data.message ?? "Não foi possível abrir o portal. Tente novamente.");
         return;
       }
       window.location.href = data.url;
     } catch {
-      setError("Erro de rede. Tente novamente.");
+      setError("Erro de rede. Verifique sua conexão e tente novamente.");
     } finally {
       setLoading(false);
     }
