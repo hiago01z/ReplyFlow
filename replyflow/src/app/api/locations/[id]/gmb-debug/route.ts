@@ -32,6 +32,13 @@ export async function GET(
     return NextResponse.json({ error: "No organization" }, { status: 403 });
   }
 
+  // Listar todos os locais da org para diagnóstico
+  const { data: allLocations } = await serviceClient
+    .from("locations")
+    .select("id, name, niche, google_location_name, active, created_at")
+    .eq("organization_id", userRecord.organization_id)
+    .order("created_at", { ascending: false });
+
   const { data: location, error: locError } = await serviceClient
     .from("locations")
     .select("id, name, google_access_token, google_refresh_token, google_location_name, organization_id")
@@ -41,7 +48,15 @@ export async function GET(
     .single();
 
   if (locError || !location) {
-    return NextResponse.json({ error: "Location not found", detail: locError?.message }, { status: 404 });
+    return NextResponse.json({
+      error: "Location not found",
+      detail: locError?.message,
+      orgLocations: (allLocations ?? []).map((l) => ({
+        id: l.id, name: l.name, niche: l.niche, active: l.active,
+        hasGmbLink: !!l.google_location_name,
+        debugUrl: `/api/locations/${l.id}/gmb-debug`,
+      })),
+    }, { status: 404 });
   }
 
   if (!location.google_access_token || !location.google_location_name) {
@@ -88,6 +103,11 @@ export async function GET(
       reviewsInDb:         dbCount ?? 0,
       tokenRefreshed:      gmb.currentAccessToken !== location.google_access_token,
       availableLocations,
+      orgLocations: (allLocations ?? []).map((l) => ({
+        id: l.id, name: l.name, niche: l.niche, active: l.active,
+        hasGmbLink: !!l.google_location_name,
+        debugUrl: `/api/locations/${l.id}/gmb-debug`,
+      })),
       reviews: reviews.map((r) => ({
         reviewId:   r.reviewId,
         starRating: r.starRating,
@@ -104,6 +124,11 @@ export async function GET(
       error:              msg,
       storedLocationName: location.google_location_name,
       availableLocations,
+      orgLocations: (allLocations ?? []).map((l) => ({
+        id: l.id, name: l.name, niche: l.niche, active: l.active,
+        hasGmbLink: !!l.google_location_name,
+        debugUrl: `/api/locations/${l.id}/gmb-debug`,
+      })),
     }, { status: 502 });
   }
 }

@@ -3,6 +3,44 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { z } from "zod";
 import { PLAN_LIMITS } from "@/types";
 
+export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const serviceClient = createServiceClient();
+
+  const { data: userRecord } = await serviceClient
+    .from("users")
+    .select("organization_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!userRecord?.organization_id) {
+    return NextResponse.json({ error: "No organization" }, { status: 403 });
+  }
+
+  const { data: locations, error } = await serviceClient
+    .from("locations")
+    .select("id, name, niche, active, google_location_name, auto_publish, created_at")
+    .eq("organization_id", userRecord.organization_id)
+    .order("created_at", { ascending: false });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({
+    locations: (locations ?? []).map((l) => ({
+      id:                  l.id,
+      name:                l.name,
+      niche:               l.niche,
+      active:              l.active,
+      auto_publish:        l.auto_publish,
+      google_connected:    !!l.google_location_name,
+      google_location_name: l.google_location_name ?? null,
+    })),
+  });
+}
+
 const createLocationSchema = z.object({
   name:         z.string().min(2).max(100),
   niche:        z.enum(["clinica", "restaurante", "academia", "petshop", "barbearia", "outro"]),
