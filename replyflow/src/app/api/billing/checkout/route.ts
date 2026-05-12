@@ -50,6 +50,7 @@ export async function POST(request: Request) {
     line_items: [{ price: parsed.data.priceId, quantity: 1 }],
     success_url: `${appUrl}/billing?success=1`,
     cancel_url: `${appUrl}/billing?canceled=1`,
+    allow_promotion_codes: true,
     metadata: { organizationId: org.id },
     subscription_data: { metadata: { organizationId: org.id } },
   });
