@@ -3,7 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { generateReviewResponse } from '@/lib/openai/generateResponse'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit } from '@/lib/ratelimit'
-import { PLAN_LIMITS } from '@/types'
+import { canGenerateAiResponse } from '@/lib/plan-limits'
 import { createApprovalToken } from '@/lib/approvalToken'
 import { sendWhatsAppApproval } from '@/lib/email/alerts'
 import type { Location, Plan } from '@/types'
@@ -61,7 +61,7 @@ export async function POST(
   // ── Verificar acesso: usuário pertence à organização do review ────────────
   const { data: userRecord } = await serviceClient
     .from('users')
-    .select('organization_id, whatsapp, organization:organizations(plan, trial_ends_at)')
+    .select('organization_id, whatsapp, organization:organizations(id, plan, trial_ends_at, ai_responses_count, ai_responses_month)')
     .eq('id', user.id)
     .single()
 
@@ -69,52 +69,48 @@ export async function POST(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const orgRecord = userRecord.organization as unknown as {
+    id: string;
+    plan: Plan;
+    trial_ends_at?: string | null;
+    ai_responses_count?: number;
+    ai_responses_month?: string;
+  } | null
+
+  const plan = orgRecord?.plan ?? 'free'
+  const orgId = userRecord.organization_id
+
   // ── Verificar limite de respostas por plano ───────────────────────────────
-  const plan = (userRecord.organization as unknown as { plan: Plan; trial_ends_at?: string | null } | null)?.plan ?? 'free'
-  const trialEndsAt = (userRecord.organization as unknown as { trial_ends_at?: string | null } | null)?.trial_ends_at
+  const trialEndsAt = orgRecord?.trial_ends_at
   const trialActive = trialEndsAt ? new Date(trialEndsAt).getTime() > Date.now() : false
 
   // Durante o trial, plano free tem respostas ilimitadas
-  const monthlyLimit = (plan === 'free' && trialActive) ? null : PLAN_LIMITS[plan]?.responsesPerMonth
+  const effectivePlan: Plan = (plan === 'free' && trialActive) ? 'pro' : plan // 'pro' = sem limite
 
-  if (monthlyLimit !== null && monthlyLimit !== undefined) {
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
+  const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
+  const storedMonth = orgRecord?.ai_responses_month ?? ''
+  let countThisMonth = orgRecord?.ai_responses_count ?? 0
 
-    // Buscar reviews da org criados este mês
-    const { data: orgLocations } = await serviceClient
-      .from('locations')
-      .select('id')
-      .eq('organization_id', userRecord.organization_id)
+  // Se o mês mudou, resetar o contador (lazy reset)
+  if (storedMonth !== currentMonth) {
+    countThisMonth = 0
+    // Reset async — não bloqueia a verificação
+    void serviceClient
+      .from('organizations')
+      .update({ ai_responses_count: 0, ai_responses_month: currentMonth })
+      .eq('id', orgId)
+  }
 
-    const locIds = (orgLocations ?? []).map((l) => l.id)
+  const { allowed, limit: aiLimit } = canGenerateAiResponse(effectivePlan, countThisMonth)
 
-    const { data: monthlyReviews } = await serviceClient
-      .from('reviews')
-      .select('id')
-      .in('location_id', locIds)
-      .gte('created_at', startOfMonth.toISOString())
-
-    const reviewIds = (monthlyReviews ?? []).map((r) => r.id)
-
-    let monthlyCount = 0
-    if (reviewIds.length > 0) {
-      const { count } = await serviceClient
-        .from('responses')
-        .select('id', { count: 'exact', head: true })
-        .in('review_id', reviewIds)
-      monthlyCount = count ?? 0
-    }
-
-    if (monthlyCount >= monthlyLimit) {
-      return NextResponse.json({
-        error:   'plan_limit',
-        message: `Seu plano Free permite ${monthlyLimit} respostas por mês. Seu período de avaliação expirou — faça upgrade para continuar.`,
-        limit:   monthlyLimit,
-        used:    monthlyCount,
-      }, { status: 403 })
-    }
+  if (!allowed) {
+    return NextResponse.json({
+      error:   'plan_limit',
+      message: `Seu plano ${plan === 'free' ? 'Free' : 'Starter'} permite ${aiLimit} respostas por mês. Faça upgrade para continuar.`,
+      limit:   aiLimit,
+      used:    countThisMonth,
+      upgrade: true,
+    }, { status: 403 })
   }
 
   // ── Gerar resposta com IA ─────────────────────────────────────────────────
@@ -217,13 +213,23 @@ export async function POST(
     .update({ status: 'draft', updated_at: new Date().toISOString() })
     .eq('id', id)
 
+  // ── Incrementar contador de respostas IA (planos com limite) ─────────────
+  if (aiLimit !== null) {
+    void serviceClient
+      .from('organizations')
+      .update({
+        ai_responses_count: countThisMonth + 1,
+        ai_responses_month: currentMonth,
+      })
+      .eq('id', orgId)
+  }
+
   // ── WhatsApp 1-click approval (Pro/Agency) ────────────────────────────────
   // Only when: plan is pro/agency, user has WhatsApp, auto_publish is OFF
-  const orgPlan = (userRecord?.organization as unknown as { plan: Plan } | null)?.plan ?? 'free'
   const userPhone = (userRecord as unknown as { whatsapp?: string })?.whatsapp
 
   if (
-    (orgPlan === 'pro' || orgPlan === 'agency') &&
+    (plan === 'pro' || plan === 'agency') &&
     userPhone &&
     !location.auto_publish
   ) {

@@ -1,8 +1,9 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw, Zap, AlertCircle, Globe } from "lucide-react";
+import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw, Zap, AlertCircle, Globe, ShoppingCart } from "lucide-react";
 import { SyncNowButton } from "@/components/locations/SyncNowButton";
 import { ReactivateLocationButton } from "@/components/locations/ReactivateLocationButton";
+import { PLAN_LIMITS, getEffectiveLocationLimit, type Plan } from "@/lib/plan-limits";
 
 interface LocationsPageProps {
   searchParams: Promise<{ success?: string; error?: string; loc?: string }>;
@@ -15,7 +16,17 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
   const serviceClient = createServiceClient();
 
   const { data: userRecord } = await serviceClient
-    .from("users").select("organization_id").eq("id", user!.id).single();
+    .from("users")
+    .select("organization_id, organization:organizations(plan, extra_locations)")
+    .eq("id", user!.id)
+    .single();
+
+  const orgData = userRecord?.organization as unknown as { plan: string; extra_locations: number } | null;
+  const plan = (orgData?.plan ?? "free") as Plan;
+  const extraLocations = orgData?.extra_locations ?? 0;
+  const effectiveLimit = getEffectiveLocationLimit(plan, extraLocations);
+  // baseLocations para display (sem extras)
+  const baseLocations = PLAN_LIMITS[plan].locations;
 
   const { data: locations } = await serviceClient
     .from("locations").select("*")
@@ -42,22 +53,81 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
     }
   }
 
+  const activeCount = activeIds.length;
+  const atLimit = effectiveLimit !== Infinity && activeCount >= effectiveLimit;
+  const usagePct = effectiveLimit !== Infinity && effectiveLimit > 0
+    ? Math.min(100, Math.round((activeCount / effectiveLimit) * 100))
+    : 0;
+
   return (
     <div className="animate-fade-in">
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex items-start justify-between mb-6">
         <div>
           <p className="text-xs font-medium text-indigo-600 uppercase tracking-widest mb-1">Locais</p>
           <h1 className="text-2xl font-bold text-gray-900">Meus Locais</h1>
           <p className="text-sm text-gray-500 mt-1">Gerencie os locais monitorados pelo ReplyFlow.</p>
         </div>
-        <Link
-          href="/locations/new"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-        >
-          <Plus size={15} />
-          Adicionar local
-        </Link>
+        {atLimit ? (
+          <Link
+            href="/billing"
+            className="inline-flex items-center gap-2 border border-red-200 text-red-600 bg-red-50 text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-red-100 transition-colors"
+          >
+            <ShoppingCart size={15} />
+            Comprar mais locais
+          </Link>
+        ) : (
+          <Link
+            href="/locations/new"
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            <Plus size={15} />
+            Adicionar local
+          </Link>
+        )}
       </div>
+
+      {/* ── Barra de uso de locais ─────────────────────────────────────────────── */}
+      {effectiveLimit !== Infinity && (
+        <div className="card px-5 py-4 mb-6 flex items-center gap-4">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-gray-700">
+                Locais ativos: <strong className={atLimit ? "text-red-600" : "text-indigo-600"}>{activeCount}</strong> / {effectiveLimit}
+              </span>
+              {extraLocations > 0 && (
+                <span className="text-[11px] text-gray-400">
+                  {baseLocations === Infinity ? "∞" : baseLocations} base + {extraLocations} extras
+                </span>
+              )}
+              {atLimit ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                  Limite atingido
+                </span>
+              ) : (
+                <span className="text-[11px] text-gray-400">
+                  {effectiveLimit - activeCount} disponível{effectiveLimit - activeCount !== 1 ? "is" : ""}
+                </span>
+              )}
+            </div>
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  usagePct >= 100 ? "bg-red-500" : usagePct >= 70 ? "bg-amber-500" : "bg-indigo-600"
+                }`}
+                style={{ width: `${usagePct}%` }}
+              />
+            </div>
+          </div>
+          {atLimit && (
+            <Link
+              href="/billing"
+              className="shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap"
+            >
+              + Comprar local →
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Toast feedback */}
       {params.success === "google_connected" && (

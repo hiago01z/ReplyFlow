@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { CheckoutSuccessBanner } from "@/components/billing/CheckoutSuccessBanner";
 import { ManageSubscriptionButton } from "@/components/billing/ManageSubscriptionButton";
+import { ExtraLocationsAddon } from "@/components/billing/ExtraLocationsAddon";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export const dynamic = "force-dynamic";
 
 const PLAN_FEATURES: Record<string, string[]> = {
   free:    ["1 local", "2 plataformas", "10 respostas/mês", "Sem cartão"],
-  starter: ["1 local", "3 plataformas", "Respostas ilimitadas", "Alerta por e-mail"],
+  starter: ["1 local", "3 plataformas", "50 respostas IA/mês", "Alerta por e-mail"],
   pro:     ["Até 3 locais", "Todas as plataformas", "Alerta via WhatsApp", "Aprovação 1 clique", "Relatório mensal"],
   agency:  ["Locais ilimitados", "Painel multi-cliente", "API de integração", "Suporte dedicado"],
 };
@@ -53,7 +54,7 @@ export default async function BillingPage({
 
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("email, organization:organizations(id,plan,stripe_customer_id,stripe_subscription_id,subscription_status)")
+    .select("email, organization:organizations(id,plan,stripe_customer_id,stripe_subscription_id,subscription_status,extra_locations,stripe_extra_locations_item_id)")
     .eq("id", user!.id)
     .single();
 
@@ -64,6 +65,7 @@ export default async function BillingPage({
     stripe_subscription_id: string | null;
     subscription_status: string | null;
     extra_locations?: number;
+    stripe_extra_locations_item_id?: string | null;
     trial_ends_at?: string | null;
   } | null;
 
@@ -288,33 +290,14 @@ export default async function BillingPage({
 
       {/* ── Paid plan sections ───────────────────────────────────────────────── */}
 
-      {/* Extra-location add-on (Starter only) */}
-      {currentPlan === "starter" && (
-        <div className="card p-5 mb-4 flex items-center justify-between gap-4 border-blue-200 bg-blue-50/40">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-              <MapPin size={16} className="text-blue-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 text-sm">
-                Local extra
-                {(org?.extra_locations ?? 0) > 0 && (
-                  <span className="ml-2 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
-                    {org!.extra_locations} ativo{org!.extra_locations !== 1 ? "s" : ""}
-                  </span>
-                )}
-              </p>
-              <p className="text-xs text-gray-500 mt-0.5">R$49/mês por local adicional.</p>
-            </div>
-          </div>
-          <form action="/api/billing/extra-location" method="POST" className="shrink-0">
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap"
-            >
-              + Comprar local
-            </button>
-          </form>
+      {/* Extra-location add-on (planos pagos com Stripe) */}
+      {currentPlan !== "free" && currentPlan !== "agency" && (
+        <div className="mb-4">
+          <ExtraLocationsAddon
+            currentExtra={org?.extra_locations ?? 0}
+            baseLocations={currentPlan === "pro" ? 3 : 1}
+            hasStripe={hasStripe}
+          />
         </div>
       )}
 

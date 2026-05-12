@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { z } from "zod";
+import { canAddAgencyClient } from "@/lib/plan-limits";
 
 const createClientSchema = z.object({
   name: z.string().min(2).max(100),
@@ -111,6 +112,19 @@ export async function POST(request: Request) {
   }
 
   const serviceClient = createServiceClient();
+
+  // Verificar limite de clientes (máximo 10 por agência)
+  const { count: clientCount } = await serviceClient
+    .from("organizations")
+    .select("id", { count: "exact", head: true })
+    .eq("parent_agency_id", agency.orgId);
+
+  if (!canAddAgencyClient(clientCount ?? 0)) {
+    return NextResponse.json(
+      { error: "client_limit", message: "Limite de 10 clientes atingido. Entre em contato para ampliar." },
+      { status: 403 },
+    );
+  }
 
   // Create the client organization linked to this agency
   const { data: newOrg, error } = await serviceClient

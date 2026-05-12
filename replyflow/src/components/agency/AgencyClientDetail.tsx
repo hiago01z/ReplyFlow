@@ -4,9 +4,26 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Building2, MapPin, Star, Clock, CheckCircle2,
-  Sparkles, Send, ChevronDown, ChevronUp, Loader2, Wifi, WifiOff, Trash2, Save,
+  Sparkles, Send, ChevronDown, ChevronUp, Loader2, Wifi, WifiOff, Trash2, Save, Plus, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const AGENCY_CLIENT_LOCATION_LIMIT = 3;
+
+const NICHES = [
+  { value: "clinica",     label: "Clínica" },
+  { value: "restaurante", label: "Restaurante" },
+  { value: "academia",    label: "Academia" },
+  { value: "petshop",     label: "Pet Shop" },
+  { value: "barbearia",   label: "Barbearia" },
+  { value: "outro",       label: "Outro" },
+] as const;
+
+const TONES = [
+  { value: "formal",       label: "Formal" },
+  { value: "amigavel",     label: "Amigável" },
+  { value: "descontraido", label: "Descontraído" },
+] as const;
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -198,6 +215,14 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   const [savingPlan,   setSavingPlan]   = useState(false);
   const [planSaved,    setPlanSaved]    = useState(false);
 
+  // Modal de criar local
+  const [showAddLocation, setShowAddLocation] = useState(false);
+  const [locName,   setLocName]   = useState("");
+  const [locNiche,  setLocNiche]  = useState<string>("clinica");
+  const [locTone,   setLocTone]   = useState<string>("amigavel");
+  const [creatingLoc, setCreatingLoc] = useState(false);
+  const [locError,  setLocError]  = useState("");
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -247,6 +272,34 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
     const res = await fetch(`/api/agency/clients/${clientId}`, { method: "DELETE" });
     if (res.ok) router.push("/agency");
     else setRemoving(false);
+  }
+
+  async function handleAddLocation(e: React.FormEvent) {
+    e.preventDefault();
+    if (!locName.trim()) { setLocError("Nome obrigatório."); return; }
+    setCreatingLoc(true);
+    setLocError("");
+    try {
+      const res = await fetch(`/api/agency/clients/${clientId}/locations`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ name: locName.trim(), niche: locNiche, tone: locTone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLocError(data.message ?? data.error ?? "Erro ao criar local.");
+        return;
+      }
+      // Reset form and close modal
+      setLocName(""); setLocNiche("clinica"); setLocTone("amigavel");
+      setShowAddLocation(false);
+      // Refresh data
+      await fetchData();
+    } catch {
+      setLocError("Erro de rede. Tente novamente.");
+    } finally {
+      setCreatingLoc(false);
+    }
   }
 
   if (loading) {
@@ -391,11 +444,34 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
 
       {/* Locations tab */}
       {tab === "locations" && (
-        <div>
+        <div className="animate-slide-up">
+          {/* Header com botão ou badge de limite */}
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs text-gray-500">
+              {locations.length} / {AGENCY_CLIENT_LOCATION_LIMIT} locais
+            </p>
+            {locations.length >= AGENCY_CLIENT_LOCATION_LIMIT ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">
+                <MapPin size={11} />
+                Limite atingido ({AGENCY_CLIENT_LOCATION_LIMIT}/{AGENCY_CLIENT_LOCATION_LIMIT})
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => { setShowAddLocation(true); setLocError(""); }}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+              >
+                <Plus size={13} />
+                Adicionar local
+              </button>
+            )}
+          </div>
+
           {locations.length === 0 ? (
             <div className="card p-10 text-center">
-              <Building2 size={24} className="text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500">Nenhum local cadastrado para este cliente.</p>
+              <MapPin size={24} className="text-gray-300 mx-auto mb-3" />
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Nenhum local cadastrado</p>
+              <p className="text-xs text-gray-400 mt-1">Clique em "Adicionar local" para configurar o primeiro local deste cliente.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -430,6 +506,91 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Modal de adicionar local ────────────────────────────────────────── */}
+      {showAddLocation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 w-full max-w-sm animate-slide-up">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <MapPin size={16} className="text-indigo-600" />
+                <h2 className="text-base font-bold text-gray-900">Novo local</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setShowAddLocation(false); setLocError(""); }}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddLocation} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Nome do local <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={locName}
+                  onChange={(e) => setLocName(e.target.value)}
+                  placeholder="Ex: Clínica Saúde Prime"
+                  maxLength={100}
+                  className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-colors placeholder:text-gray-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Nicho</label>
+                <select
+                  value={locNiche}
+                  onChange={(e) => setLocNiche(e.target.value)}
+                  className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                >
+                  {NICHES.map((n) => (
+                    <option key={n.value} value={n.value}>{n.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Tom das respostas</label>
+                <select
+                  value={locTone}
+                  onChange={(e) => setLocTone(e.target.value)}
+                  className="w-full h-9 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                >
+                  {TONES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {locError && (
+                <p className="text-xs text-red-600 font-medium">{locError}</p>
+              )}
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => { setShowAddLocation(false); setLocError(""); }}
+                  className="flex-1 h-9 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingLoc || !locName.trim()}
+                  className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                >
+                  {creatingLoc ? <Loader2 size={13} className="animate-spin" /> : null}
+                  {creatingLoc ? "Criando…" : "Criar local"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

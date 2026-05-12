@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Clock, CheckCircle2, AlertTriangle, MapPin, ArrowRight, Star, Sparkles, BarChart2 } from "lucide-react";
+import { Clock, CheckCircle2, AlertTriangle, MapPin, ArrowRight, Star, Sparkles, BarChart2, Zap } from "lucide-react";
 import { DemoSeedButton } from "@/components/dashboard/DemoSeedButton";
 import { WeeklySparkline } from "@/components/dashboard/WeeklySparkline";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
+import { PLAN_LIMITS, canGenerateAiResponse, type Plan } from "@/lib/plan-limits";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -14,12 +15,29 @@ export default async function DashboardPage() {
 
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("organization_id, organization:organizations(name, plan, trial_ends_at)")
+    .select("organization_id, organization:organizations(name, plan, trial_ends_at, ai_responses_count, ai_responses_month)")
     .eq("id", user!.id)
     .single();
 
   const orgId = userRecord?.organization_id;
-  const org = userRecord?.organization as unknown as { name: string; plan: string; trial_ends_at: string | null } | null;
+  const org = userRecord?.organization as unknown as {
+    name: string;
+    plan: string;
+    trial_ends_at: string | null;
+    ai_responses_count?: number;
+    ai_responses_month?: string;
+  } | null;
+
+  const orgPlan = (org?.plan ?? "free") as Plan;
+  const aiMonthLimit = PLAN_LIMITS[orgPlan].aiResponsesPerMonth;
+  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const aiCountRaw = org?.ai_responses_count ?? 0;
+  const aiMonth = org?.ai_responses_month ?? "";
+  // Se o mês mudou, o contador ainda não foi resetado — exibir como 0
+  const aiCountThisMonth = aiMonth === currentMonth ? aiCountRaw : 0;
+  // Mostrar card de uso apenas para planos com limite definido (free/starter)
+  const showAiUsage = aiMonthLimit !== null && orgPlan !== "pro" && orgPlan !== "agency";
+  const { remaining: aiRemaining } = canGenerateAiResponse(orgPlan, aiCountThisMonth);
 
   const { data: locations } = await serviceClient
     .from("locations")
@@ -197,6 +215,55 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* AI responses usage card — Free/Starter only */}
+      {showAiUsage && aiMonthLimit !== null && (
+        <div className={`card p-4 mb-6 flex items-center gap-4 ${
+          aiRemaining === 0 ? "border-red-200 bg-red-50/50" :
+          (aiRemaining ?? aiMonthLimit) <= aiMonthLimit * 0.3 ? "border-amber-200 bg-amber-50/40" :
+          "border-indigo-100 bg-indigo-50/30"
+        }`}>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            aiRemaining === 0 ? "bg-red-100" :
+            (aiRemaining ?? aiMonthLimit) <= aiMonthLimit * 0.3 ? "bg-amber-100" :
+            "bg-indigo-100"
+          }`}>
+            <Zap size={18} className={
+              aiRemaining === 0 ? "text-red-600" :
+              (aiRemaining ?? aiMonthLimit) <= aiMonthLimit * 0.3 ? "text-amber-600" :
+              "text-indigo-600"
+            } />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-semibold text-gray-900">Respostas IA este mês</p>
+              <span className={`text-xs font-bold ${
+                aiRemaining === 0 ? "text-red-600" : "text-gray-700"
+              }`}>
+                {aiCountThisMonth} / {aiMonthLimit}
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  aiRemaining === 0 ? "bg-red-500" :
+                  (aiRemaining ?? aiMonthLimit) <= aiMonthLimit * 0.3 ? "bg-amber-500" :
+                  "bg-indigo-600"
+                }`}
+                style={{ width: `${Math.min(100, Math.round((aiCountThisMonth / aiMonthLimit) * 100))}%` }}
+              />
+            </div>
+          </div>
+          {aiRemaining === 0 ? (
+            <Link
+              href="/billing"
+              className="shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-800 whitespace-nowrap"
+            >
+              Fazer upgrade →
+            </Link>
+          ) : null}
+        </div>
+      )}
 
       {/* Weekly sparkline */}
       {locationIds.length > 0 && (
