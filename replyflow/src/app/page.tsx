@@ -55,7 +55,7 @@ const FAQ = [
   },
   {
     q: "Tenho uma agência. Posso gerenciar vários clientes?",
-    a: "Sim. O plano Agência foi feito para isso — locais ilimitados em um único painel. Vários clientes de marketing digital já usam para ofertar como serviço.",
+    a: "Sim. O plano Agência foi feito para isso — gerencie até 10 clientes com 3 locais cada em um único painel, com IA ilimitada. Vários clientes de marketing digital já usam para ofertar como serviço.",
   },
 ];
 
@@ -343,7 +343,7 @@ export default function LandingPage() {
               {
                 name: "Agência", price: "R$ 497", period: "/mês",
                 description: "Para agências gerenciando múltiplos clientes",
-                features: ["Clientes ilimitados","Painel multi-cliente","White-label disponível","API de integração","Suporte dedicado"],
+                features: ["Até 10 clientes no painel","3 locais por cliente","IA ilimitada","Alerta WhatsApp + aprovação 1 clique","Relatório mensal PDF"],
                 cta: "Assinar Agência", highlight: false,
               },
             ].map((plan) => (

@@ -50,7 +50,7 @@ ReplyFlow é um SaaS que responde automaticamente reviews do Google Meu Negócio
 | Free | Grátis | 1 | 10 respostas IA/mês |
 | Starter | R$ 97/mês | 1 | 50 respostas IA/mês · add-on +R$17/local |
 | **Pro** | **R$ 197/mês** | **3** | **IA ilimitada · Alerta WhatsApp · aprovação 1 clique** |
-| Agência | R$ 497/mês | Ilimitado | Painel multi-cliente · 10 clientes · 3 locais/cliente |
+| Agência | R$ 497/mês | 10 clientes × 3 locais | Painel multi-cliente · IA ilimitada · WhatsApp + aprovação 1 clique |
 
 ---
 

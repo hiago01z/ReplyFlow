@@ -20,7 +20,7 @@ const PLAN_FEATURES: Record<string, string[]> = {
   free:    ["1 local", "2 plataformas", "10 respostas/mês", "Sem cartão"],
   starter: ["1 local", "3 plataformas", "50 respostas IA/mês", "Alerta por e-mail"],
   pro:     ["Até 3 locais", "Todas as plataformas", "Alerta via WhatsApp", "Aprovação 1 clique", "Relatório mensal"],
-  agency:  ["Locais ilimitados", "Até 10 clientes no painel", "3 locais por cliente", "IA ilimitada", "Alerta WhatsApp + aprovação 1 clique"],
+  agency:  ["Até 10 clientes no painel", "3 locais por cliente", "IA ilimitada", "Alerta WhatsApp + aprovação 1 clique", "Relatório mensal PDF"],
 };
 
 const PLAN_LABEL: Record<string, string> = {
@@ -311,7 +311,7 @@ export default async function BillingPage({
             <Building2 size={20} className="text-indigo-500 shrink-0" />
             <div>
               <p className="font-semibold text-gray-900 text-sm">Tem uma agência ou múltiplos clientes?</p>
-              <p className="text-xs text-gray-500 mt-0.5">Locais ilimitados por R$497/mês.</p>
+              <p className="text-xs text-gray-500 mt-0.5">10 clientes · 3 locais cada · IA ilimitada — R$497/mês.</p>
             </div>
           </div>
           <form action="/api/billing/checkout" method="POST" className="shrink-0">
