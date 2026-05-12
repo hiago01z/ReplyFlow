@@ -211,7 +211,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                 <div className="flex items-center gap-2 shrink-0">
                   {/* Reactivate button for inactive locations */}
                   {!loc.active && (
-                    <ReactivateLocationButton locationId={loc.id} />
+                    <ReactivateLocationButton locationId={loc.id} currentExtra={extraLocations} />
                   )}
                   {/* Sync manual button — only for connected active locations */}
                   {loc.active && isConnected && loc.google_location_name && (

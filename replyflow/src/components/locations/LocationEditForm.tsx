@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw } from "lucide-react";
+import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw, PowerOff, X, AlertTriangle } from "lucide-react";
 import type { Location } from "@/types";
 import { GmbLinkWizard } from "@/components/locations/GmbLinkWizard";
 
@@ -42,10 +42,12 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
   const [publicSlug,     setPublicSlug]     = useState(location.public_slug ?? "");
   const [slugError,      setSlugError]      = useState<string | null>(null);
   const [copied,         setCopied]         = useState(false);
-  const [saving,      setSaving]      = useState(false);
-  const [deleting,    setDeleting]    = useState(false);
-  const [confirmDel,  setConfirmDel]  = useState(false);
-  const [relinking,   setRelinking]   = useState(false);
+  const [saving,           setSaving]          = useState(false);
+  const [deactivating,     setDeactivating]    = useState(false);
+  const [showDeactivate,   setShowDeactivate]  = useState(false);
+  const [showDelete,       setShowDelete]      = useState(false);
+  const [deleting,         setDeleting]        = useState(false);
+  const [relinking,        setRelinking]       = useState(false);
 
   // Derive a default slug from the location name (only used as placeholder)
   const suggestedSlug = location.name
@@ -129,16 +131,38 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
       setSaving(false); }
   }
 
-  async function handleDelete() {
-    if (!confirmDel) { setConfirmDel(true); return; }
-    setDeleting(true);
+  async function handleDeactivate() {
+    setDeactivating(true);
     try {
-      await fetch(`/api/locations/${location.id}`, { method: "DELETE" });
-      info("Local desativado", `"${location.name}" foi removido dos seus locais ativos.`);
+      const res = await fetch(`/api/locations/${location.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: false }),
+      });
+      if (!res.ok) throw new Error();
+      info("Local desativado", `"${location.name}" foi desativado. Reviews pausados.`);
+      setShowDeactivate(false);
       router.push("/locations");
       router.refresh();
     } catch {
       toastError("Erro", "Não foi possível desativar o local.");
+    } finally {
+      setDeactivating(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/locations/${location.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      info("Local excluído", `"${location.name}" e todos os seus dados foram removidos.`);
+      setShowDelete(false);
+      router.push("/locations");
+      router.refresh();
+    } catch {
+      toastError("Erro", "Não foi possível excluir o local.");
+    } finally {
       setDeleting(false);
     }
   }
@@ -457,30 +481,102 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
       </div>
 
       {/* Botões */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <Button type="submit" loading={saving} disabled={!name.trim()}>
           Salvar alterações
         </Button>
 
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={deleting}
-          className={cn(
-            "inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg transition-colors",
-            confirmDel
-              ? "bg-red-600 text-white hover:bg-red-700"
-              : "text-red-500 hover:bg-red-50",
-          )}
-        >
-          <Trash2 size={14} />
-          {confirmDel ? "Confirmar remoção" : "Desativar local"}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Desativar */}
+          <button
+            type="button"
+            onClick={() => setShowDeactivate(true)}
+            className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
+          >
+            <PowerOff size={14} />
+            Desativar
+          </button>
+
+          {/* Excluir */}
+          <button
+            type="button"
+            onClick={() => setShowDelete(true)}
+            className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+          >
+            <Trash2 size={14} />
+            Excluir
+          </button>
+        </div>
       </div>
-      {confirmDel && (
-        <p className="text-xs text-red-600 -mt-2">
-          Clique em &quot;Confirmar remoção&quot; novamente para desativar. Esta ação pode ser revertida.
-        </p>
+
+      {/* ── Modal Desativar ── */}
+      {showDeactivate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 w-full max-w-sm animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-gray-900">Desativar local</h2>
+              <button type="button" onClick={() => setShowDeactivate(false)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100">
+                <X size={15} />
+              </button>
+            </div>
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mb-4">
+              <AlertTriangle size={13} className="text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-800 space-y-1">
+                <p><strong>"{location.name}"</strong> será desativado.</p>
+                <p>O local permanece salvo no banco, mas não receberá nem enviará reviews enquanto estiver inativo.</p>
+                <p>Se você tiver locais extras pagos, o slot será liberado e <strong>o valor reduzido na próxima cobrança</strong>.</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setShowDeactivate(false)} disabled={deactivating}
+                className="flex-1 h-9 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50">
+                Cancelar
+              </button>
+              <button type="button" onClick={handleDeactivate} disabled={deactivating}
+                className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors disabled:opacity-50">
+                {deactivating
+                  ? <><span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Desativando…</>
+                  : "Confirmar desativação"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Excluir ── */}
+      {showDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 w-full max-w-sm animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-gray-900">Excluir local</h2>
+              <button type="button" onClick={() => setShowDelete(false)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100">
+                <X size={15} />
+              </button>
+            </div>
+            <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 mb-4">
+              <AlertTriangle size={13} className="text-red-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-red-800 space-y-1">
+                <p><strong>Esta ação é irreversível.</strong></p>
+                <p>O local <strong>"{location.name}"</strong>, todas as suas avaliações e respostas serão <strong>permanentemente removidos</strong>.</p>
+                <p>Se você tiver locais extras pagos, o slot será cancelado e <strong>o valor reduzido na próxima cobrança</strong>.</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setShowDelete(false)} disabled={deleting}
+                className="flex-1 h-9 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50">
+                Cancelar
+              </button>
+              <button type="button" onClick={handleDelete} disabled={deleting}
+                className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50">
+                {deleting
+                  ? <><span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Excluindo…</>
+                  : "Excluir permanentemente"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </form>
   );

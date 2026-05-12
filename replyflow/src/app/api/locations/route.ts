@@ -62,11 +62,16 @@ export async function POST(request: Request) {
   const serviceClient = createServiceClient();
 
   // Buscar org e plano
-  const { data: userRecord } = await serviceClient
+  const { data: userRecord, error: userRecordError } = await serviceClient
     .from("users")
     .select("organization_id, organization:organizations(plan, extra_locations)")
     .eq("id", user.id)
     .single();
+
+  if (userRecordError) {
+    console.error("[locations POST] userRecord query error:", userRecordError.message, userRecordError.details);
+    return NextResponse.json({ error: userRecordError.message }, { status: 500 });
+  }
 
   if (!userRecord?.organization_id) {
     return NextResponse.json({ error: "Organization not found" }, { status: 404 });
