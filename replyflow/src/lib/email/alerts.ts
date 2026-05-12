@@ -80,15 +80,17 @@ export async function sendNegativeReviewAlert(params: NegativeReviewAlertParams)
 }
 
 // ─── WhatsApp provider abstraction ──────────────────────────────────────────
-// Suporta dois providers (auto-detectados pelas env vars):
-//   • Z-API     → ZAPI_INSTANCE_ID + ZAPI_TOKEN (+ optional ZAPI_CLIENT_TOKEN)
-//   • Evolution → EVOLUTION_API_URL + EVOLUTION_API_KEY
+// Suporta três providers (auto-detectados pelas env vars, ordem de prioridade):
+//   • UltraMsg  → ULTRAMSG_INSTANCE_ID + ULTRAMSG_TOKEN          (~R$25/mês)
+//   • Z-API     → ZAPI_INSTANCE_ID + ZAPI_TOKEN (+ ZAPI_CLIENT_TOKEN opcional)
+//   • Evolution → EVOLUTION_API_URL + EVOLUTION_API_KEY          (self-hosted)
 
-type WaProvider = 'zapi' | 'evolution' | 'none'
+type WaProvider = 'ultramsg' | 'zapi' | 'evolution' | 'none'
 
 function detectWaProvider(): WaProvider {
-  if (process.env.ZAPI_INSTANCE_ID && process.env.ZAPI_TOKEN) return 'zapi'
-  if (process.env.EVOLUTION_API_URL && process.env.EVOLUTION_API_KEY) return 'evolution'
+  if (process.env.ULTRAMSG_INSTANCE_ID && process.env.ULTRAMSG_TOKEN) return 'ultramsg'
+  if (process.env.ZAPI_INSTANCE_ID && process.env.ZAPI_TOKEN)           return 'zapi'
+  if (process.env.EVOLUTION_API_URL && process.env.EVOLUTION_API_KEY)   return 'evolution'
   return 'none'
 }
 
@@ -102,7 +104,22 @@ async function sendWhatsAppMessage(phone: string, message: string): Promise<void
   const provider = detectWaProvider()
   if (provider === 'none') return
 
-  if (provider === 'zapi') {
+  if (provider === 'ultramsg') {
+    // UltraMsg: https://ultramsg.com/
+    // Env vars: ULTRAMSG_INSTANCE_ID, ULTRAMSG_TOKEN
+    const instanceId = process.env.ULTRAMSG_INSTANCE_ID!
+    const token      = process.env.ULTRAMSG_TOKEN!
+    // UltraMsg aceita número com ou sem +; normalizamos para garantir
+    const toPhone = phone.startsWith('+') ? phone : `+${phone}`
+    const body = new URLSearchParams({ token, to: toPhone, body: message })
+    await fetch(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    body.toString(),
+      signal:  AbortSignal.timeout(10000),
+    }).catch((e) => console.warn('[WhatsApp/ultramsg] send failed:', e.message))
+
+  } else if (provider === 'zapi') {
     // Z-API: https://developer.z-api.io/
     const instanceId    = process.env.ZAPI_INSTANCE_ID!
     const token         = process.env.ZAPI_TOKEN!

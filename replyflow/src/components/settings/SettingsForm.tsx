@@ -91,7 +91,7 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
       if (res.ok) {
         success("WhatsApp de teste enviado!", `Mensagem enviada para ${data.phone} via ${data.provider}.`);
       } else if (data.error === "provider_not_configured") {
-        toastError("Provider não configurado", "Adicione ZAPI_INSTANCE_ID + ZAPI_TOKEN nas env vars da Vercel.");
+        toastError("Provider não configurado", "Adicione ULTRAMSG_INSTANCE_ID + ULTRAMSG_TOKEN (ou ZAPI/Evolution) nas env vars da Vercel.");
       } else if (data.error === "no_phone") {
         toastError("Número não cadastrado", "Salve um número WhatsApp nas configurações primeiro.");
       } else {

@@ -9,6 +9,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { sendWhatsAppAlert } from "@/lib/email/alerts";
 
 function detectProvider() {
+  if (process.env.ULTRAMSG_INSTANCE_ID && process.env.ULTRAMSG_TOKEN)   return "ultramsg";
   if (process.env.ZAPI_INSTANCE_ID && process.env.ZAPI_TOKEN)           return "zapi";
   if (process.env.EVOLUTION_API_URL && process.env.EVOLUTION_API_KEY)   return "evolution";
   return "none";
