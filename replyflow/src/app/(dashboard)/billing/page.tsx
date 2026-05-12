@@ -5,12 +5,10 @@ import { syncPlanFromStripe } from "@/lib/stripe/syncPlan";
 import { BillingPlanSelector } from "@/components/billing/BillingPlanSelector";
 import Link from "next/link";
 import {
-  CreditCard, CheckCircle2, Zap, Crown, Building2,
-  ExternalLink, MapPin, Clock, RefreshCw,
+  CheckCircle2, Zap, Crown, Building2, Clock, RefreshCw,
 } from "lucide-react";
 import { CheckoutSuccessBanner } from "@/components/billing/CheckoutSuccessBanner";
 import { ManageSubscriptionButton } from "@/components/billing/ManageSubscriptionButton";
-import { ExtraLocationsAddon } from "@/components/billing/ExtraLocationsAddon";
 
 export const dynamic = "force-dynamic";
 
@@ -286,20 +284,6 @@ export default async function BillingPage({
       })()}
 
       {/* ── Paid plan sections ───────────────────────────────────────────────── */}
-
-      {/* Extra-location add-on (todos os planos pagos) */}
-      {currentPlan !== "free" && (
-        <div className="mb-4">
-          <ExtraLocationsAddon
-            currentExtra={org?.extra_locations ?? 0}
-            baseLocations={
-              currentPlan === "agency" ? 3 :
-              currentPlan === "pro"    ? 3 : 1
-            }
-            hasStripe={hasStripe}
-          />
-        </div>
-      )}
 
       {/* Agency upsell (for Starter or Pro) */}
       {(currentPlan === "starter" || currentPlan === "pro") && (
