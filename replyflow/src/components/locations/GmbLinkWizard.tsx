@@ -129,6 +129,7 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
       });
       if (!res.ok) throw new Error();
       setSaved(true);
+      setMode("idle");
       router.refresh();
     } catch {
       setErrorCode("save_failed");
@@ -137,8 +138,8 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
     }
   }
 
-  // ── Already linked ─────────────────────────────────────────────────────────
-  if (googleLocationName) {
+  // ── Already linked (and not editing) ──────────────────────────────────────
+  if (googleLocationName && mode === "idle") {
     return (
       <div className="flex items-center gap-2.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-4 py-3">
         <CheckCircle2 size={16} className="text-green-600 shrink-0" />
