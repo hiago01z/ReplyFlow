@@ -347,21 +347,16 @@ export function GmbLinkWizard({ locationId, googleLocationName, googleAccessToke
                 </div>
               </div>
 
-              <Step n={4} label="Copie o número e cole abaixo:" />
+              <Step n={4} label="Copie o ID e cole abaixo:" />
               <div className="ml-8 space-y-2">
                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
-                  <p className="text-xs text-amber-800 dark:text-amber-300 font-medium">Exemplo: ID do Perfil da Empresa</p>
-                  <div className="font-mono text-sm text-amber-900 dark:text-amber-200 mt-0.5 flex items-center gap-2">
-                    <span className="bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 px-2 py-0.5 rounded font-bold">
-                      7193183758438207469
-                    </span>
-                    <CopyButton text="7193183758438207469" />
-                  </div>
+                  <p className="text-xs text-amber-800 dark:text-amber-300 font-medium">O ID fica em Configurações avançadas, campo "ID do Perfil da Empresa"</p>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1">Formato: número de 18-19 dígitos, ex: <span className="font-mono font-semibold">1234567890123456789</span></p>
                 </div>
                 <input
                   value={manualInput}
                   onChange={(e) => setManualInput(e.target.value)}
-                  placeholder="Cole o ID aqui (ex: 7193183758438207469)"
+                  placeholder="Cole o ID do Perfil da Empresa aqui"
                   className="w-full text-sm border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white dark:bg-[#18181f] text-gray-800 dark:text-gray-200 font-mono"
                 />
                 <p className="text-[11px] text-gray-400 dark:text-gray-500">
