@@ -78,6 +78,44 @@ export async function POST(
     await gmb.replyToReview(reviewName, parsed.data.responseContent)
   }
 
+  // Publicar no Facebook via Graph API
+  if (review.platform === 'facebook') {
+    if (!review.location.facebook_access_token) {
+      return NextResponse.json(
+        { error: 'Facebook não está conectado a este local.' },
+        { status: 422 }
+      )
+    }
+    if (!review.external_id) {
+      return NextResponse.json(
+        { error: 'ID da avaliação Facebook não encontrado.' },
+        { status: 422 }
+      )
+    }
+
+    const fbRes = await fetch(
+      `https://graph.facebook.com/v19.0/${review.external_id}/comments`,
+      {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          message:      parsed.data.responseContent,
+          access_token: review.location.facebook_access_token,
+        }),
+      }
+    )
+
+    if (!fbRes.ok) {
+      const fbErr = await fbRes.json().catch(() => ({})) as { error?: { message?: string } }
+      const msg = fbErr?.error?.message ?? 'Erro desconhecido ao publicar no Facebook.'
+      console.error('[publish] Facebook Graph API error:', msg)
+      return NextResponse.json(
+        { error: 'Não foi possível publicar no Facebook.', detail: msg },
+        { status: 502 }
+      )
+    }
+  }
+
   const now = new Date().toISOString()
 
   // Upsert da resposta: salva content (editado pelo usuário) e marca como publicada.

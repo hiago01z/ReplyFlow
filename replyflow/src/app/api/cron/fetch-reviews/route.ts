@@ -46,13 +46,14 @@ async function runSync() {
   }
 
   const results = {
-    processed:      0,
-    newReviews:     0,
-    scheduled:      0,
-    autoPublished:  0,
-    alertsSent:     0,
-    detected:       0,
-    errors:         0,
+    processed:           0,
+    newReviews:          0,
+    newFacebookReviews:  0,
+    scheduled:           0,
+    autoPublished:       0,
+    alertsSent:          0,
+    detected:            0,
+    errors:              0,
   }
 
   // ── PASS 0: Auto-detectar google_location_name para locais ainda não vinculados ─
@@ -247,7 +248,150 @@ async function runSync() {
     }
   }
 
-  // ── PASS 2: Publicar reviews agendados ───────────────────────────────────────
+  // ── PASS 2: Buscar novas avaliações do Facebook ──────────────────────────────
+  const { data: facebookLocations, error: fbError } = await serviceClient
+    .from('locations')
+    .select('id, name, niche, organization_id, facebook_page_id, facebook_access_token, organization:organizations(plan, alert_email, webhook_url, webhook_secret)')
+    .eq('active', true)
+    .eq('facebook_connected', true)
+    .not('facebook_access_token', 'is', null)
+    .not('facebook_page_id', 'is', null)
+
+  if (fbError) {
+    console.error('[cron] error fetching Facebook locations:', fbError)
+  }
+
+  for (const location of facebookLocations ?? []) {
+    try {
+      const ratingsRes = await fetch(
+        `https://graph.facebook.com/v19.0/${location.facebook_page_id}/ratings` +
+        `?fields=id,reviewer,rating,review_text,created_time&limit=50` +
+        `&access_token=${location.facebook_access_token}`,
+      )
+
+      if (!ratingsRes.ok) {
+        const errText = await ratingsRes.text()
+        console.error(`[cron] Facebook ratings API error for location ${location.id}:`, errText)
+        results.errors++
+        continue
+      }
+
+      const ratingsData = await ratingsRes.json() as {
+        data: {
+          id:           string
+          reviewer:     { name: string; id: string }
+          rating:       number
+          review_text?: string
+          created_time: string
+        }[]
+      }
+
+      for (const fbReview of ratingsData.data ?? []) {
+        const rating  = fbReview.rating
+        const content = fbReview.review_text ?? null
+
+        const { data: inserted, error: insertError } = await serviceClient
+          .from('reviews')
+          .upsert(
+            {
+              location_id:            location.id,
+              platform:               'facebook',
+              external_id:            fbReview.id,
+              author_name:            fbReview.reviewer.name,
+              rating,
+              content,
+              platform_published_at:  fbReview.created_time,
+              status:                 'pending',
+            },
+            { onConflict: 'platform,external_id', ignoreDuplicates: true }
+          )
+          .select('id, rating, status')
+          .single()
+
+        if (insertError || !inserted) continue
+
+        results.newFacebookReviews++
+
+        // ── Alerta para avaliações negativas (1-2 estrelas) ──────────────────
+        if (rating <= 2) {
+          const { data: orgUser } = await serviceClient
+            .from('users')
+            .select('email, whatsapp, email_alerts')
+            .eq('organization_id', location.organization_id)
+            .eq('role', 'owner')
+            .single()
+
+          const org = location.organization as unknown as {
+            plan: string; alert_email: string | null;
+            webhook_url: string | null; webhook_secret: string | null;
+          } | null
+
+          const alertTo = org?.alert_email || orgUser?.email
+
+          if (alertTo && orgUser?.email_alerts !== false) {
+            const isProOrAgency = org?.plan === 'pro' || org?.plan === 'agency'
+
+            await sendNegativeReviewAlert({
+              to:           alertTo,
+              businessName: location.name,
+              authorName:   fbReview.reviewer.name,
+              rating,
+              content:      content ?? '',
+              reviewId:     inserted.id,
+            }).catch(() => null)
+
+            await serviceClient.from('alerts').insert({
+              review_id: inserted.id,
+              channel:   'email',
+              recipient: alertTo,
+            })
+
+            if (isProOrAgency && orgUser?.whatsapp) {
+              await sendWhatsAppAlert({
+                phone:        orgUser.whatsapp,
+                businessName: location.name,
+                authorName:   fbReview.reviewer.name,
+                rating,
+                content:      content ?? '',
+                reviewId:     inserted.id,
+              }).catch(() => null)
+
+              await serviceClient.from('alerts').insert({
+                review_id: inserted.id,
+                channel:   'whatsapp',
+                recipient: orgUser.whatsapp,
+              })
+            }
+
+            results.alertsSent++
+
+            // Webhook personalizado (Pro/Agency)
+            if (isProOrAgency && org?.webhook_url) {
+              const webhookPayload: WebhookPayload = {
+                event:         'review.negative',
+                review_id:     inserted.id,
+                location_id:   location.id,
+                business_name: location.name,
+                author_name:   fbReview.reviewer.name,
+                rating,
+                content,
+                platform:      'facebook',
+                review_url:    `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow-hivi.com'}/reviews?highlight=${inserted.id}`,
+                timestamp:     new Date().toISOString(),
+              }
+              await sendWebhook(org.webhook_url, org.webhook_secret ?? null, webhookPayload)
+                .catch((err) => console.warn(`[cron] Facebook webhook failed for org ${location.organization_id}:`, err instanceof Error ? err.message : err))
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error(`[cron] error fetching Facebook reviews for location ${location.id}:`, err)
+      results.errors++
+    }
+  }
+
+  // ── PASS 3: Publicar reviews agendados ───────────────────────────────────────
   // Separado do Pass 1 para que reviews de DEMO também sejam publicados,
   // mesmo sem google_location_name configurado.
   const { data: autoPublishLocations } = await serviceClient
@@ -333,13 +477,14 @@ async function runSync() {
   }
 
   console.log('[cron] runSync completed', {
-    locationsProcessed: results.processed,
-    newReviews:         results.newReviews,
-    scheduled:          results.scheduled,
-    autoPublished:      results.autoPublished,
-    alertsSent:         results.alertsSent,
-    locationsDetected:  results.detected,
-    errors:             results.errors,
+    locationsProcessed:  results.processed,
+    newGoogleReviews:    results.newReviews,
+    newFacebookReviews:  results.newFacebookReviews,
+    scheduled:           results.scheduled,
+    autoPublished:       results.autoPublished,
+    alertsSent:          results.alertsSent,
+    locationsDetected:   results.detected,
+    errors:              results.errors,
   })
 }
 

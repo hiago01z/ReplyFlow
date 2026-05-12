@@ -8,8 +8,63 @@ import { PLAN_LIMITS } from "@/types";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 
+// ── Platform filter tabs ──────────────────────────────────────────────────────
+
+type PlatformKey = "google" | "tripadvisor" | "facebook";
+
+const PLATFORM_META: Record<PlatformKey, { label: string; color: string }> = {
+  google:      { label: "Google",      color: "text-[#4285F4]" },
+  tripadvisor: { label: "TripAdvisor", color: "text-[#00AF87]" },
+  facebook:    { label: "Facebook",    color: "text-[#1877F2]" },
+};
+
+interface PlatformTabsProps {
+  activePlatforms: PlatformKey[];
+  counts: Record<string, number>;
+  currentPlatform?: string;
+  baseHref: string;
+}
+
+function PlatformTabs({ activePlatforms, counts, currentPlatform, baseHref }: PlatformTabsProps) {
+  if (activePlatforms.length <= 1) return null; // só mostra se tem 2+ plataformas
+
+  const all = [null, ...activePlatforms] as (PlatformKey | null)[];
+
+  return (
+    <div className="flex items-center gap-1 flex-wrap mb-4">
+      {all.map((p) => {
+        const isActive = p === null ? !currentPlatform : currentPlatform === p;
+        const href = p === null ? baseHref : `${baseHref}${baseHref.includes("?") ? "&" : "?"}platform=${p}`;
+        const label = p === null ? "Todos" : PLATFORM_META[p].label;
+        const cnt   = p === null ? Object.values(counts).reduce((a, b) => a + b, 0) : (counts[p] ?? 0);
+
+        return (
+          <Link
+            key={p ?? "all"}
+            href={href}
+            className={[
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+              isActive
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "bg-white border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600",
+            ].join(" ")}
+          >
+            {label}
+            <span className={[
+              "text-xs font-semibold px-1.5 py-0.5 rounded-full",
+              isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500",
+            ].join(" ")}>
+              {cnt}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 interface ReviewsPageProps {
-  searchParams: Promise<{ status?: string; rating?: string; locationId?: string; page?: string; highlight?: string; search?: string }>;
+  searchParams: Promise<{ status?: string; rating?: string; locationId?: string; page?: string; highlight?: string; search?: string; platform?: string }>;
 }
 
 export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
@@ -30,11 +85,20 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
   const { data: locations } = await serviceClient
     .from("locations")
-    .select("id, name")
+    .select("id, name, google_access_token, tripadvisor_connected, facebook_connected")
     .eq("organization_id", userRecord!.organization_id)
     .eq("active", true);
 
   const locationIds = (locations ?? []).map((l) => l.id);
+
+  // Determinar quais plataformas estão conectadas (para mostrar as tabs corretas)
+  const connectedPlatforms = new Set<PlatformKey>();
+  for (const loc of locations ?? []) {
+    if (loc.google_access_token)   connectedPlatforms.add("google");
+    if (loc.tripadvisor_connected) connectedPlatforms.add("tripadvisor");
+    if (loc.facebook_connected)    connectedPlatforms.add("facebook");
+  }
+  const activePlatforms = Array.from(connectedPlatforms);
 
   if (locationIds.length === 0) {
     // Check if there are inactive locations (soft-deleted)
@@ -92,14 +156,28 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
     .order("platform_published_at", { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
-  if (params.status) query = query.eq("status", params.status);
-  if (params.rating) query = query.eq("rating", parseInt(params.rating));
+  if (params.status)   query = query.eq("status", params.status);
+  if (params.rating)   query = query.eq("rating", parseInt(params.rating));
+  if (params.platform) query = query.eq("platform", params.platform);
   if (params.search) {
     const term = `%${params.search}%`;
     query = query.or(`content.ilike.${term},author_name.ilike.${term}`);
   }
 
   const { data: reviews, count } = await query;
+
+  // Contar reviews por plataforma (para badges nas tabs)
+  const platformCounts: Record<string, number> = {};
+  if (activePlatforms.length > 1 && locationIds.length > 0) {
+    for (const p of activePlatforms) {
+      const { count: pCount } = await serviceClient
+        .from("reviews")
+        .select("id", { count: "exact", head: true })
+        .in("location_id", locationIds)
+        .eq("platform", p);
+      platformCounts[p] = pCount ?? 0;
+    }
+  }
 
   // ── Check if demo reviews exist for this org ───────────────────────────────
   const { count: demoCount } = await serviceClient
@@ -149,6 +227,23 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         <UpgradeBanner used={monthlyUsed} limit={monthlyLimit} />
       )}
 
+      {activePlatforms.length > 1 && (
+        <PlatformTabs
+          activePlatforms={activePlatforms}
+          counts={platformCounts}
+          currentPlatform={params.platform}
+          baseHref={[
+            "/reviews",
+            [
+              params.status    && `status=${params.status}`,
+              params.rating    && `rating=${params.rating}`,
+              params.locationId && `locationId=${params.locationId}`,
+              params.search    && `search=${encodeURIComponent(params.search)}`,
+            ].filter(Boolean).join("&"),
+          ].filter(Boolean).join("?")}
+        />
+      )}
+
       <ReviewList
         reviews={reviews ?? []}
         locations={locations ?? []}
@@ -156,10 +251,11 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         page={page}
         pageSize={pageSize}
         currentFilters={{
-          status: params.status,
-          rating: params.rating,
+          status:     params.status,
+          rating:     params.rating,
           locationId: params.locationId,
-          search: params.search,
+          search:     params.search,
+          platform:   params.platform,
         }}
         highlightId={params.highlight}
       />

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe/client";
-import { PLAN_LIMITS, type Plan } from "@/lib/plan-limits";
+import { PLAN_LIMITS, countConnectedPlatforms, type Plan } from "@/lib/plan-limits";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -190,6 +190,40 @@ export async function PATCH(
       );
     }
     // Slot disponível — apenas ativa, sem ajuste de Stripe necessário
+  }
+
+  // ── Conexão de nova plataforma: verificar limite do plano ────────────────
+  const connectingTripAdvisor = parsed.data.tripadvisor_connected === true;
+  const connectingFacebook    = parsed.data.facebook_connected === true;
+
+  if (connectingTripAdvisor || connectingFacebook) {
+    const { data: locFull } = await serviceClient
+      .from("locations")
+      .select("google_access_token, tripadvisor_connected, facebook_connected")
+      .eq("id", id)
+      .single();
+
+    if (locFull) {
+      const plan            = ctx.org.plan as Plan;
+      const platformLimit   = PLAN_LIMITS[plan]?.platforms ?? 2;
+      const currentCount    = countConnectedPlatforms(locFull);
+
+      // Verificar se a plataforma específica já está conectada (evitar falso positivo)
+      const alreadyConnected =
+        (connectingTripAdvisor && locFull.tripadvisor_connected) ||
+        (connectingFacebook    && locFull.facebook_connected);
+
+      if (!alreadyConnected && currentCount >= platformLimit) {
+        return NextResponse.json(
+          {
+            error:   "platform_limit",
+            message: `Seu plano ${plan} permite até ${platformLimit} plataformas por local.`,
+            limit:   platformLimit,
+          },
+          { status: 403 },
+        );
+      }
+    }
   }
 
   // ── Desativação: ajustar Stripe ───────────────────────────────────────────

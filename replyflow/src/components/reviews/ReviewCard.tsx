@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, Sparkles, Send, EyeOff, RotateCcw, CheckCircle2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles, Send, EyeOff, RotateCcw, CheckCircle2, Copy, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Input";
@@ -60,6 +60,7 @@ export function ReviewCard({
   const [responseText, setResponseText] = useState(review.response?.content ?? "");
   const [generating, setGenerating]     = useState(false);
   const [publishing, setPublishing]     = useState(false);
+  const [copied, setCopied]             = useState(false);
   const [upgradeModal, setUpgradeModal] = useState<{ open: boolean; reason: UpgradeModalProps["reason"] }>({ open: false, reason: "response_limit" });
   const [expanded, setExpanded]         = useState(
     highlighted || review.status === "pending" || review.status === "draft"
@@ -145,9 +146,14 @@ export function ReviewCard({
       });
       if (res.ok) {
         router.refresh();
-        success("Resposta publicada!", "A resposta foi publicada no Google.");
+        const platformLabel =
+          review.platform === "facebook" ? "Facebook" :
+          review.platform === "tripadvisor" ? "TripAdvisor" : "Google";
+        success("Resposta publicada!", `A resposta foi publicada no ${platformLabel}.`);
       } else {
-        toastError("Erro ao publicar", "Não foi possível publicar. Verifique a conexão com o Google.");
+        const data = await res.json().catch(() => ({})) as { error?: string; detail?: string };
+        const msg = data?.detail ?? data?.error ?? "Não foi possível publicar. Verifique a conexão com a plataforma.";
+        toastError("Erro ao publicar", msg);
       }
     } catch {
       toastError("Erro ao publicar", "Verifique sua conexão e tente novamente.");
@@ -161,6 +167,18 @@ export function ReviewCard({
       info("Review ignorado", "Este review não aparecerá mais como pendente.");
     } catch {
       toastError("Erro", "Não foi possível ignorar o review.");
+    }
+  }
+
+  async function handleCopyResponse() {
+    if (!responseText) return;
+    try {
+      await navigator.clipboard.writeText(responseText);
+      setCopied(true);
+      success("Resposta copiada!", "Cole a resposta diretamente no TripAdvisor.");
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      toastError("Erro ao copiar", "Não foi possível copiar para a área de transferência.");
     }
   }
 
@@ -313,15 +331,43 @@ export function ReviewCard({
               />
 
               {responseText && (
-                <div className="flex items-center gap-2">
-                  <Button size="sm" onClick={handlePublish} loading={publishing} className="gap-1.5 bg-green-600 hover:bg-green-700">
-                    <Send size={13} />
-                    Publicar resposta
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={handleIgnore} className="gap-1.5 text-gray-500">
-                    <EyeOff size={13} />
-                    Ignorar
-                  </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {review.platform === "tripadvisor" ? (
+                    // TripAdvisor não tem API — botão de copiar + link externo
+                    <>
+                      <Button size="sm" onClick={handleCopyResponse} className={cn("gap-1.5", copied ? "bg-green-600 hover:bg-green-700" : "bg-indigo-600 hover:bg-indigo-700")}>
+                        {copied ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                        {copied ? "Copiado!" : "Copiar resposta"}
+                      </Button>
+                      {(review.location as { tripadvisor_url?: string } | undefined)?.tripadvisor_url && (
+                        <a
+                          href={(review.location as { tripadvisor_url?: string }).tripadvisor_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#00AF87] hover:underline"
+                        >
+                          <ExternalLink size={12} />
+                          Abrir no TripAdvisor
+                        </a>
+                      )}
+                      <Button size="sm" variant="ghost" onClick={handleIgnore} className="gap-1.5 text-gray-500">
+                        <EyeOff size={13} />
+                        Ignorar
+                      </Button>
+                    </>
+                  ) : (
+                    // Google e Facebook — publicar via API
+                    <>
+                      <Button size="sm" onClick={handlePublish} loading={publishing} className="gap-1.5 bg-green-600 hover:bg-green-700">
+                        <Send size={13} />
+                        Publicar resposta
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={handleIgnore} className="gap-1.5 text-gray-500">
+                        <EyeOff size={13} />
+                        Ignorar
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
             </div>

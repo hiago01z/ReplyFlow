@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, ExternalLink, Info } from "lucide-react";
 
 interface Props {
-  locationId: string;
-  platform:   "tripadvisor" | "facebook";
-  onClose:    () => void;
-  onAdded:    () => void;
+  locationId:      string;
+  platform:        "tripadvisor" | "facebook";
+  tripadvisorUrl?: string | null;
+  onClose:         () => void;
+  onAdded:         () => void;
 }
 
 const PLATFORM_LABEL: Record<string, string> = {
@@ -15,7 +16,7 @@ const PLATFORM_LABEL: Record<string, string> = {
   facebook:    "Facebook",
 };
 
-export function AddManualReviewModal({ locationId, platform, onClose, onAdded }: Props) {
+export function AddManualReviewModal({ locationId, platform, tripadvisorUrl, onClose, onAdded }: Props) {
   const [authorName,  setAuthorName]  = useState("");
   const [rating,      setRating]      = useState(5);
   const [content,     setContent]     = useState("");
@@ -71,6 +72,32 @@ export function AddManualReviewModal({ locationId, platform, onClose, onAdded }:
             <X size={15} />
           </button>
         </div>
+
+        {/* Instrução para TripAdvisor */}
+        {platform === "tripadvisor" && (
+          <div className="mb-4 bg-[#00AF87]/10 border border-[#00AF87]/30 rounded-xl px-4 py-3 flex items-start gap-3">
+            <Info size={15} className="text-[#00AF87] mt-0.5 shrink-0" />
+            <div className="text-xs text-[#007a62] space-y-1">
+              <p className="font-semibold">Como importar do TripAdvisor:</p>
+              <ol className="list-decimal list-inside space-y-0.5">
+                <li>Abra sua página no TripAdvisor</li>
+                <li>Copie o texto da avaliação</li>
+                <li>Cole no campo abaixo</li>
+              </ol>
+              {tripadvisorUrl && (
+                <a
+                  href={tripadvisorUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-semibold mt-1.5 hover:underline"
+                >
+                  <ExternalLink size={11} />
+                  Abrir minha página no TripAdvisor
+                </a>
+              )}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nome do autor */}

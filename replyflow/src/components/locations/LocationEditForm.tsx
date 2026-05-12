@@ -695,6 +695,7 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
         <AddManualReviewModal
           locationId={location.id}
           platform="tripadvisor"
+          tripadvisorUrl={location.tripadvisor_url}
           onClose={() => setShowAddReview(false)}
           onAdded={() => { setShowAddReview(false); router.refresh(); }}
         />

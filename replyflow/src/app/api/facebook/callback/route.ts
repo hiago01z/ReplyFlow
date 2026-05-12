@@ -48,7 +48,27 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/locations?error=facebook_token_failed`);
   }
 
-  const { access_token: userToken } = await tokenRes.json() as { access_token: string };
+  const { access_token: shortLivedToken } = await tokenRes.json() as { access_token: string };
+
+  // Trocar short-lived token por long-lived token (válido 60 dias)
+  // Os page_access_tokens obtidos a partir de um long-lived token são permanentes.
+  const llRes = await fetch(
+    `https://graph.facebook.com/v19.0/oauth/access_token?` +
+    new URLSearchParams({
+      grant_type:       "fb_exchange_token",
+      client_id:        appId,
+      client_secret:    appSecret,
+      fb_exchange_token: shortLivedToken,
+    }),
+  );
+
+  let userToken = shortLivedToken; // fallback se a troca falhar
+  if (llRes.ok) {
+    const llData = await llRes.json() as { access_token: string };
+    userToken = llData.access_token;
+  } else {
+    console.warn("[facebook/callback] long-lived token exchange failed, using short-lived token");
+  }
 
   // Buscar as páginas gerenciadas pelo usuário
   const pagesRes = await fetch(

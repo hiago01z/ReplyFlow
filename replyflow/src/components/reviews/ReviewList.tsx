@@ -17,7 +17,7 @@ interface ReviewListProps {
   total: number;
   page: number;
   pageSize: number;
-  currentFilters: { status?: string; rating?: string; locationId?: string; search?: string };
+  currentFilters: { status?: string; rating?: string; locationId?: string; search?: string; platform?: string };
   highlightId?: string;
 }
 
