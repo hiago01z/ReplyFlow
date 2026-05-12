@@ -95,5 +95,5 @@ export const PLAN_LIMITS: Record<Plan, { locations: number; platforms: number; r
   free: { locations: 1, platforms: 2, responsesPerMonth: 10 },
   starter: { locations: 1, platforms: 3, responsesPerMonth: null },
   pro: { locations: 3, platforms: 10, responsesPerMonth: null },
-  agency: { locations: Infinity, platforms: 10, responsesPerMonth: null },
+  agency: { locations: 3, platforms: 10, responsesPerMonth: null },
 }

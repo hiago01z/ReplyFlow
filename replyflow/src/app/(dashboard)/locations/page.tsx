@@ -1,6 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw, Zap, AlertCircle, Globe, ShoppingCart } from "lucide-react";
+import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw, Zap, AlertCircle, Globe } from "lucide-react";
 import { SyncNowButton } from "@/components/locations/SyncNowButton";
 import { ReactivateLocationButton } from "@/components/locations/ReactivateLocationButton";
 import { PLAN_LIMITS, getEffectiveLocationLimit, type Plan } from "@/lib/plan-limits";
@@ -54,8 +54,8 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
   }
 
   const activeCount = activeIds.length;
-  const atLimit = effectiveLimit !== Infinity && activeCount >= effectiveLimit;
-  const usagePct = effectiveLimit !== Infinity && effectiveLimit > 0
+  const atLimit = activeCount >= effectiveLimit;
+  const usagePct = effectiveLimit > 0
     ? Math.min(100, Math.round((activeCount / effectiveLimit) * 100))
     : 0;
 
@@ -70,10 +70,10 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
         {atLimit ? (
           <Link
             href="/billing"
-            className="inline-flex items-center gap-2 border border-red-200 text-red-600 bg-red-50 text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-red-100 transition-colors"
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
           >
-            <ShoppingCart size={15} />
-            Comprar mais locais
+            <Plus size={15} />
+            Adicionar local
           </Link>
         ) : (
           <Link
@@ -87,8 +87,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
       </div>
 
       {/* ── Barra de uso de locais ─────────────────────────────────────────────── */}
-      {effectiveLimit !== Infinity && (
-        <div className="card px-5 py-4 mb-6 flex items-center gap-4">
+      <div className="card px-5 py-4 mb-6 flex items-center gap-4">
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-medium text-gray-700">
@@ -96,7 +95,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
               </span>
               {extraLocations > 0 && (
                 <span className="text-[11px] text-gray-400">
-                  {baseLocations === Infinity ? "∞" : baseLocations} base + {extraLocations} extras
+                  {baseLocations} base + {extraLocations} extras
                 </span>
               )}
               {atLimit ? (
@@ -123,11 +122,10 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
               href="/billing"
               className="shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap"
             >
-              + Comprar local →
+              + Adicionar local →
             </Link>
           )}
         </div>
-      )}
 
       {/* Toast feedback */}
       {params.success === "google_connected" && (

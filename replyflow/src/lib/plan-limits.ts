@@ -17,24 +17,21 @@ export interface PlanLimits {
 }
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
-  free:    { locations: 1,        aiResponsesPerMonth: 10,   agencyClients: null, agencyClientLocations: 0 },
-  starter: { locations: 1,        aiResponsesPerMonth: 50,   agencyClients: null, agencyClientLocations: 0 },
-  pro:     { locations: 3,        aiResponsesPerMonth: null,  agencyClients: null, agencyClientLocations: 0 },
-  agency:  { locations: Infinity, aiResponsesPerMonth: null,  agencyClients: 10,  agencyClientLocations: 3 },
+  free:    { locations: 1, aiResponsesPerMonth: 10,   agencyClients: null, agencyClientLocations: 0 },
+  starter: { locations: 1, aiResponsesPerMonth: 50,   agencyClients: null, agencyClientLocations: 0 },
+  pro:     { locations: 3, aiResponsesPerMonth: null,  agencyClients: null, agencyClientLocations: 0 },
+  // Agência: 3 locais próprios (mesmo que Pro) + 3 locais por cada cliente no painel
+  agency:  { locations: 3, aiResponsesPerMonth: null,  agencyClients: 10,  agencyClientLocations: 3 },
 };
 
 /** Limite efetivo de locais = base do plano + extras comprados. */
 export function getEffectiveLocationLimit(plan: Plan, extraLocations: number): number {
-  const base = PLAN_LIMITS[plan].locations;
-  if (base === Infinity) return Infinity;
-  return base + extraLocations;
+  return PLAN_LIMITS[plan].locations + extraLocations;
 }
 
 /** Verifica se a org pode criar mais um local. */
 export function canAddLocation(plan: Plan, currentCount: number, extraLocations: number): boolean {
-  const limit = getEffectiveLocationLimit(plan, extraLocations);
-  if (limit === Infinity) return true;
-  return currentCount < limit;
+  return currentCount < getEffectiveLocationLimit(plan, extraLocations);
 }
 
 /** Verifica se a org pode gerar mais uma resposta IA neste mês. */
