@@ -1,9 +1,10 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { MapPin, Plus, CheckCircle2, Wifi, Settings2, RefreshCw, Zap, AlertCircle, Globe } from "lucide-react";
+import { MapPin, Plus, CheckCircle2, Settings2, RefreshCw, Zap, AlertCircle, Globe } from "lucide-react";
 import { SyncNowButton } from "@/components/locations/SyncNowButton";
 import { ReactivateLocationButton } from "@/components/locations/ReactivateLocationButton";
 import { BuyExtraLocationButton } from "@/components/locations/BuyExtraLocationButton";
+import { PlatformBadges } from "@/components/locations/PlatformBadges";
 import { PLAN_LIMITS, getEffectiveLocationLimit, type Plan } from "@/lib/plan-limits";
 
 interface LocationsPageProps {
@@ -204,6 +205,8 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                         Último review: {lastSyncLabel}
                       </p>
                     )}
+                    {/* Plataformas conectadas */}
+                    <PlatformBadges loc={loc} plan={plan} compact />
                   </div>
                 </div>
 
@@ -213,33 +216,9 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
                   {!loc.active && (
                     <ReactivateLocationButton locationId={loc.id} currentExtra={extraLocations} />
                   )}
-                  {/* Sync manual button — only for connected active locations */}
+                  {/* Sync manual — apenas Google conectado e ativo */}
                   {loc.active && isConnected && loc.google_location_name && (
                     <SyncNowButton locationId={loc.id} />
-                  )}
-                  {loc.active && (
-                    isConnected && loc.google_location_name ? (
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1.5 rounded-full">
-                        <Wifi size={12} />
-                        <span className="hidden sm:inline">Google conectado</span>
-                        <span className="sm:hidden">Conectado</span>
-                      </div>
-                    ) : isConnected && !loc.google_location_name ? (
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 px-2.5 py-1.5 rounded-full" title="Aguardando sincronização automática">
-                        <Wifi size={12} />
-                        <span className="hidden sm:inline">Sincronizando…</span>
-                        <span className="sm:hidden">Sync…</span>
-                      </div>
-                    ) : (
-                      <a
-                        href={`/api/google/auth?locationId=${loc.id}`}
-                        className="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-2.5 py-1.5 rounded-full transition-colors"
-                      >
-                        <Plus size={12} />
-                        <span className="hidden sm:inline">Conectar Google</span>
-                        <span className="sm:hidden">Google</span>
-                      </a>
-                    )
                   )}
                   {/* Public profile link */}
                   {loc.is_public && loc.public_slug && (

@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw, PowerOff, X, AlertTriangle } from "lucide-react";
+import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw, PowerOff, X, AlertTriangle, Link2, Plus } from "lucide-react";
 import type { Location } from "@/types";
 import { GmbLinkWizard } from "@/components/locations/GmbLinkWizard";
+import { AddManualReviewModal } from "@/components/reviews/AddManualReviewModal";
 
 const NICHES = [
   { value: "clinica",      label: "Clínica / Saúde",    icon: "🏥" },
@@ -48,6 +49,17 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
   const [showDelete,       setShowDelete]      = useState(false);
   const [deleting,         setDeleting]        = useState(false);
   const [relinking,        setRelinking]       = useState(false);
+
+  // TripAdvisor
+  const [taUrl,        setTaUrl]        = useState(location.tripadvisor_url ?? "");
+  const [taConnected,  setTaConnected]  = useState(location.tripadvisor_connected);
+  const [taSaving,     setTaSaving]     = useState(false);
+  const [showAddReview, setShowAddReview] = useState(false);
+
+  // Facebook
+  const [fbConnected,  setFbConnected]  = useState(location.facebook_connected);
+  const [fbPageName,   setFbPageName]   = useState(location.facebook_page_name ?? "");
+  const [fbDisconnecting, setFbDisconnecting] = useState(false);
 
   // Derive a default slug from the location name (only used as placeholder)
   const suggestedSlug = location.name
@@ -129,6 +141,71 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
       toastError("Erro ao salvar", "Verifique sua conexão e tente novamente.");
     } finally {
       setSaving(false); }
+  }
+
+  async function handleSaveTripAdvisor() {
+    if (!taUrl.trim()) return;
+    setTaSaving(true);
+    try {
+      const res = await fetch(`/api/locations/${location.id}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ tripadvisor_url: taUrl.trim(), tripadvisor_connected: true }),
+      });
+      if (!res.ok) throw new Error();
+      setTaConnected(true);
+      success("TripAdvisor vinculado!", "Você já pode adicionar avaliações manualmente.");
+      router.refresh();
+    } catch {
+      toastError("Erro", "Não foi possível vincular o TripAdvisor.");
+    } finally {
+      setTaSaving(false);
+    }
+  }
+
+  async function handleDisconnectTripAdvisor() {
+    setTaSaving(true);
+    try {
+      const res = await fetch(`/api/locations/${location.id}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ tripadvisor_url: null, tripadvisor_connected: false }),
+      });
+      if (!res.ok) throw new Error();
+      setTaConnected(false);
+      setTaUrl("");
+      info("TripAdvisor desvinculado.", "");
+      router.refresh();
+    } catch {
+      toastError("Erro", "Não foi possível desvincular.");
+    } finally {
+      setTaSaving(false);
+    }
+  }
+
+  async function handleDisconnectFacebook() {
+    setFbDisconnecting(true);
+    try {
+      const res = await fetch(`/api/locations/${location.id}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          facebook_page_id:      null,
+          facebook_page_name:    null,
+          facebook_access_token: null,
+          facebook_connected:    false,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      setFbConnected(false);
+      setFbPageName("");
+      info("Facebook desconectado.", "");
+      router.refresh();
+    } catch {
+      toastError("Erro", "Não foi possível desconectar.");
+    } finally {
+      setFbDisconnecting(false);
+    }
   }
 
   async function handleDeactivate() {
@@ -479,6 +556,149 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
           </a>
         )}
       </div>
+
+      {/* ── TripAdvisor ─────────────────────────────────────────────────────── */}
+      <div className="card p-6 space-y-4" id="tripadvisor">
+        <div className="flex items-center gap-3">
+          <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", taConnected ? "bg-green-50" : "bg-gray-100")}>
+            <span className="text-base">🦉</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-semibold text-gray-900">TripAdvisor</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {taConnected
+                ? "Vinculado — adicione avaliações manualmente para responder com IA."
+                : "Cole a URL da sua página no TripAdvisor para vincular."}
+            </p>
+          </div>
+          {taConnected && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full shrink-0">
+              <CheckCircle2 size={11} /> Vinculado
+            </span>
+          )}
+        </div>
+
+        {!taConnected ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="url"
+                value={taUrl}
+                onChange={(e) => setTaUrl(e.target.value)}
+                placeholder="https://www.tripadvisor.com.br/Restaurant_Review-..."
+                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+              <button
+                type="button"
+                onClick={handleSaveTripAdvisor}
+                disabled={taSaving || !taUrl.trim()}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#00AF87] hover:bg-[#009975] px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Link2 size={14} />
+                {taSaving ? "Salvando…" : "Vincular"}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">
+              O TripAdvisor não possui API pública. Após vincular, você pode <strong>adicionar avaliações manualmente</strong> para que a IA gere respostas.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+              <Link2 size={13} className="text-gray-400 shrink-0" />
+              <a
+                href={taUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-indigo-600 hover:underline flex-1 truncate"
+              >
+                {taUrl}
+              </a>
+              <ExternalLink size={12} className="text-gray-400 shrink-0" />
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowAddReview(true)}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#00AF87] hover:bg-[#009975] px-3 py-2 rounded-lg transition-colors"
+              >
+                <Plus size={14} />
+                Adicionar avaliação
+              </button>
+              <button
+                type="button"
+                onClick={handleDisconnectTripAdvisor}
+                disabled={taSaving}
+                className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+              >
+                Desvincular
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Facebook ─────────────────────────────────────────────────────────── */}
+      <div className="card p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", fbConnected ? "bg-blue-50" : "bg-gray-100")}>
+            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-[#1877F2]">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-semibold text-gray-900">Facebook</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {fbConnected
+                ? `Página conectada: ${fbPageName || "—"}`
+                : "Conecte sua Página do Facebook para importar e responder avaliações."}
+            </p>
+          </div>
+          {fbConnected && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full shrink-0">
+              <CheckCircle2 size={11} /> Conectado
+            </span>
+          )}
+        </div>
+
+        {!fbConnected ? (
+          <div className="space-y-3">
+            <a
+              href={`/api/facebook/auth?locationId=${location.id}`}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#1877F2] hover:bg-[#166fe5] px-4 py-2.5 rounded-xl transition-colors"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Conectar com Facebook
+            </a>
+            <p className="text-xs text-gray-400">
+              Você será redirecionado ao Facebook para autorizar o acesso à sua Página. As avaliações serão importadas automaticamente.
+            </p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleDisconnectFacebook}
+              disabled={fbDisconnecting}
+              className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+            >
+              {fbDisconnecting ? "Desconectando…" : "Desconectar página"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Modal: adicionar avaliação manual (TripAdvisor) */}
+      {showAddReview && (
+        <AddManualReviewModal
+          locationId={location.id}
+          platform="tripadvisor"
+          onClose={() => setShowAddReview(false)}
+          onAdded={() => { setShowAddReview(false); router.refresh(); }}
+        />
+      )}
 
       {/* Botões */}
       <div className="flex items-center justify-between gap-3 flex-wrap">

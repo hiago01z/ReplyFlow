@@ -15,6 +15,14 @@ const updateSchema = z.object({
   google_account_id:    z.string().nullable().optional(),
   is_public:   z.boolean().optional(),
   public_slug: z.string().regex(/^[a-z0-9-]{3,60}$/).nullable().optional(),
+  // TripAdvisor
+  tripadvisor_url:       z.string().url().nullable().optional(),
+  tripadvisor_connected: z.boolean().optional(),
+  // Facebook (set by callback; disconnect via false)
+  facebook_page_id:      z.string().nullable().optional(),
+  facebook_page_name:    z.string().nullable().optional(),
+  facebook_access_token: z.string().nullable().optional(),
+  facebook_connected:    z.boolean().optional(),
 });
 
 // ── helpers ────────────────────────────────────────────────────────────────

@@ -8,6 +8,8 @@ export type Plan = 'free' | 'starter' | 'pro' | 'agency';
 export interface PlanLimits {
   /** Locais base incluídos no plano. Extras comprados via add-on R$49/mês. */
   locations: number;
+  /** Plataformas por local: Google + TripAdvisor + Facebook. Free=2, demais=3. */
+  platforms: number;
   /** Respostas IA por mês. null = ilimitado. */
   aiResponsesPerMonth: number | null;
   /** Clientes da agência. null = N/A. */
@@ -17,12 +19,28 @@ export interface PlanLimits {
 }
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
-  free:    { locations: 1, aiResponsesPerMonth: 10,   agencyClients: null, agencyClientLocations: 0 },
-  starter: { locations: 1, aiResponsesPerMonth: 100,  agencyClients: null, agencyClientLocations: 0 },
-  pro:     { locations: 3, aiResponsesPerMonth: null,  agencyClients: null, agencyClientLocations: 0 },
+  free:    { locations: 1, platforms: 2, aiResponsesPerMonth: 10,   agencyClients: null, agencyClientLocations: 0 },
+  starter: { locations: 1, platforms: 3, aiResponsesPerMonth: 100,  agencyClients: null, agencyClientLocations: 0 },
+  pro:     { locations: 3, platforms: 3, aiResponsesPerMonth: null,  agencyClients: null, agencyClientLocations: 0 },
   // Agência: 3 locais próprios (mesmo que Pro) + 3 locais por cada cliente no painel
-  agency:  { locations: 3, aiResponsesPerMonth: null,  agencyClients: 10,  agencyClientLocations: 3 },
+  agency:  { locations: 3, platforms: 3, aiResponsesPerMonth: null,  agencyClients: 10,  agencyClientLocations: 3 },
 };
+
+/** Número de plataformas atualmente conectadas em um local. */
+export function countConnectedPlatforms(loc: {
+  google_access_token:   string | null;
+  tripadvisor_connected: boolean;
+  facebook_connected:    boolean;
+}): number {
+  return (loc.google_access_token ? 1 : 0) +
+         (loc.tripadvisor_connected ? 1 : 0) +
+         (loc.facebook_connected ? 1 : 0);
+}
+
+/** Verifica se um local pode conectar mais uma plataforma. */
+export function canAddPlatform(plan: Plan, loc: Parameters<typeof countConnectedPlatforms>[0]): boolean {
+  return countConnectedPlatforms(loc) < PLAN_LIMITS[plan].platforms;
+}
 
 /** Limite efetivo de locais = base do plano + extras comprados. */
 export function getEffectiveLocationLimit(plan: Plan, extraLocations: number): number {

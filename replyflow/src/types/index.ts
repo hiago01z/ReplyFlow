@@ -46,6 +46,14 @@ export interface Location {
   active: boolean
   is_public: boolean
   public_slug: string | null
+  // TripAdvisor (manual import)
+  tripadvisor_url: string | null
+  tripadvisor_connected: boolean
+  // Facebook (Graph API OAuth)
+  facebook_page_id: string | null
+  facebook_page_name: string | null
+  facebook_access_token: string | null
+  facebook_connected: boolean
   created_at: string
   updated_at: string
 }
@@ -90,10 +98,10 @@ export interface Alert {
   sent_at: string
 }
 
-// Limites por plano
+// Limites por plano (espelho de src/lib/plan-limits.ts — manter sincronizado)
 export const PLAN_LIMITS: Record<Plan, { locations: number; platforms: number; responsesPerMonth: number | null }> = {
-  free: { locations: 1, platforms: 2, responsesPerMonth: 10 },
+  free:    { locations: 1, platforms: 2, responsesPerMonth: 10 },
   starter: { locations: 1, platforms: 3, responsesPerMonth: 100 },
-  pro: { locations: 3, platforms: 10, responsesPerMonth: null },
-  agency: { locations: 3, platforms: 10, responsesPerMonth: null },
+  pro:     { locations: 3, platforms: 3, responsesPerMonth: null },
+  agency:  { locations: 3, platforms: 3, responsesPerMonth: null },
 }
