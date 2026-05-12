@@ -83,7 +83,10 @@ export default async function BillingPage({
 
   // syncResult.plan is freshest (Stripe-sourced); org.plan is DB fallback
   const currentPlan  = syncResult?.synced ? syncResult.plan : (org?.plan ?? "free");
-  const isActive     = org?.subscription_status === "active" || syncResult?.synced === true;
+  // isActive: true whenever plan is paid (regardless of Stripe status)
+  const isActive     = currentPlan !== "free" || org?.subscription_status === "active" || syncResult?.synced === true;
+  // hasStripe: only show Stripe actions when customer ID exists
+  const hasStripe    = !!org?.stripe_customer_id;
 
   const trialEndsAt   = org?.trial_ends_at ?? null;
   const trialActive   = trialEndsAt ? new Date(trialEndsAt).getTime() > Date.now() : false;
@@ -233,26 +236,33 @@ export default async function BillingPage({
 
         {/* Actions row */}
         <div className="mt-5 pt-5 border-t border-gray-100 flex items-center justify-between gap-4 flex-wrap">
-          {org?.stripe_customer_id ? (
+          {hasStripe ? (
             <ManageSubscriptionButton />
+          ) : currentPlan !== "free" ? (
+            <span className="text-xs text-gray-400 flex items-center gap-1.5">
+              <CheckCircle2 size={12} className="text-green-500" />
+              Conta gerenciada internamente
+            </span>
           ) : (
             <span />
           )}
 
-          {/* Server-side sync link — no JS, no reload loop */}
-          <Link
-            href="/billing?verify=1"
-            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
-            title="Sincronizar plano com Stripe"
-          >
-            <RefreshCw size={12} className={params.verify === "1" ? "animate-spin" : ""} />
-            {params.verify === "1" ? "Verificando…" : "Verificar plano"}
-          </Link>
+          {/* Verificar plano — só mostra quando tem Stripe ou plano free */}
+          {(hasStripe || currentPlan === "free") && (
+            <Link
+              href="/billing?verify=1"
+              className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
+              title="Sincronizar plano com Stripe"
+            >
+              <RefreshCw size={12} className={params.verify === "1" ? "animate-spin" : ""} />
+              {params.verify === "1" ? "Verificando…" : "Verificar plano"}
+            </Link>
+          )}
         </div>
       </div>
 
-      {/* ── Upgrade grid (only shown when plan is free) ──────────────────────── */}
-      {currentPlan === "free" && (() => {
+      {/* ── Upgrade grid (only shown when plan is free AND no active subscription) */}
+      {currentPlan === "free" && !isActive && (() => {
         const planKeys = ["starter", "pro", "agency"] as const;
         const selectorPlans = planKeys.map((key) => ({
           key,
