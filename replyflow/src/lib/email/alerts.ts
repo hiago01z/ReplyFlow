@@ -79,7 +79,59 @@ export async function sendNegativeReviewAlert(params: NegativeReviewAlertParams)
   })
 }
 
-// ─── WhatsApp Alert via Evolution API ───────────────────────────────────────
+// ─── WhatsApp provider abstraction ──────────────────────────────────────────
+// Suporta dois providers (auto-detectados pelas env vars):
+//   • Z-API     → ZAPI_INSTANCE_ID + ZAPI_TOKEN (+ optional ZAPI_CLIENT_TOKEN)
+//   • Evolution → EVOLUTION_API_URL + EVOLUTION_API_KEY
+
+type WaProvider = 'zapi' | 'evolution' | 'none'
+
+function detectWaProvider(): WaProvider {
+  if (process.env.ZAPI_INSTANCE_ID && process.env.ZAPI_TOKEN) return 'zapi'
+  if (process.env.EVOLUTION_API_URL && process.env.EVOLUTION_API_KEY) return 'evolution'
+  return 'none'
+}
+
+/**
+ * Envia uma mensagem de texto via WhatsApp.
+ * Silencioso quando nenhum provider está configurado.
+ * @param phone  - E.164 sem + ex: 5511999999999
+ * @param message - Texto da mensagem (suporta *bold* no WhatsApp)
+ */
+async function sendWhatsAppMessage(phone: string, message: string): Promise<void> {
+  const provider = detectWaProvider()
+  if (provider === 'none') return
+
+  if (provider === 'zapi') {
+    // Z-API: https://developer.z-api.io/
+    const instanceId    = process.env.ZAPI_INSTANCE_ID!
+    const token         = process.env.ZAPI_TOKEN!
+    const clientToken   = process.env.ZAPI_CLIENT_TOKEN  // opcional, planos Enterprise
+    const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (clientToken) headers['Client-Token'] = clientToken
+    await fetch(url, {
+      method:  'POST',
+      headers,
+      body:    JSON.stringify({ phone, message }),
+      signal:  AbortSignal.timeout(10000),
+    }).catch((e) => console.warn('[WhatsApp/zapi] send failed:', e.message))
+
+  } else if (provider === 'evolution') {
+    // Evolution API: https://evolution-api.com/
+    const evolutionUrl = process.env.EVOLUTION_API_URL!
+    const evolutionKey = process.env.EVOLUTION_API_KEY!
+    const instance     = process.env.EVOLUTION_INSTANCE ?? 'replyflow'
+    await fetch(`${evolutionUrl}/message/sendText/${instance}`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': evolutionKey },
+      body:    JSON.stringify({ number: phone, text: message }),
+      signal:  AbortSignal.timeout(10000),
+    }).catch((e) => console.warn('[WhatsApp/evolution] send failed:', e.message))
+  }
+}
+
+// ─── WhatsApp Alert ──────────────────────────────────────────────────────────
 
 interface WhatsAppAlertParams {
   phone:        string   // formato: 5511999999999
@@ -91,13 +143,8 @@ interface WhatsAppAlertParams {
 }
 
 export async function sendWhatsAppAlert(params: WhatsAppAlertParams): Promise<void> {
-  const evolutionUrl = process.env.EVOLUTION_API_URL
-  const evolutionKey = process.env.EVOLUTION_API_KEY
-
-  if (!evolutionUrl || !evolutionKey) return // silencioso se não configurado
-
   const { phone, businessName, authorName, rating, content, reviewId } = params
-  const stars   = '★'.repeat(rating) + '☆'.repeat(5 - rating)
+  const stars     = '★'.repeat(rating) + '☆'.repeat(5 - rating)
   const reviewUrl = `${APP_URL}/reviews?highlight=${reviewId}`
 
   const message = [
@@ -112,34 +159,22 @@ export async function sendWhatsAppAlert(params: WhatsAppAlertParams): Promise<vo
     `👉 Responder agora: ${reviewUrl}`,
   ].filter(Boolean).join('\n')
 
-  await fetch(`${evolutionUrl}/message/sendText/replyflow`, {
-    method:  'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey':       evolutionKey,
-    },
-    body: JSON.stringify({ number: phone, text: message }),
-  })
+  await sendWhatsAppMessage(phone, message)
 }
 
-// ─── WhatsApp 1-click Approval (Sprint 21) ──────────────────────────────────
+// ─── WhatsApp 1-click Approval ───────────────────────────────────────────────
 
 interface WhatsAppApprovalParams {
-  phone:        string   // formato: 5511999999999
-  businessName: string
-  authorName:   string
-  rating:       number
+  phone:         string
+  businessName:  string
+  authorName:    string
+  rating:        number
   responseDraft: string
-  approveUrl:   string  // signed token URL
-  dashboardUrl: string
+  approveUrl:    string  // signed token URL (válido 48h)
+  dashboardUrl:  string
 }
 
 export async function sendWhatsAppApproval(params: WhatsAppApprovalParams): Promise<void> {
-  const evolutionUrl = process.env.EVOLUTION_API_URL
-  const evolutionKey = process.env.EVOLUTION_API_KEY
-
-  if (!evolutionUrl || !evolutionKey) return
-
   const { phone, businessName, authorName, rating, responseDraft, approveUrl, dashboardUrl } = params
   const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating)
 
@@ -158,14 +193,7 @@ export async function sendWhatsAppApproval(params: WhatsAppApprovalParams): Prom
     `✏️ Editar no dashboard: ${dashboardUrl}`,
   ].join('\n')
 
-  await fetch(`${evolutionUrl}/message/sendText/replyflow`, {
-    method:  'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey':       evolutionKey,
-    },
-    body: JSON.stringify({ number: phone, text: message }),
-  })
+  await sendWhatsAppMessage(phone, message)
 }
 
 interface WelcomeEmailParams {

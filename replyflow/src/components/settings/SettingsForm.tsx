@@ -34,6 +34,7 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [testResult,     setTestResult]     = useState<"ok" | "error" | null>(null);
   const [testingAlert,   setTestingAlert]   = useState(false);
+  const [testingWhatsApp, setTestingWhatsApp] = useState(false);
   const [saving,         setSaving]         = useState(false);
 
   const isPro = organization.plan === "pro" || organization.plan === "agency";
@@ -79,6 +80,27 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
       toastError("Erro de rede", "Não foi possível enviar o email de teste.");
     } finally {
       setTestingAlert(false);
+    }
+  }
+
+  async function sendTestWhatsApp() {
+    setTestingWhatsApp(true);
+    try {
+      const res  = await fetch("/api/settings/whatsapp-test", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        success("WhatsApp de teste enviado!", `Mensagem enviada para ${data.phone} via ${data.provider}.`);
+      } else if (data.error === "provider_not_configured") {
+        toastError("Provider não configurado", "Adicione ZAPI_INSTANCE_ID + ZAPI_TOKEN nas env vars da Vercel.");
+      } else if (data.error === "no_phone") {
+        toastError("Número não cadastrado", "Salve um número WhatsApp nas configurações primeiro.");
+      } else {
+        toastError("Erro ao enviar", data.message ?? data.error ?? "Tente novamente.");
+      }
+    } catch {
+      toastError("Erro de rede", "Não foi possível enviar o teste WhatsApp.");
+    } finally {
+      setTestingWhatsApp(false);
     }
   }
 
@@ -256,9 +278,24 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
               }`}
             />
             {isPro && (
-              <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
-                Formato: código do país + DDD + número. Ex: 5511999999999
-              </p>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Formato: código do país + DDD + número. Ex: 5511999999999
+                </p>
+                {whatsapp && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    loading={testingWhatsApp}
+                    onClick={sendTestWhatsApp}
+                    className="shrink-0 text-xs"
+                  >
+                    <Send size={12} className="mr-1" />
+                    Testar
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </div>
