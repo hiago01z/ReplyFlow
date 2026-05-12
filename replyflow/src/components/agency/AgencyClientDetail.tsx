@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Building2, MapPin, Star, Clock, CheckCircle2,
-  Sparkles, Send, ChevronDown, ChevronUp, Loader2, Wifi, WifiOff, Trash2,
+  Sparkles, Send, ChevronDown, ChevronUp, Loader2, Wifi, WifiOff, Trash2, Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -188,12 +188,15 @@ function AgencyReviewCard({
 export function AgencyClientDetail({ clientId }: { clientId: string }) {
   const router = useRouter();
 
-  const [client,    setClient]    = useState<ClientDetail | null>(null);
-  const [locations, setLocations] = useState<ClientLocation[]>([]);
-  const [reviews,   setReviews]   = useState<ReviewItem[]>([]);
-  const [loading,   setLoading]   = useState(true);
-  const [tab,       setTab]       = useState<"reviews" | "locations">("reviews");
-  const [removing,  setRemoving]  = useState(false);
+  const [client,       setClient]       = useState<ClientDetail | null>(null);
+  const [locations,    setLocations]    = useState<ClientLocation[]>([]);
+  const [reviews,      setReviews]      = useState<ReviewItem[]>([]);
+  const [loading,      setLoading]      = useState(true);
+  const [tab,          setTab]          = useState<"reviews" | "locations">("reviews");
+  const [removing,     setRemoving]     = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>("");
+  const [savingPlan,   setSavingPlan]   = useState(false);
+  const [planSaved,    setPlanSaved]    = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -206,6 +209,8 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
         const d = await detailRes.json();
         setClient(d.client);
         setLocations(d.locations ?? []);
+        setSelectedPlan(d.client?.plan ?? "free");
+        setPlanSaved(true);
       }
       if (reviewsRes.ok) {
         const r = await reviewsRes.json();
@@ -217,6 +222,24 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   }, [clientId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  async function handleSavePlan() {
+    if (!selectedPlan || selectedPlan === client?.plan) return;
+    setSavingPlan(true);
+    try {
+      const res = await fetch(`/api/agency/clients/${clientId}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ plan: selectedPlan }),
+      });
+      if (res.ok) {
+        setClient((prev) => prev ? { ...prev, plan: selectedPlan } : prev);
+        setPlanSaved(true);
+      }
+    } finally {
+      setSavingPlan(false);
+    }
+  }
 
   async function handleRemoveClient() {
     if (!confirm(`Remover "${client?.name}" da agência? Os dados do cliente não serão deletados.`)) return;
@@ -266,12 +289,32 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
           </button>
           <div>
             <p className="text-xs font-medium text-indigo-600 uppercase tracking-widest mb-0.5">Agência → Cliente</p>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              {client.name}
-              <span className="text-xs font-semibold bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full capitalize">
-                {client.plan}
-              </span>
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{client.name}</h1>
+            {/* Seletor de plano inline */}
+            <div className="flex items-center gap-2 mt-1">
+              <select
+                value={selectedPlan}
+                onChange={(e) => { setSelectedPlan(e.target.value); setPlanSaved(false); }}
+                className="h-7 text-xs font-medium px-2 pr-6 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-white/10 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer appearance-none"
+              >
+                <option value="free">Free</option>
+                <option value="starter">Starter</option>
+                <option value="pro">Pro</option>
+              </select>
+              {!planSaved && (
+                <button
+                  onClick={handleSavePlan}
+                  disabled={savingPlan}
+                  className="inline-flex items-center gap-1 h-7 px-2.5 text-xs font-semibold text-white bg-indigo-600 rounded-full hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                >
+                  {savingPlan ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
+                  Salvar
+                </button>
+              )}
+              {planSaved && (
+                <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Salvo</span>
+              )}
+            </div>
           </div>
         </div>
         <button

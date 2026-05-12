@@ -204,9 +204,11 @@ export function AgencyDashboard() {
                     {client.pending > 99 ? "99+" : client.pending}
                   </span>
                 )}
-                <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-full">
-                  {PLAN_LABELS[client.plan] ?? client.plan}
-                </span>
+                {client.plan !== "free" && (
+                  <span className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full">
+                    {PLAN_LABELS[client.plan] ?? client.plan}
+                  </span>
+                )}
                 <span className="text-[11px] text-gray-400 dark:text-gray-500">
                   desde {new Date(client.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" })}
                 </span>

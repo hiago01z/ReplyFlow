@@ -85,6 +85,38 @@ export async function GET(
   });
 }
 
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const ctx = await verifyAgencyOwnership(user.id, id);
+  if (!ctx) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const body = await req.json().catch(() => ({}));
+  const ALLOWED_PLANS = ["free", "starter", "pro"] as const;
+  type AllowedPlan = (typeof ALLOWED_PLANS)[number];
+
+  const plan = body.plan as string;
+  if (!ALLOWED_PLANS.includes(plan as AllowedPlan)) {
+    return NextResponse.json({ error: "Plano inválido." }, { status: 400 });
+  }
+
+  const { error } = await ctx.serviceClient
+    .from("organizations")
+    .update({ plan })
+    .eq("id", id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ success: true, plan });
+}
+
 export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
