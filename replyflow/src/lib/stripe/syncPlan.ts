@@ -11,17 +11,27 @@ import { createServiceClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
 const PLAN_MAP: Record<string, string> = {
+  // Planos mensais
   [process.env.STRIPE_PRICE_STARTER_MONTHLY ?? '__no_key__']: 'starter',
   [process.env.STRIPE_PRICE_PRO_MONTHLY     ?? '__no_key__']: 'pro',
   [process.env.STRIPE_PRICE_AGENCY_MONTHLY  ?? '__no_key__']: 'agency',
+  // Planos anuais (mesmo plano, ciclo diferente)
+  [process.env.STRIPE_PRICE_STARTER_ANNUAL  ?? '__no_key__']: 'starter',
+  [process.env.STRIPE_PRICE_PRO_ANNUAL      ?? '__no_key__']: 'pro',
+  [process.env.STRIPE_PRICE_AGENCY_ANNUAL   ?? '__no_key__']: 'agency',
 }
 
 // Price amount (in BRL cents) → plan name fallback
 // Used when env-var price IDs don't match the subscription's price.
 const AMOUNT_TO_PLAN: Record<number, string> = {
-  9700:  'starter',  // R$ 97
-  19700: 'pro',      // R$197
-  49700: 'agency',   // R$497
+  // Mensais
+  9700:   'starter',  // R$ 97/mês
+  19700:  'pro',      // R$197/mês
+  49700:  'agency',   // R$497/mês
+  // Anuais
+  97000:  'starter',  // R$970/ano
+  197000: 'pro',      // R$1970/ano
+  497000: 'agency',   // R$4970/ano
 }
 
 function resolvePlan(priceId: string, productId?: string | null): string {

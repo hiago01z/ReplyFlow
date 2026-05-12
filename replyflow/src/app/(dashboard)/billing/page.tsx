@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { STRIPE_PLANS } from "@/lib/stripe/client";
+import { STRIPE_PLANS, STRIPE_ANNUAL_PLANS } from "@/lib/stripe/client";
 import { syncPlanFromStripe } from "@/lib/stripe/syncPlan";
+import { BillingPlanSelector } from "@/components/billing/BillingPlanSelector";
 import Link from "next/link";
 import {
   CreditCard, CheckCircle2, Zap, Crown, Building2,
@@ -259,63 +260,29 @@ export default async function BillingPage({
       </div>
 
       {/* ── Upgrade grid (only shown when plan is free) ──────────────────────── */}
-      {currentPlan === "free" && (
-        <>
-          <p className="text-sm font-semibold text-gray-700 mb-4">Escolha um plano</p>
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
-            {(["starter", "pro", "agency"] as const).map((planKey) => {
-              const plan  = STRIPE_PLANS[planKey];
-              const isPro = planKey === "pro";
-              return (
-                <div
-                  key={planKey}
-                  className={`relative card p-5 flex flex-col ${isPro ? "border-indigo-400 shadow-md ring-1 ring-indigo-400/20" : ""}`}
-                >
-                  {isPro && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-wide">
-                      MAIS POPULAR
-                    </div>
-                  )}
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      {PLAN_ICONS[planKey]}
-                      <p className="font-semibold text-gray-900">{plan.name}</p>
-                    </div>
-                    <p className="text-3xl font-bold text-gray-900">
-                      R$ {plan.price}
-                      <span className="text-sm font-normal text-gray-500">/mês</span>
-                    </p>
-                  </div>
-                  <ul className="space-y-2 mb-5 flex-1">
-                    {(PLAN_FEATURES[planKey] ?? []).map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-xs text-gray-600">
-                        <CheckCircle2 size={13} className="text-indigo-400 shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <form action="/api/billing/checkout" method="POST">
-                    <input type="hidden" name="priceId" value={plan.priceId} />
-                    <button
-                      type="submit"
-                      className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-                        isPro
-                          ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      Assinar {plan.name}
-                    </button>
-                  </form>
-                </div>
-              );
-            })}
-          </div>
-          <p className="text-xs text-center text-gray-400">
-            Todos os planos incluem 7 dias grátis. Sem fidelidade. Cancele quando quiser.
-          </p>
-        </>
-      )}
+      {currentPlan === "free" && (() => {
+        const planKeys = ["starter", "pro", "agency"] as const;
+        const selectorPlans = planKeys.map((key) => ({
+          key,
+          name:           STRIPE_PLANS[key].name,
+          priceId:        STRIPE_PLANS[key].priceId,
+          price:          STRIPE_PLANS[key].price,
+          annualPriceId:  STRIPE_ANNUAL_PLANS[key].priceId,
+          annualPrice:    STRIPE_ANNUAL_PLANS[key].price,
+          annualMonthly:  STRIPE_ANNUAL_PLANS[key].monthlyEquiv,
+          features:       PLAN_FEATURES[key] ?? [],
+        }));
+        const annualEnabled = selectorPlans.some((p) => !!p.annualPriceId);
+        return (
+          <>
+            <p className="text-sm font-semibold text-gray-700 mb-4">Escolha um plano</p>
+            <BillingPlanSelector plans={selectorPlans} annualEnabled={annualEnabled} />
+            <p className="text-xs text-center text-gray-400 mt-2">
+              Todos os planos incluem 7 dias grátis. Sem fidelidade. Cancele quando quiser.
+            </p>
+          </>
+        );
+      })()}
 
       {/* ── Paid plan sections ───────────────────────────────────────────────── */}
 

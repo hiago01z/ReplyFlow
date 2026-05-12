@@ -8,9 +8,14 @@ import type Stripe from 'stripe'
 // Stripe sends price.id in subscriptions; if env vars accidentally contain product IDs
 // we fall back to matching on price.product.
 const PLAN_BY_PRICE: Record<string, string> = {
+  // Planos mensais
   [process.env.STRIPE_PRICE_STARTER_MONTHLY ?? '']: 'starter',
-  [process.env.STRIPE_PRICE_PRO_MONTHLY ?? '']: 'pro',
-  [process.env.STRIPE_PRICE_AGENCY_MONTHLY ?? '']: 'agency',
+  [process.env.STRIPE_PRICE_PRO_MONTHLY     ?? '']: 'pro',
+  [process.env.STRIPE_PRICE_AGENCY_MONTHLY  ?? '']: 'agency',
+  // Planos anuais (mesmo plano, ciclo diferente)
+  [process.env.STRIPE_PRICE_STARTER_ANNUAL  ?? '']: 'starter',
+  [process.env.STRIPE_PRICE_PRO_ANNUAL      ?? '']: 'pro',
+  [process.env.STRIPE_PRICE_AGENCY_ANNUAL   ?? '']: 'agency',
 }
 
 function resolvePlan(priceId: string, productId?: string | null): string {

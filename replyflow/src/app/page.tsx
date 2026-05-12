@@ -157,7 +157,7 @@ export default function LandingPage() {
                   <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
                 </div>
                 <div className="flex-1 bg-white dark:bg-[#18181f] rounded-md px-3 py-1 text-xs text-gray-400 dark:text-gray-500 mx-2">
-                  app.replyflow.com.br/reviews
+                  replyflow-hivi.com/reviews
                 </div>
               </div>
               {/* Fake dashboard */}
