@@ -55,13 +55,25 @@ export async function POST(
     return NextResponse.json({ error: "Cliente não encontrado." }, { status: 404 });
   }
 
+  const newClientExtra = (clientOrg.extra_locations ?? 0) + 1;
+
+  // ── Conta sem Stripe (gerenciada internamente): incrementa direto no banco ──
   if (!agencyOrg.stripe_subscription_id) {
-    return NextResponse.json(
-      { error: "Assinatura Stripe não encontrada. Verifique seu plano." },
-      { status: 403 },
-    );
+    const { error: dbErr } = await serviceClient
+      .from("organizations")
+      .update({ extra_locations: newClientExtra })
+      .eq("id", clientId);
+
+    if (dbErr) {
+      console.error("[agency/clients/extra-location] DB error:", dbErr.message);
+      return NextResponse.json({ error: "Erro ao adicionar slot." }, { status: 500 });
+    }
+
+    console.info(`[agency/clients/extra-location] Manual billing — client ${clientId} extra_locations → ${newClientExtra}`);
+    return NextResponse.json({ success: true, extra_locations: newClientExtra, billing: "manual" });
   }
 
+  // ── Conta com Stripe: cobrar via subscription item ────────────────────────
   const priceId = process.env.STRIPE_PRICE_EXTRA_LOCATION;
   if (!priceId) {
     return NextResponse.json(
@@ -70,11 +82,7 @@ export async function POST(
     );
   }
 
-  // Calcular nova quantity total (agência própria + todos os clientes + 1)
-  // Para simplificar: usamos o campo extra_locations da agência como contador
-  // e incrementamos o Stripe item em +1
-  const currentStripequantity = agencyOrg.extra_locations; // total pago até agora (own)
-  // Buscar total de extras de todos os clientes para calcular a quantity correta no Stripe
+  // Calcular quantity total de extras de todos os clientes para o Stripe
   const { data: allClients } = await serviceClient
     .from("organizations")
     .select("extra_locations")
@@ -84,7 +92,7 @@ export async function POST(
     (sum, c) => sum + (c.extra_locations ?? 0),
     0,
   );
-  const newStripeQuantity = currentStripequantity + clientExtrasTotal + 1;
+  const newStripeQuantity = (agencyOrg.extra_locations ?? 0) + clientExtrasTotal + 1;
 
   try {
     if (agencyOrg.stripe_extra_locations_item_id) {
@@ -99,15 +107,12 @@ export async function POST(
         quantity:           1,
         proration_behavior: "always_invoice",
       });
-      // Salvar item id na agência
       await serviceClient
         .from("organizations")
         .update({ stripe_extra_locations_item_id: item.id })
         .eq("id", agencyOrg.id);
     }
 
-    // Incrementar extra_locations do cliente
-    const newClientExtra = (clientOrg.extra_locations ?? 0) + 1;
     await serviceClient
       .from("organizations")
       .update({ extra_locations: newClientExtra })

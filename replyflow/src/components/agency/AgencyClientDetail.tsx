@@ -458,34 +458,22 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
                 </p>
                 <div className="flex flex-col items-end gap-1">
                   {atClientLimit ? (
-                    agencyHasStripe ? (
-                      /* Tem Stripe → compra direto */
-                      <button
-                        type="button"
-                        onClick={handleBuyExtra}
-                        disabled={buyingExtra}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
-                      >
-                        {buyingExtra
-                          ? <Loader2 size={12} className="animate-spin" />
-                          : <Plus size={12} />}
-                        {buyingExtra ? "Processando…" : "Adicionar local (+R$49/mês)"}
-                      </button>
-                    ) : (
-                      /* Sem Stripe → instrução manual */
-                      <div className="text-right">
-                        <p className="text-xs font-medium text-gray-500">
-                          Limite de {AGENCY_CLIENT_LOCATION_LIMIT} locais atingido
-                        </p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">
-                          Para adicionar mais locais (+R$49/mês),{" "}
-                          <a href="/billing" className="text-indigo-600 hover:underline">
-                            ative uma assinatura Stripe
-                          </a>
-                          .
-                        </p>
-                      </div>
-                    )
+                    /* Limite atingido — botão funciona com ou sem Stripe */
+                    <button
+                      type="button"
+                      onClick={handleBuyExtra}
+                      disabled={buyingExtra}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
+                    >
+                      {buyingExtra
+                        ? <Loader2 size={12} className="animate-spin" />
+                        : <Plus size={12} />}
+                      {buyingExtra
+                        ? "Adicionando…"
+                        : agencyHasStripe
+                          ? "Adicionar local (+R$49/mês)"
+                          : "+ Adicionar local extra"}
+                    </button>
                   ) : (
                     <button
                       type="button"
