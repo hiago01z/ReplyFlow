@@ -46,19 +46,6 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
     }
   }
 
-  if (!hasStripe) {
-    return (
-      <div className="card p-5 flex items-center gap-3">
-        <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center shrink-0">
-          <MapPin size={16} className="text-gray-400" />
-        </div>
-        <p className="text-sm text-gray-500">
-          Entre em contato para adicionar locais extras à sua conta.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="card p-6">
       {/* Header */}

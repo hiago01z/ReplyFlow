@@ -240,26 +240,23 @@ export default async function BillingPage({
         <div className="mt-5 pt-5 border-t border-gray-100 flex items-center justify-between gap-4 flex-wrap">
           {hasStripe ? (
             <ManageSubscriptionButton />
-          ) : currentPlan !== "free" ? (
-            <span className="text-xs text-gray-400 flex items-center gap-1.5">
-              <CheckCircle2 size={12} className="text-green-500" />
-              Conta gerenciada internamente
-            </span>
           ) : (
             <span />
           )}
 
-          {/* Verificar plano — só mostra quando tem Stripe ou plano free */}
-          {(hasStripe || currentPlan === "free") && (
-            <Link
-              href="/billing?verify=1"
-              className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
-              title="Sincronizar plano com Stripe"
-            >
-              <RefreshCw size={12} className={params.verify === "1" ? "animate-spin" : ""} />
-              {params.verify === "1" ? "Verificando…" : "Verificar plano"}
-            </Link>
-          )}
+          {/* Verificar/vincular plano — sempre visível */}
+          <Link
+            href="/billing?verify=1"
+            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
+            title="Sincronizar plano com Stripe"
+          >
+            <RefreshCw size={12} className={params.verify === "1" ? "animate-spin" : ""} />
+            {params.verify === "1"
+              ? "Verificando…"
+              : hasStripe
+                ? "Verificar plano"
+                : "Vincular assinatura Stripe"}
+          </Link>
         </div>
       </div>
 
