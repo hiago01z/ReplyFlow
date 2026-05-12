@@ -33,9 +33,11 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
   const [showSecret,     setShowSecret]     = useState(false);
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [testResult,     setTestResult]     = useState<"ok" | "error" | null>(null);
-  const [testingAlert,   setTestingAlert]   = useState(false);
+  const [testingAlert,    setTestingAlert]    = useState(false);
   const [testingWhatsApp, setTestingWhatsApp] = useState(false);
-  const [saving,         setSaving]         = useState(false);
+  const [savingWhatsApp,  setSavingWhatsApp]  = useState(false);
+  const [whatsappSaved,   setWhatsappSaved]   = useState(!!user.whatsapp);
+  const [saving,          setSaving]          = useState(false);
 
   const isPro = organization.plan === "pro" || organization.plan === "agency";
 
@@ -80,6 +82,29 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
       toastError("Erro de rede", "Não foi possível enviar o email de teste.");
     } finally {
       setTestingAlert(false);
+    }
+  }
+
+  async function saveWhatsApp() {
+    setSavingWhatsApp(true);
+    try {
+      const res = await fetch("/api/settings/whatsapp", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ whatsapp: whatsapp.trim() || null }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        success("WhatsApp salvo!", `Número ${whatsapp} cadastrado com sucesso.`);
+        setWhatsappSaved(true);
+        router.refresh();
+      } else {
+        toastError("Erro ao salvar", data.error ?? "Tente novamente.");
+      }
+    } catch {
+      toastError("Erro de rede", "Não foi possível salvar o número.");
+    } finally {
+      setSavingWhatsApp(false);
     }
   }
 
@@ -237,37 +262,54 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
                 </p>
               </div>
             </div>
-            <input
-              type="tel"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              disabled={!isPro}
-              placeholder={isPro ? "5511999999999" : "Disponível no plano Pro"}
-              className={`w-full h-10 px-3.5 text-sm border rounded-lg transition-colors ${
-                isPro
-                  ? "text-gray-900 dark:text-gray-100 bg-white dark:bg-[#18181f] border-gray-200 dark:border-[#2a2a35] focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40 outline-none"
-                  : "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-[#2a2a35] text-gray-400 dark:text-gray-500 cursor-not-allowed"
-              }`}
-            />
+            <div className="flex gap-2">
+              <input
+                type="tel"
+                value={whatsapp}
+                onChange={(e) => { setWhatsapp(e.target.value); setWhatsappSaved(false); }}
+                disabled={!isPro}
+                placeholder={isPro ? "5511999999999" : "Disponível no plano Pro"}
+                className={`flex-1 h-10 px-3.5 text-sm border rounded-lg transition-colors ${
+                  isPro
+                    ? "text-gray-900 dark:text-gray-100 bg-white dark:bg-[#18181f] border-gray-200 dark:border-[#2a2a35] focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/40 outline-none"
+                    : "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-[#2a2a35] text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                }`}
+              />
+              {isPro && whatsapp && !whatsappSaved && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  loading={savingWhatsApp}
+                  onClick={saveWhatsApp}
+                  className="shrink-0 text-xs"
+                >
+                  Salvar
+                </Button>
+              )}
+              {isPro && whatsapp && whatsappSaved && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  loading={testingWhatsApp}
+                  onClick={sendTestWhatsApp}
+                  className="shrink-0 text-xs"
+                >
+                  <Send size={12} className="mr-1" />
+                  Testar
+                </Button>
+              )}
+            </div>
             {isPro && (
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                  Formato: código do país + DDD + número. Ex: 5511999999999
-                </p>
-                {whatsapp && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    loading={testingWhatsApp}
-                    onClick={sendTestWhatsApp}
-                    className="shrink-0 text-xs"
-                  >
-                    <Send size={12} className="mr-1" />
-                    Testar
-                  </Button>
+              <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
+                Formato: código do país + DDD + número. Ex: 5511999999999
+                {whatsappSaved && (
+                  <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
+                    ✓ Salvo
+                  </span>
                 )}
-              </div>
+              </p>
             )}
           </div>
 
