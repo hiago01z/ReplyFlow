@@ -48,8 +48,15 @@ Preencha todas as variáveis em `.env.local`:
 | `GOOGLE_REDIRECT_URI` | `http://localhost:3000/api/google/callback` (dev) |
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` (dev) / URL de produção |
 | `CRON_SECRET` | Qualquer string aleatória longa (ex: `openssl rand -hex 32`) |
-| `EVOLUTION_API_URL` | Sua instância Evolution API (opcional — plano Pro) |
+| `ULTRAMSG_INSTANCE_ID` | [ultramsg.com](https://ultramsg.com) → instância → Instance ID (recomendado ~R$25/mês) |
+| `ULTRAMSG_TOKEN` | [ultramsg.com](https://ultramsg.com) → instância → Token |
+| `ZAPI_INSTANCE_ID` | Z-API (alternativa ao UltraMsg) |
+| `ZAPI_TOKEN` | Z-API token |
+| `EVOLUTION_API_URL` | Sua instância Evolution API (alternativa — opcional) |
 | `EVOLUTION_API_KEY` | Chave da Evolution API (opcional) |
+| `FACEBOOK_APP_ID` | [Meta Developers](https://developers.facebook.com/apps) → App → Configurações Básicas |
+| `FACEBOOK_APP_SECRET` | Meta Developers → App → Configurações Básicas |
+| `APPROVAL_SECRET` | String aleatória hex: `openssl rand -hex 32` (aprovação 1-clique WhatsApp) |
 
 ## 3. Configurar banco de dados (Supabase)
 
@@ -63,6 +70,13 @@ supabase/migrations/004_alert_settings.sql
 supabase/migrations/005_responses_unique.sql
 supabase/migrations/006_agency.sql
 supabase/migrations/007_extra_locations.sql
+supabase/migrations/008_whatsapp_column.sql
+supabase/migrations/009_trial_system.sql
+supabase/migrations/010_response_templates.sql
+supabase/migrations/011_webhook_config.sql
+supabase/migrations/012_public_profile.sql
+supabase/migrations/013_plan_limits_counter.sql
+supabase/migrations/014_platform_connections.sql
 ```
 
 Depois, habilite o Realtime na tabela `reviews`:
@@ -98,14 +112,28 @@ ALTER PUBLICATION supabase_realtime ADD TABLE reviews;
    - `https://seudominio.com/api/google/callback` (produção)
 4. Copie `Client ID` e `Client Secret` para `.env.local`
 
-## 6. Configurar Upstash Redis (rate limiting)
+## 6. Configurar Facebook OAuth (Graph API)
+
+> Necessário apenas se quiser integrar reviews de Páginas do Facebook.
+
+1. Acesse [developers.facebook.com/apps](https://developers.facebook.com/apps) → **Create App** → tipo **Business**
+2. Adicione o produto **Facebook Login for Business**
+3. Em **Facebook Login → Settings** adicione o redirect URI:
+   - `http://localhost:3000/api/facebook/callback` (dev)
+   - `https://replyflow-hivi.com/api/facebook/callback` (produção)
+4. Solicite as permissões: `pages_read_engagement`, `pages_manage_posts`, `pages_show_list`
+5. Em **App Settings → Basic** copie **App ID** e **App Secret** para `.env.local`
+6. Para testes sem App Review: adicione o usuário como **Tester** no painel do App
+7. Para produção com usuários reais: submeter **App Review** na Meta
+
+## 7. Configurar Upstash Redis (rate limiting)
 
 1. Acesse [upstash.com](https://upstash.com) → **Create Database**
 2. Região: `South America (sa-east-1)` — São Paulo
 3. Plano: **Free** (10.000 req/dia gratuito)
 4. Aba **REST API** → copie `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN`
 
-## 7. Configurar Cron Job (produção)
+## 8. Configurar Cron Job (produção)
 
 O Vercel Hobby não suporta crons customizados. Use o [cron-job.org](https://cron-job.org) (grátis):
 
@@ -115,7 +143,7 @@ O Vercel Hobby não suporta crons customizados. Use o [cron-job.org](https://cro
    - **Digest semanal** — URL: `https://seudominio.com/api/cron/weekly-digest?secret=SEU_CRON_SECRET` — Schedule: `0 8 * * 1` (toda segunda às 8h)
 3. Salve e ative ambos
 
-## 8. Rodar localmente
+## 9. Rodar localmente
 
 **Opção A — Script automatizado (Windows):**
 ```powershell
@@ -128,7 +156,7 @@ npm run dev
 # http://localhost:3000
 ```
 
-## 9. Testar webhooks Stripe (desenvolvimento)
+## 10. Testar webhooks Stripe (desenvolvimento)
 
 ```bash
 # Instalar Stripe CLI: https://stripe.com/docs/stripe-cli
@@ -136,7 +164,7 @@ stripe login
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-## 10. Deploy (Vercel)
+## 11. Deploy (Vercel)
 
 1. Conecte o repositório GitHub no [Vercel Dashboard](https://vercel.com)
 2. Configure:

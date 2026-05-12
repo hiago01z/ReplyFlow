@@ -16,11 +16,11 @@
 
 ## O que é o ReplyFlow?
 
-ReplyFlow é um SaaS que responde automaticamente reviews do Google Meu Negócio usando IA personalizada — no tom certo, no nicho certo, sem intervenção manual.
+ReplyFlow é um SaaS que responde automaticamente reviews do Google, TripAdvisor e Facebook usando IA personalizada — no tom certo, no nicho certo, sem intervenção manual.
 
 **Problema resolvido:** Donos de negócios locais (clínicas, restaurantes, academias) perdem clientes por não responder reviews. Fazer isso manualmente consome horas.
 
-**Solução:** A IA lê cada review e gera uma resposta personalizada para o negócio. O dono aprova com 1 clique (ou ativa o modo automático).
+**Solução:** A IA lê cada review e gera uma resposta personalizada para o negócio. O dono aprova com 1 clique (ou ativa o modo automático). Suporta Google Meu Negócio (via API), Facebook Pages (via Graph API) e TripAdvisor (import manual).
 
 ---
 
@@ -37,7 +37,8 @@ ReplyFlow é um SaaS que responde automaticamente reviews do Google Meu Negócio
 | Filas | Upstash QStash |
 | Cache / Rate Limit | Upstash Redis |
 | Email | Resend |
-| WhatsApp | Evolution API |
+| WhatsApp | UltraMsg / Z-API / Evolution API (multi-provider) |
+| Reviews | Google My Business API v1, Facebook Graph API v19.0, TripAdvisor (import manual) |
 | Analytics | Vercel Analytics |
 | Deploy | Vercel |
 
@@ -45,12 +46,12 @@ ReplyFlow é um SaaS que responde automaticamente reviews do Google Meu Negócio
 
 ## Planos e Preços
 
-| Plano | Preço | Locais | Destaque |
-|-------|-------|--------|---------|
-| Free | Grátis | 1 | 10 respostas IA/mês |
-| Starter | R$ 97/mês | 1 | 50 respostas IA/mês · add-on +R$17/local |
-| **Pro** | **R$ 197/mês** | **3** | **IA ilimitada · Alerta WhatsApp · aprovação 1 clique** |
-| Agência | R$ 497/mês | 10 clientes × 3 locais | Painel multi-cliente · IA ilimitada · WhatsApp + aprovação 1 clique |
+| Plano   | Preço          | Locais                 | Plataformas | Destaque                                                                         |
+| ------- | -------------- | ---------------------- | ----------- | -------------------------------------------------------------------------------- |
+| Free    | Grátis         | 1                      | 2           | 10 respostas IA/mês · Google + 1 extra                                           |
+| Starter | R$ 97/mês      | 1                      | 3           | 100 respostas IA/mês · Google + TripAdvisor + Facebook · add-on +R$49/local      |
+| **Pro** | **R$ 197/mês** | **3**                  | **3**       | **IA ilimitada · Alerta WhatsApp · aprovação 1 clique · +R$49/local**            |
+| Agência | R$ 497/mês     | 10 clientes × 3 locais | 3/local     | Painel multi-cliente · IA ilimitada · WhatsApp + aprovação 1 clique · +R$49/local |
 
 ---
 
@@ -179,6 +180,8 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 39 (Limites de plano + locais agência + add-on R$17/local) | ✅ Concluída |
 | Etapa 6 — Sprint 40 (Fix limite agência: 3 locais próprios + 3/cliente) | ✅ Concluída |
 | Etapa 6 — Sprint 41 (Compra de local extra via Stripe direto dos painéis) | ✅ Concluída |
+| Etapa 6 — Sprint 42 (Multi-plataforma: Facebook OAuth + TripAdvisor manual import) | ✅ Concluída |
+| Etapa 6 — Sprint 43 (Sync Facebook cron + publicar resposta + filtro plataformas + TA UX) | ✅ Concluída |
 
 ---
 
@@ -194,14 +197,17 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/locations/[id]/sync` | POST | Sync manual de reviews para um local |
 | `/api/agency/clients` | GET/POST | Listar/criar clientes da agência |
 | `/api/reviews/[id]/generate` | POST | Gerar resposta com IA |
-| `/api/reviews/[id]/publish` | POST | Publicar resposta no Google (GMB real) |
+| `/api/reviews/[id]/publish` | POST | Publicar resposta no Google ou Facebook (Graph API) |
 | `/api/reviews/[id]/ignore` | POST | Ignorar review |
+| `/api/reviews/manual` | POST | Importar review manualmente (TripAdvisor, sem API oficial) |
 | `/api/onboarding` | POST | Criar organização e primeiro local |
 | `/api/webhooks/stripe` | POST | Webhook de eventos Stripe |
-| `/api/cron/fetch-reviews` | GET | Cron job — busca reviews via GMB API (30min) |
+| `/api/cron/fetch-reviews` | GET | Cron job — PASS 0: auto-detect GMB · PASS 1: Google reviews · PASS 2: Facebook ratings · PASS 3: auto-publish |
 | `/api/auth/callback` | GET | Callback OAuth Supabase |
 | `/api/google/auth` | GET | Iniciar OAuth Google My Business |
 | `/api/google/callback` | GET | Callback OAuth Google |
+| `/api/facebook/auth` | GET | Iniciar OAuth Facebook (pages_read_engagement, pages_manage_posts) |
+| `/api/facebook/callback` | GET | Callback OAuth Facebook — long-lived token + salva page_access_token |
 | `/api/billing/checkout` | POST | Criar Checkout Session Stripe |
 | `/api/billing/portal` | POST | Redirecionar para Portal Stripe |
 | `/api/settings` | PATCH | Atualizar nome da empresa, perfil, WhatsApp e webhook |
@@ -210,7 +216,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/demo/seed` | POST/DELETE | Inserir/remover reviews de demonstração |
 | `/api/agency/clients/[id]/locations` | POST | Criar local para cliente da agência (máx 3) |
 | `/api/billing/extra-locations` | POST | Ajustar quantidade de locais extras no Stripe |
-| `/api/agency/clients/[id]/extra-location` | POST | Comprar +1 local extra para cliente da agência (débito na assinatura da agência) |
+| `/api/agency/clients/[id]/extra-location` | POST | Comprar +1 local extra para cliente da agência |
 
 ---
 
@@ -230,6 +236,10 @@ Todo o planejamento estratégico e técnico está documentado em `_contextos/`:
 | `07_REGRAS_PROJETO.md` | **Regras obrigatórias — leia sempre** (README, padrões, segurança) |
 | `08_SPRINT5_VALIDACAO_DEPLOY.md` | Validação local, correções TypeScript, alertas de segurança |
 | `09_DESIGN_SYSTEM.md` | Design system: tokens CSS, componentes UI, ícones Lucide, padrões de página |
+| `10_SPRINT_VALIDACAO.md` | Sprint de validação: checklist de deploy, fluxo crítico, status por serviço |
+| `11_SPRINT_LIMITES_E_LOCAIS_AGENCIA.md` | Limites de plano, locais por cliente agência, add-on R$49/local |
+| `12_SPRINT_PLATAFORMAS.md` | Integração multi-plataforma: Facebook OAuth + TripAdvisor manual import |
+| `13_SPRINT_PLATAFORMAS_SYNC.md` | Planejamento sync Facebook + melhorias TripAdvisor (6 tarefas com checklists) |
 
 ---
 
