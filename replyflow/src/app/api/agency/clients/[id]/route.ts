@@ -14,13 +14,15 @@ async function verifyAgencyOwnership(userId: string, clientId: string) {
 
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("organization_id, organization:organizations(plan)")
+    .select("organization_id, organization:organizations(plan, stripe_subscription_id)")
     .eq("id", userId)
     .single();
 
   const agencyOrgId = userRecord?.organization_id;
-  const plan = (userRecord?.organization as { plan?: string } | null)?.plan;
+  const agencyOrg   = userRecord?.organization as { plan?: string; stripe_subscription_id?: string | null } | null;
+  const plan        = agencyOrg?.plan;
   if (!agencyOrgId || plan !== "agency") return null;
+  const agencyHasStripe = !!agencyOrg?.stripe_subscription_id;
 
   const { data: client } = await serviceClient
     .from("organizations")
@@ -30,7 +32,7 @@ async function verifyAgencyOwnership(userId: string, clientId: string) {
     .single();
 
   if (!client) return null;
-  return { agencyOrgId, client, serviceClient };
+  return { agencyOrgId, agencyHasStripe, client, serviceClient };
 }
 
 export async function GET(
@@ -74,6 +76,7 @@ export async function GET(
   }
 
   return NextResponse.json({
+    agencyHasStripe: ctx.agencyHasStripe,
     client: {
       ...client,
       extra_locations: (client as { extra_locations?: number }).extra_locations ?? 0,

@@ -211,12 +211,13 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   const initialTab = searchParams.get("tab") === "locations" ? "locations" : "reviews";
   const googleSuccess = searchParams.get("success") === "google_connected";
 
-  const [client,       setClient]       = useState<ClientDetail | null>(null);
-  const [locations,    setLocations]    = useState<ClientLocation[]>([]);
-  const [reviews,      setReviews]      = useState<ReviewItem[]>([]);
-  const [loading,      setLoading]      = useState(true);
-  const [tab,          setTab]          = useState<"reviews" | "locations">(initialTab);
-  const [removing,     setRemoving]     = useState(false);
+  const [client,          setClient]          = useState<ClientDetail | null>(null);
+  const [locations,       setLocations]       = useState<ClientLocation[]>([]);
+  const [reviews,         setReviews]         = useState<ReviewItem[]>([]);
+  const [loading,         setLoading]         = useState(true);
+  const [tab,             setTab]             = useState<"reviews" | "locations">(initialTab);
+  const [removing,        setRemoving]        = useState(false);
+  const [agencyHasStripe, setAgencyHasStripe] = useState(false);
 
   // Modal de criar local
   const [showAddLocation, setShowAddLocation] = useState(false);
@@ -241,6 +242,7 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
         const d = await detailRes.json();
         setClient(d.client);
         setLocations(d.locations ?? []);
+        setAgencyHasStripe(!!d.agencyHasStripe);
       }
       if (reviewsRes.ok) {
         const r = await reviewsRes.json();
@@ -456,17 +458,34 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
                 </p>
                 <div className="flex flex-col items-end gap-1">
                   {atClientLimit ? (
-                    <button
-                      type="button"
-                      onClick={handleBuyExtra}
-                      disabled={buyingExtra}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
-                    >
-                      {buyingExtra
-                        ? <Loader2 size={12} className="animate-spin" />
-                        : <Plus size={12} />}
-                      {buyingExtra ? "Processando…" : "Adicionar local (+R$49/mês)"}
-                    </button>
+                    agencyHasStripe ? (
+                      /* Tem Stripe → compra direto */
+                      <button
+                        type="button"
+                        onClick={handleBuyExtra}
+                        disabled={buyingExtra}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
+                      >
+                        {buyingExtra
+                          ? <Loader2 size={12} className="animate-spin" />
+                          : <Plus size={12} />}
+                        {buyingExtra ? "Processando…" : "Adicionar local (+R$49/mês)"}
+                      </button>
+                    ) : (
+                      /* Sem Stripe → instrução manual */
+                      <div className="text-right">
+                        <p className="text-xs font-medium text-gray-500">
+                          Limite de {AGENCY_CLIENT_LOCATION_LIMIT} locais atingido
+                        </p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          Para adicionar mais locais (+R$49/mês),{" "}
+                          <a href="/billing" className="text-indigo-600 hover:underline">
+                            ative uma assinatura Stripe
+                          </a>
+                          .
+                        </p>
+                      </div>
+                    )
                   ) : (
                     <button
                       type="button"
