@@ -68,7 +68,19 @@ export async function PATCH(request: Request) {
     );
   }
 
-  await Promise.all(updates);
+  const results = await Promise.all(updates);
+
+  // Surface any DB errors instead of silently swallowing them
+  for (const result of results) {
+    const r = result as { error?: { message?: string } } | null;
+    if (r && r.error) {
+      console.error("[settings PATCH] DB error:", r.error.message);
+      return NextResponse.json(
+        { error: r.error.message ?? "Database error" },
+        { status: 500 }
+      );
+    }
+  }
 
   return NextResponse.json({ success: true });
 }

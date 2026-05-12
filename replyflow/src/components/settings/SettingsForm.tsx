@@ -217,54 +217,26 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
             </div>
           )}
 
-          {!emailAlerts && (
-            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
-              <BellOff size={14} className="text-gray-400 dark:text-gray-500 shrink-0" />
-              <p className="text-xs text-gray-500 dark:text-gray-400">Alertas por e-mail desativados. Você não será notificado sobre reviews negativos.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Perfil */}
-      <div className="card p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <User size={16} className="text-gray-400 dark:text-gray-500" />
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Perfil</h2>
-        </div>
-        <div className="space-y-4">
-          <Input
-            label="Seu nome"
-            type="text"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            placeholder="João Silva"
-          />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
-              <Mail size={13} className="text-gray-400 dark:text-gray-500" />
-              E-mail de login
-            </label>
-            <input
-              type="email"
-              value={user.email}
-              disabled
-              className="w-full h-10 px-3.5 text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#2a2a35] rounded-lg text-gray-400 dark:text-gray-500 cursor-not-allowed"
-            />
-            <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">O e-mail de login não pode ser alterado por aqui.</p>
-          </div>
-
           {/* WhatsApp — alertas Pro */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
-              <Smartphone size={13} className="text-gray-400 dark:text-gray-500" />
-              WhatsApp para alertas
-              {!isPro && (
-                <span className="ml-1 text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">
-                  PRO
-                </span>
-              )}
-            </label>
+          <div className="border-t border-gray-100 dark:border-white/5 pt-4">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <div>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <Smartphone size={13} className="text-gray-400 dark:text-gray-500" />
+                  Alertas por WhatsApp
+                  {!isPro && (
+                    <span className="ml-1 text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">
+                      PRO
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  {isPro
+                    ? "Receba alertas e aprovações de resposta direto no WhatsApp."
+                    : "Disponível nos planos Pro e Agency."}
+                </p>
+              </div>
+            </div>
             <input
               type="tel"
               value={whatsapp}
@@ -297,6 +269,43 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
                 )}
               </div>
             )}
+          </div>
+
+          {!emailAlerts && !whatsapp && (
+            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
+              <BellOff size={14} className="text-gray-400 dark:text-gray-500 shrink-0" />
+              <p className="text-xs text-gray-500 dark:text-gray-400">Nenhum canal de alerta ativo. Ative e-mail ou configure WhatsApp.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Perfil */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <User size={16} className="text-gray-400 dark:text-gray-500" />
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Perfil</h2>
+        </div>
+        <div className="space-y-4">
+          <Input
+            label="Seu nome"
+            type="text"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="João Silva"
+          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
+              <Mail size={13} className="text-gray-400 dark:text-gray-500" />
+              E-mail de login
+            </label>
+            <input
+              type="email"
+              value={user.email}
+              disabled
+              className="w-full h-10 px-3.5 text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#2a2a35] rounded-lg text-gray-400 dark:text-gray-500 cursor-not-allowed"
+            />
+            <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">O e-mail de login não pode ser alterado por aqui.</p>
           </div>
         </div>
       </div>
