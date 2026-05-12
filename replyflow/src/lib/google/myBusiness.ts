@@ -161,7 +161,8 @@ export class GoogleMyBusinessClient {
    * @param accountName - e.g. "accounts/123456789"
    */
   async listLocations(accountName: string): Promise<{ name: string; title: string }[]> {
-    const url = `${INFO_BASE}/${accountName}/locations?readMask=name,title`;
+    // Usa Account Management API (sem quota issue do Business Information API)
+    const url = `${ACCOUNTS_BASE}/${accountName}/locations`;
     const res = await this.doFetch(url);
     if (!res.ok) throw new Error(`GMB list locations failed: ${res.status} ${await res.text()}`);
     const data = await res.json() as { locations?: { name: string; title: string }[] };
