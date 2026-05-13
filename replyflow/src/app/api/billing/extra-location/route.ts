@@ -45,7 +45,9 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   }
-  const { data: userRecord } = await serviceClient
+
+  const svcClient = createServiceClient();
+  const { data: userRecord } = await svcClient
     .from("users")
     .select("organization:organizations(id, plan, stripe_customer_id, stripe_subscription_id, stripe_extra_locations_item_id, extra_locations)")
     .eq("id", user.id)
@@ -88,7 +90,7 @@ export async function POST(request: Request) {
         await stripe.subscriptionItems.del(org.stripe_extra_locations_item_id, {
           proration_behavior: "always_invoice",
         });
-        await serviceClient
+        await svcClient
           .from("organizations")
           .update({ stripe_extra_locations_item_id: null, extra_locations: 0 })
           .eq("id", org.id);
@@ -97,7 +99,7 @@ export async function POST(request: Request) {
           quantity,
           proration_behavior: "always_invoice",
         });
-        await serviceClient
+        await svcClient
           .from("organizations")
           .update({ extra_locations: quantity })
           .eq("id", org.id);
@@ -115,7 +117,7 @@ export async function POST(request: Request) {
         proration_behavior: "always_invoice",
       });
 
-      await serviceClient
+      await svcClient
         .from("organizations")
         .update({
           stripe_extra_locations_item_id: item.id,
