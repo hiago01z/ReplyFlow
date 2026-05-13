@@ -371,7 +371,7 @@ export default async function LandingPage() {
           </p>
           <LandingPricing symbol={symbol} plans={pricingPlans} />
           <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-8">
-            Todos os planos incluem teste de 7 dias grátis. Sem fidelidade.
+            Comece grátis — 7 dias com IA ilimitada, sem cartão de crédito. Cancele quando quiser.
           </p>
         </div>
       </section>

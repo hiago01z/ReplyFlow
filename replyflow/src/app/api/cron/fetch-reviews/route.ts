@@ -7,6 +7,7 @@ import { sendNegativeReviewAlert, sendWhatsAppAlert } from '@/lib/email/alerts'
 import type { AppLocale } from '@/lib/i18n/locale'
 import { sendWebhook, type WebhookPayload } from '@/lib/webhooks/sendWebhook'
 import type { LocationNiche, LocationTone } from '@/types'
+import { canGenerateAiResponse, type Plan } from '@/lib/plan-limits'
 
 // ─── Proteção de segurança ────────────────────────────────────────────────────
 // Chamado pelo cron-job.org a cada 30 minutos
@@ -465,13 +466,48 @@ async function runSync() {
   // mesmo sem google_location_name configurado.
   const { data: autoPublishLocations } = await serviceClient
     .from('locations')
-    .select('id, name, niche, tone, google_access_token, google_refresh_token, google_location_name')
+    .select('id, name, niche, tone, organization_id, google_access_token, google_refresh_token, google_location_name, auto_publish_min_rating')
     .eq('active', true)
     .eq('auto_publish', true)
 
   const now = new Date().toISOString()
 
   for (const location of autoPublishLocations ?? []) {
+    // ── Verificar se o plano da org permite auto-publish ──────────────────────
+    // Auto-publish gera respostas IA — precisa de plano Pro/Agency ou Free em trial ativo.
+    // Se for Free com trial expirado: desliga auto_publish e pula o local.
+    const { data: org } = await serviceClient
+      .from('organizations')
+      .select('plan, trial_ends_at, ai_responses_count, ai_responses_month')
+      .eq('id', location.organization_id)
+      .single()
+
+    const orgPlan = (org?.plan ?? 'free') as Plan
+    const trialEndsAt = org?.trial_ends_at ? new Date(org.trial_ends_at).getTime() : null
+    const trialActive = trialEndsAt ? trialEndsAt > Date.now() : false
+    const effectivePlan: Plan = (orgPlan === 'free' && trialActive) ? 'pro' : orgPlan
+
+    // Free sem trial ativo não pode usar auto-publish (limite 10 respostas/mês)
+    // Desabilita auto_publish para evitar consumo silencioso após expiração do trial
+    if (orgPlan === 'free' && !trialActive) {
+      await serviceClient
+        .from('locations')
+        .update({ auto_publish: false })
+        .eq('id', location.id)
+      console.log(`[cron] auto_publish desabilitado para local ${location.id} — Free sem trial ativo`)
+      continue
+    }
+
+    // Verificar limite mensal de respostas (planos com limite: free em trial = pro, starter)
+    const currentMonth = new Date().toISOString().slice(0, 7)
+    const storedMonth = org?.ai_responses_month ?? ''
+    const countThisMonth = storedMonth === currentMonth ? (org?.ai_responses_count ?? 0) : 0
+    const { allowed } = canGenerateAiResponse(effectivePlan, countThisMonth)
+    if (!allowed) {
+      console.log(`[cron] PASS 3 skip local ${location.id} — limite de respostas IA atingido (plano ${effectivePlan})`)
+      continue
+    }
+
     // Criar cliente GMB apenas se disponível (necessário para reviews reais)
     const gmb = location.google_access_token && location.google_location_name
       ? new GoogleMyBusinessClient({
@@ -491,14 +527,7 @@ async function runSync() {
       .is('publish_after', null)
 
     if (unscheduled?.length) {
-      const { data: locFull } = await serviceClient
-        .from('locations')
-        .select('auto_publish_min_rating')
-        .eq('id', location.id)
-        .single()
-
-      const minRating = locFull?.auto_publish_min_rating ?? 3
-
+      const minRating = location.auto_publish_min_rating ?? 3
       for (const u of unscheduled) {
         if ((u.rating ?? 0) >= minRating) {
           const publishAt = new Date(Date.now() + randomDelayMs()).toISOString()
@@ -520,7 +549,12 @@ async function runSync() {
       .not('publish_after', 'is', null)
       .lte('publish_after', now)
 
+    let aiUsedThisLoop = 0
     for (const rev of scheduledReviews ?? []) {
+      // Re-checar limite se starter (100/mês) e já consumiu neste loop
+      const { allowed: stillAllowed } = canGenerateAiResponse(effectivePlan, countThisMonth + aiUsedThisLoop)
+      if (!stillAllowed) break
+
       try {
         await autoPublishReview({
           serviceClient,
@@ -530,6 +564,7 @@ async function runSync() {
           externalId:    rev.external_id,
           rating:        rev.rating ?? 3,
           authorName:    rev.author_name ?? 'Cliente',
+          orgId:         location.organization_id,
           location: {
             name:                 location.name,
             niche:                location.niche as LocationNiche,
@@ -538,6 +573,7 @@ async function runSync() {
           },
         })
         results.autoPublished++
+        aiUsedThisLoop++
       } catch (err) {
         console.error(`[cron] error auto-publishing review ${rev.id}:`, err)
         results.errors++
@@ -567,6 +603,7 @@ interface AutoPublishParams {
   externalId:     string
   rating:         number
   authorName:     string
+  orgId:          string
   location: {
     name:                 string
     niche:                LocationNiche
@@ -583,6 +620,7 @@ async function autoPublishReview({
   externalId,
   rating,
   authorName,
+  orgId,
   location,
 }: AutoPublishParams): Promise<void> {
   // 1. Gerar resposta com IA
@@ -610,6 +648,20 @@ async function autoPublishReview({
   if (!response) {
     throw new Error('Failed to save auto-generated response')
   }
+
+  // 2b. Incrementar contador de respostas IA da organização (respeita limite mensal)
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  const { data: orgNow } = await serviceClient
+    .from('organizations')
+    .select('ai_responses_count, ai_responses_month')
+    .eq('id', orgId)
+    .single()
+  const prevMonth = orgNow?.ai_responses_month ?? ''
+  const prevCount = prevMonth === currentMonth ? (orgNow?.ai_responses_count ?? 0) : 0
+  void serviceClient
+    .from('organizations')
+    .update({ ai_responses_count: prevCount + 1, ai_responses_month: currentMonth })
+    .eq('id', orgId)
 
   // 3. Publicar no Google My Business
   // Reviews de demo (external_id começa com "demo") não existem no GMB — pular chamada real
