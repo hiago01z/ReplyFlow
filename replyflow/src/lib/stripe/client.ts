@@ -124,3 +124,10 @@ export function getCurrencyFromCountry(country: string | null | undefined): Supp
   if (EUR_COUNTRIES.has(c)) return 'eur'
   return 'usd'
 }
+
+// ── Extra location add-on prices per currency ─────────────────────────────────
+export const EXTRA_LOCATION_PRICES: Record<SupportedCurrency, { priceId: string; price: number; currency: string }> = {
+  brl: { priceId: process.env.STRIPE_PRICE_EXTRA_LOCATION         ?? '', price: 49, currency: 'brl' },
+  usd: { priceId: process.env.STRIPE_PRICE_EXTRA_LOCATION_USD     ?? '', price: 9,  currency: 'usd' },
+  eur: { priceId: process.env.STRIPE_PRICE_EXTRA_LOCATION_EUR     ?? '', price: 8,  currency: 'eur' },
+}

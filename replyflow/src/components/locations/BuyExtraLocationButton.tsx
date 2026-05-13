@@ -7,14 +7,27 @@ import { Plus, Loader2, X, CreditCard, MapPin, AlertTriangle } from "lucide-reac
 interface Props {
   /** Quantidade atual de locais extras da org */
   currentExtra: number;
+  /** Preço unitário do add-on (detectado pela moeda do cliente) */
+  addonPrice?:    number;
+  /** Moeda do add-on (brl | usd | eur) */
+  addonCurrency?: string;
   className?: string;
+}
+
+function fmtCurrency(amount: number, currency: string) {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
 }
 
 /**
  * Botão que compra +1 local extra via Stripe (R$49/mês).
  * Exibe modal de confirmação antes de cobrar o cartão.
  */
-export function BuyExtraLocationButton({ currentExtra, className }: Props) {
+export function BuyExtraLocationButton({ currentExtra, addonPrice = 49, addonCurrency = 'brl', className }: Props) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [loading,   setLoading]   = useState(false);
@@ -93,7 +106,7 @@ export function BuyExtraLocationButton({ currentExtra, className }: Props) {
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-indigo-100">
                 <span className="text-xs text-gray-500">Cobrança adicional mensal</span>
-                <span className="text-sm font-bold text-indigo-700">R$ 49,00/mês</span>
+                <span className="text-sm font-bold text-indigo-700">{fmtCurrency(addonPrice, addonCurrency)}/mês</span>
               </div>
             </div>
 

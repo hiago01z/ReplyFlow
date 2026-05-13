@@ -1,7 +1,8 @@
 /**
  * POST /api/billing/extra-location
  *
- * Ajusta a quantidade de locais extras (add-on R$49/mês) na assinatura Stripe.
+ * Ajusta a quantidade de locais extras (add-on) na assinatura Stripe.
+ * Detecta automaticamente a moeda do cliente via a assinatura ativa.
  * Body: { quantity: number } — quantidade total desejada (0 = remover add-on)
  *
  * Fluxo:
@@ -9,12 +10,13 @@
  * 2. Se não tem → cria novo subscription item na assinatura principal
  * 3. Salva stripe_extra_locations_item_id e extra_locations na org
  *
- * Requer env: STRIPE_PRICE_EXTRA_LOCATION (price_xxx do produto R$49/mês)
+ * Requer env: STRIPE_PRICE_EXTRA_LOCATION (BRL R$49), STRIPE_PRICE_EXTRA_LOCATION_USD ($9), STRIPE_PRICE_EXTRA_LOCATION_EUR (€8)
  */
 
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe/client";
+import { EXTRA_LOCATION_PRICES, type SupportedCurrency } from "@/lib/stripe/client";
 import { z } from "zod";
 
 const schema = z.object({
@@ -43,8 +45,6 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   }
-
-  const serviceClient = createServiceClient();
   const { data: userRecord } = await serviceClient
     .from("users")
     .select("organization:organizations(id, plan, stripe_customer_id, stripe_subscription_id, stripe_extra_locations_item_id, extra_locations)")
@@ -67,6 +67,17 @@ export async function POST(request: Request) {
       { error: "Assinatura Stripe não encontrada. Faça upgrade de plano primeiro." },
       { status: 403 },
     );
+  }
+
+  // Detect currency from existing subscription so we charge in the right currency
+  let addonPriceId = priceId // fallback to BRL
+  try {
+    const sub = await stripe.subscriptions.retrieve(org.stripe_subscription_id)
+    const subCurrency = (sub.currency ?? 'brl').toLowerCase() as SupportedCurrency
+    const addonEntry = EXTRA_LOCATION_PRICES[subCurrency] ?? EXTRA_LOCATION_PRICES.brl
+    if (addonEntry.priceId) addonPriceId = addonEntry.priceId
+  } catch {
+    // keep fallback BRL price if subscription lookup fails
   }
 
   try {
@@ -99,7 +110,7 @@ export async function POST(request: Request) {
 
       const item = await stripe.subscriptionItems.create({
         subscription:       org.stripe_subscription_id,
-        price:              priceId,
+        price:              addonPriceId,
         quantity,
         proration_behavior: "always_invoice",
       });

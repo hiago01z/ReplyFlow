@@ -6,6 +6,8 @@ import { ReactivateLocationButton } from "@/components/locations/ReactivateLocat
 import { BuyExtraLocationButton } from "@/components/locations/BuyExtraLocationButton";
 import { PlatformBadges } from "@/components/locations/PlatformBadges";
 import { PLAN_LIMITS, getEffectiveLocationLimit, type Plan } from "@/lib/plan-limits";
+import { EXTRA_LOCATION_PRICES, getCurrencyFromCountry } from "@/lib/stripe/client";
+import { headers } from "next/headers";
 
 interface LocationsPageProps {
   searchParams: Promise<{ success?: string; error?: string; loc?: string }>;
@@ -16,6 +18,12 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const serviceClient = createServiceClient();
+
+  // Detect currency for add-on pricing
+  const reqHeaders = await headers();
+  const country = reqHeaders.get("x-vercel-ip-country");
+  const currency = getCurrencyFromCountry(country);
+  const addon = EXTRA_LOCATION_PRICES[currency];
 
   const { data: userRecord } = await serviceClient
     .from("users")
@@ -70,7 +78,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
           <p className="text-sm text-gray-500 mt-1">Gerencie os locais monitorados pelo ReplyFlow.</p>
         </div>
         {atLimit ? (
-          <BuyExtraLocationButton currentExtra={extraLocations} />
+          <BuyExtraLocationButton currentExtra={extraLocations} addonPrice={addon.price} addonCurrency={addon.currency} />
         ) : (
           <Link
             href="/locations/new"
@@ -116,6 +124,8 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
           {atLimit && (
             <BuyExtraLocationButton
               currentExtra={extraLocations}
+              addonPrice={addon.price}
+              addonCurrency={addon.currency}
               className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap bg-transparent p-0 border-0 disabled:opacity-60 cursor-pointer"
             />
           )}
