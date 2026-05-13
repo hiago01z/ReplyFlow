@@ -77,6 +77,7 @@ supabase/migrations/011_webhook_config.sql
 supabase/migrations/012_public_profile.sql
 supabase/migrations/013_plan_limits_counter.sql
 supabase/migrations/014_platform_connections.sql
+supabase/migrations/015_facebook_token_expiry.sql
 ```
 
 Depois, habilite o Realtime na tabela `reviews`:
@@ -121,10 +122,15 @@ ALTER PUBLICATION supabase_realtime ADD TABLE reviews;
 3. Em **Facebook Login → Settings** adicione o redirect URI:
    - `http://localhost:3000/api/facebook/callback` (dev)
    - `https://replyflow-hivi.com/api/facebook/callback` (produção)
-4. Solicite as permissões: `pages_read_engagement`, `pages_manage_posts`, `pages_show_list`
+4. Em **Permissions & Features** solicite:
+   - `pages_read_engagement` (aprovado automaticamente)
+   - `pages_read_user_content` (requer App Review)
+   - `pages_manage_engagement` (requer App Review — substitui `pages_manage_posts` que foi descontinuada)
+   - `pages_show_list` (requer App Review)
 5. Em **App Settings → Basic** copie **App ID** e **App Secret** para `.env.local`
-6. Para testes sem App Review: adicione o usuário como **Tester** no painel do App
-7. Para produção com usuários reais: submeter **App Review** na Meta
+6. Para testes sem App Review: vá em **App Roles → Testers** e adicione o usuário
+7. Para produção com usuários reais: submeter **App Review** para as permissões avançadas
+   - Ver checklist completo em `_contextos/12_INTEGRACAO_PLATAFORMAS.md`
 
 ## 7. Configurar Upstash Redis (rate limiting)
 

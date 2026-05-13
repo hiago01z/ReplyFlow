@@ -46,14 +46,52 @@ async function runSync() {
   }
 
   const results = {
-    processed:           0,
-    newReviews:          0,
-    newFacebookReviews:  0,
-    scheduled:           0,
-    autoPublished:       0,
-    alertsSent:          0,
-    detected:            0,
-    errors:              0,
+    processed:              0,
+    newReviews:             0,
+    newFacebookReviews:     0,
+    scheduled:              0,
+    autoPublished:          0,
+    alertsSent:             0,
+    detected:               0,
+    fbTokenWarnings:        0,
+    errors:                 0,
+  }
+
+  // ── PASS -1: Alertar sobre tokens Facebook próximos de expirar (< 7 dias) ────
+  // Long-lived user tokens duram 60 dias. Page tokens derivados de long-lived são
+  // permanentes mas apenas enquanto o user token original não expirar.
+  const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: expiringFbLocations } = await serviceClient
+    .from('locations')
+    .select('id, name, organization_id, facebook_token_expires_at, organization:organizations(plan)')
+    .eq('active', true)
+    .eq('facebook_connected', true)
+    .not('facebook_token_expires_at', 'is', null)
+    .lt('facebook_token_expires_at', sevenDaysFromNow)
+
+  for (const loc of expiringFbLocations ?? []) {
+    try {
+      const { data: orgUser } = await serviceClient
+        .from('users')
+        .select('email')
+        .eq('organization_id', loc.organization_id)
+        .eq('role', 'owner')
+        .single()
+
+      if (orgUser?.email) {
+        await sendNegativeReviewAlert({
+          to:           orgUser.email,
+          businessName: loc.name,
+          authorName:   'Sistema ReplyFlow',
+          rating:       0, // usado apenas para triagem — não é alerta negativo
+          content:      `Seu token de acesso ao Facebook para o local "${loc.name}" expira em breve (${new Date(loc.facebook_token_expires_at as string).toLocaleDateString('pt-BR')}). Acesse Configurações → Locais → ${loc.name} e reconecte o Facebook para manter a integração funcionando.`,
+          reviewId:     loc.id,
+        }).catch(() => null)
+        results.fbTokenWarnings++
+      }
+    } catch (err) {
+      console.warn(`[cron] Facebook token warning failed for loc ${loc.id}:`, err instanceof Error ? err.message : err)
+    }
   }
 
   // ── PASS 0: Auto-detectar google_location_name para locais ainda não vinculados ─

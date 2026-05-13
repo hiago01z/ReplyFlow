@@ -3,9 +3,10 @@
  *
  * Inicia o fluxo OAuth do Facebook para conectar uma Página ao local.
  * Permissões solicitadas:
- *   - pages_read_engagement  → ler avaliações da página
- *   - pages_manage_posts     → responder avaliações
- *   - pages_show_list        → listar páginas do usuário
+ *   - pages_read_engagement    → ler engajamento da página (avaliações, etc.)
+ *   - pages_read_user_content  → ler conteúdo postado por usuários (avaliações)
+ *   - pages_manage_engagement  → comentar em avaliações (responder)
+ *   - pages_show_list          → listar páginas gerenciadas pelo usuário
  *
  * Requer:
  *   FACEBOOK_APP_ID
@@ -44,7 +45,8 @@ export async function GET(request: Request) {
   fbAuthUrl.searchParams.set("response_type", "code");
   fbAuthUrl.searchParams.set("scope", [
     "pages_read_engagement",
-    "pages_manage_posts",
+    "pages_read_user_content",
+    "pages_manage_engagement",
     "pages_show_list",
   ].join(","));
   fbAuthUrl.searchParams.set("state", locationId);

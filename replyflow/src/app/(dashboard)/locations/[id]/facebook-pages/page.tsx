@@ -19,6 +19,7 @@ export default function FacebookPagesPage() {
   const [error,  setError]  = useState("");
 
   const locationId = params.id;
+  const expiresAt  = searchParams.get("expires_at") ?? null;
 
   let pages: FacebookPage[] = [];
   try {
@@ -36,10 +37,11 @@ export default function FacebookPagesPage() {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
-          facebook_page_id:      page.id,
-          facebook_page_name:    page.name,
-          facebook_access_token: page.token,
-          facebook_connected:    true,
+          facebook_page_id:           page.id,
+          facebook_page_name:         page.name,
+          facebook_access_token:      page.token,
+          facebook_connected:         true,
+          facebook_token_expires_at:  expiresAt,
         }),
       });
       if (!res.ok) throw new Error();

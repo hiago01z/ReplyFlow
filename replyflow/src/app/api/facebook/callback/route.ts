@@ -62,10 +62,15 @@ export async function GET(request: Request) {
     }),
   );
 
-  let userToken = shortLivedToken; // fallback se a troca falhar
+  let userToken   = shortLivedToken; // fallback se a troca falhar
+  let tokenExpiry: string | null = null;
   if (llRes.ok) {
-    const llData = await llRes.json() as { access_token: string };
+    const llData = await llRes.json() as { access_token: string; expires_in?: number };
     userToken = llData.access_token;
+    // expires_in em segundos (normalmente ~5184000 = 60 dias)
+    if (llData.expires_in) {
+      tokenExpiry = new Date(Date.now() + llData.expires_in * 1000).toISOString();
+    }
   } else {
     console.warn("[facebook/callback] long-lived token exchange failed, using short-lived token");
   }
@@ -109,10 +114,11 @@ export async function GET(request: Request) {
     await serviceClient
       .from("locations")
       .update({
-        facebook_page_id:      pages[0].id,
-        facebook_page_name:    pages[0].name,
-        facebook_access_token: pages[0].access_token,
-        facebook_connected:    true,
+        facebook_page_id:           pages[0].id,
+        facebook_page_name:         pages[0].name,
+        facebook_access_token:      pages[0].access_token,
+        facebook_connected:         true,
+        facebook_token_expires_at:  tokenExpiry,
       })
       .eq("id", locationId);
 
@@ -127,7 +133,9 @@ export async function GET(request: Request) {
     id: p.id, name: p.name, token: p.access_token,
   }))));
 
+  const expiryParam = tokenExpiry ? `&expires_at=${encodeURIComponent(tokenExpiry)}` : "";
+
   return NextResponse.redirect(
-    `${origin}/locations/${locationId}/facebook-pages?pages=${pagesParam}`,
+    `${origin}/locations/${locationId}/facebook-pages?pages=${pagesParam}${expiryParam}`,
   );
 }
