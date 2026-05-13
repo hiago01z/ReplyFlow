@@ -85,7 +85,7 @@ export function LandingPricing({ symbol, plans }: LandingPricingProps) {
               </div>
 
               {/* Preço */}
-              <div className="flex items-end gap-1 mb-1">
+              <div className="flex items-end gap-1 mb-1" translate="no">
                 <span
                   className={`text-4xl font-bold ${
                     plan.highlight ? "text-white" : "text-gray-900 dark:text-gray-100"
@@ -105,6 +105,7 @@ export function LandingPricing({ symbol, plans }: LandingPricingProps) {
               {/* Total anual */}
               {annual && (
                 <p
+                  translate="no"
                   className={`text-xs mb-2 ${
                     plan.highlight ? "text-indigo-200" : "text-gray-400 dark:text-gray-500"
                   }`}
