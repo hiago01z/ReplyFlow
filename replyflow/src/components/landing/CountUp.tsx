@@ -59,7 +59,7 @@ export function CountUp({
 
   return (
     <span ref={ref} className={className}>
-      {prefix}{value.toLocaleString("pt-BR")}{suffix}
+      {prefix}{value.toLocaleString(undefined)}{suffix}
     </span>
   );
 }

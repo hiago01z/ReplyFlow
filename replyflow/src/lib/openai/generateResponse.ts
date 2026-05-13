@@ -17,18 +17,18 @@ interface GenerateResponseParams {
 }
 
 const NICHE_CONTEXT: Record<LocationNiche, string> = {
-  clinica: 'clínica de saúde (médica, odontológica, estética ou similar)',
-  restaurante: 'restaurante ou estabelecimento de alimentação',
-  academia: 'academia ou estúdio de fitness',
-  petshop: 'pet shop ou clínica veterinária',
-  barbearia: 'barbearia ou salão de beleza',
-  outro: 'estabelecimento comercial',
+  clinica: 'health clinic (medical, dental, aesthetic or similar)',
+  restaurante: 'restaurant or food establishment',
+  academia: 'gym or fitness studio',
+  petshop: 'pet shop or veterinary clinic',
+  barbearia: 'barbershop or beauty salon',
+  outro: 'commercial establishment',
 }
 
 const TONE_INSTRUCTION: Record<LocationTone, string> = {
-  formal: 'Use linguagem formal, profissional e respeitosa. Evite gírias.',
-  amigavel: 'Use linguagem amigável, calorosa e próxima. Seja genuíno.',
-  descontraido: 'Use linguagem descontraída e informal, mas ainda profissional.',
+  formal: 'Use formal, professional and respectful language. Avoid slang.',
+  amigavel: 'Use friendly, warm and approachable language. Be genuine.',
+  descontraido: 'Use casual and informal language, but still professional.',
 }
 
 export async function generateReviewResponse({
@@ -41,29 +41,30 @@ export async function generateReviewResponse({
 }: GenerateResponseParams): Promise<{ content: string; tokensUsed: number }> {
   const nicheContext = NICHE_CONTEXT[niche]
   const toneInstruction = TONE_INSTRUCTION[tone]
-  const firstName = authorName?.split(' ')[0] ?? 'cliente'
+  const firstName = authorName?.split(' ')[0] ?? 'there'
   const isNegative = rating <= 2
 
-  const systemPrompt = `Você é um especialista em gestão de reputação digital para ${nicheContext}.
-Sua tarefa é responder reviews de clientes de forma autêntica, personalizada e eficaz.
+  const systemPrompt = `You are a digital reputation management expert for a ${nicheContext}.
+Your task is to reply to customer reviews in an authentic, personalized and effective way.
 
-Diretrizes:
+Guidelines:
 - ${toneInstruction}
-- Sempre mencione o nome do estabelecimento: ${businessName}
-- Chame o cliente pelo primeiro nome quando disponível
-- Para reviews negativos (1-2 estrelas): reconheça o problema, peça desculpas sinceras, ofereça resolver, não seja defensivo
-- Para reviews positivos (4-5 estrelas): agradeça com entusiasmo, reforce o diferencial mencionado
-- Para reviews neutros (3 estrelas): agradeça, reconheça o feedback, mostre comprometimento com melhoria
-- Resposta entre 3-6 frases. Nem muito curta, nem muito longa.
-- NUNCA invente informações específicas que não estão no review
-- NUNCA use templates genéricos óbvios`
+- Always mention the establishment name: ${businessName}
+- Address the customer by their first name when available
+- For negative reviews (1-2 stars): acknowledge the issue, apologize sincerely, offer to resolve it, never be defensive
+- For positive reviews (4-5 stars): thank enthusiastically, reinforce the highlighted strength
+- For neutral reviews (3 stars): thank, acknowledge the feedback, show commitment to improvement
+- Keep the reply between 3-6 sentences. Not too short, not too long.
+- NEVER invent specific details not mentioned in the review
+- NEVER use obviously generic templates
+- CRITICAL: Detect the language of the customer's review and write your reply EXCLUSIVELY in that same language. If the review is in English, reply in English. If in Spanish, reply in Spanish. If in Portuguese, reply in Portuguese. Never mix languages.`
 
-  const userPrompt = `Review do cliente ${firstName} (${rating} estrela${rating > 1 ? 's' : ''}):
-"${reviewContent || 'Sem comentário, apenas avaliação por estrelas.'}"
+  const userPrompt = `Customer review from ${firstName} (${rating} star${rating > 1 ? 's' : ''}):
+"${reviewContent || '(No comment — star rating only.)'}"
 
-${isNegative ? 'ATENÇÃO: Review negativo. Priorize empatia e resolução.' : ''}
+${isNegative ? 'IMPORTANT: Negative review. Prioritize empathy and resolution.' : ''}
 
-Escreva a resposta agora:`
+Write the reply now:`
 
   const completion = await openai.chat.completions.create({
     model: OPENAI_MODEL,
