@@ -84,7 +84,7 @@ export function UpgradeModal({ open, onClose, reason = "response_limit" }: Upgra
             <Dialog.Close
               onClick={onClose}
               className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
-              aria-label="Fechar"
+              aria-label="Close"
             >
               <X size={14} />
             </Dialog.Close>

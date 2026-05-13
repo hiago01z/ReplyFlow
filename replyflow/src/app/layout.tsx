@@ -7,7 +7,7 @@ import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-sigma-ruddy.vercel.app";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),

@@ -97,7 +97,7 @@ export function DemoSeedButton({ hasDemo = false }: DemoSeedButtonProps) {
         <button
           onClick={() => setDismissed(true)}
           className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white/60 hover:text-gray-600 transition-colors"
-          aria-label="Fechar"
+          aria-label="Close"
         >
           <X size={14} />
         </button>

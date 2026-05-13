@@ -82,7 +82,7 @@ export function Modal({
               <Dialog.Close asChild>
                 <button
                   className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors mt-0.5"
-                  aria-label="Fechar"
+                  aria-label="Close"
                 >
                   <X size={15} />
                 </button>

@@ -36,6 +36,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/locations') ||
     request.nextUrl.pathname.startsWith('/billing') ||
     request.nextUrl.pathname.startsWith('/settings') ||
+    request.nextUrl.pathname.startsWith('/analytics') ||
+    request.nextUrl.pathname.startsWith('/agency') ||
     request.nextUrl.pathname.startsWith('/onboarding')
 
   if (!user && isDashboardRoute) {

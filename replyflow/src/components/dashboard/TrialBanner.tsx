@@ -84,7 +84,7 @@ export function TrialBanner({ trialEndsAt, plan }: TrialBannerProps) {
         <button
           onClick={() => setDismissed(true)}
           className="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 transition-colors"
-          aria-label="Fechar"
+          aria-label="Close"
         >
           <X size={13} />
         </button>

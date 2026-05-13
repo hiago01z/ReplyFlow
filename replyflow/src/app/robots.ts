@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-sigma-ruddy.vercel.app";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
           "/analytics/",
           "/billing/",
           "/onboarding/",
+          "/agency/",
         ],
       },
     ],

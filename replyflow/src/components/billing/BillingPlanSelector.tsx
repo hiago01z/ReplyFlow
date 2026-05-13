@@ -44,7 +44,7 @@ export function BillingPlanSelector({ plans, annualEnabled }: BillingPlanSelecto
               "relative w-12 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
               annual ? "bg-indigo-600" : "bg-gray-200",
             )}
-            aria-label={annual ? "Mudar para mensal" : "Mudar para anual"}
+            aria-label={annual ? "Switch to monthly" : "Switch to annual"}
           >
             <span
               className={cn(

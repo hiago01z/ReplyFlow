@@ -73,7 +73,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       <button
         onClick={() => { setVisible(false); setTimeout(() => onRemove(toast.id), 300); }}
         className="shrink-0 opacity-50 hover:opacity-100 transition-opacity mt-0.5"
-        aria-label="Fechar"
+        aria-label="Close"
       >
         <X size={14} />
       </button>

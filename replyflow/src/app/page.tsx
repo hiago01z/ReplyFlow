@@ -470,7 +470,7 @@ export default function LandingPage() {
                 href="https://www.instagram.com/replyflow.br/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram do ReplyFlow"
+                aria-label="ReplyFlow on Instagram"
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-[#E1306C] hover:bg-pink-50 dark:hover:bg-pink-950/30 transition-colors"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -485,7 +485,7 @@ export default function LandingPage() {
                 href="https://www.facebook.com/share/1ax5NBS4QN/?mibextid=wwXIfr"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Facebook do ReplyFlow"
+                aria-label="ReplyFlow on Facebook"
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-[#1877F2] hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -498,7 +498,7 @@ export default function LandingPage() {
                 href="https://www.tiktok.com/@reply.flow"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="TikTok do ReplyFlow"
+                aria-label="ReplyFlow on TikTok"
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

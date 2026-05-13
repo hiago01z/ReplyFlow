@@ -77,7 +77,7 @@ export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
         className
       )}
       title={isDark ? "Mudar para modo claro" : "Mudar para modo escuro"}
-      aria-label="Alternar tema"
+      aria-label="Toggle theme"
     >
       {isDark ? <Sun size={16} /> : <Moon size={16} />}
     </button>

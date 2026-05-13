@@ -163,7 +163,7 @@ export function Sidebar(props: SidebarProps) {
         <button
           onClick={() => setMobileOpen(true)}
           className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-          aria-label="Abrir menu"
+          aria-label="Open menu"
         >
           <Menu size={20} />
         </button>

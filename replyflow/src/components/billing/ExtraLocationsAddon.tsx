@@ -76,7 +76,7 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
               onClick={() => { setQuantity((q) => Math.max(0, q - 1)); setSaved(false); }}
               disabled={quantity === 0}
               className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Diminuir"
+              aria-label="Decrease"
             >
               <Minus size={13} />
             </button>
@@ -86,7 +86,7 @@ export function ExtraLocationsAddon({ currentExtra, baseLocations, hasStripe }: 
               onClick={() => { setQuantity((q) => Math.min(20, q + 1)); setSaved(false); }}
               disabled={quantity >= 20}
               className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Aumentar"
+              aria-label="Increase"
             >
               <Plus size={13} />
             </button>
