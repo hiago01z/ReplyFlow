@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
+                "file": "_contextos/15_PLANEJAMENTO_I18N.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "13_SPRINT_PLATAFORMAS_SYNC"
+              "title": "15_PLANEJAMENTO_I18N"
             }
           }
         ]
@@ -185,8 +185,13 @@
   },
   "active": "b33f56191cc9bc79",
   "lastOpenFiles": [
-    "_contextos/12_SPRINT_PLATAFORMAS.md",
+    "replyflow/src/lib/i18n/locale.ts",
+    "replyflow/src/lib/i18n",
+    "replyflow/supabase/migrations/017_user_locale.sql",
+    "_contextos/_fix_encoding.py",
+    "_contextos/14_SPRINT_LOCALE_DINAMICO.md",
     "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
+    "_contextos/12_SPRINT_PLATAFORMAS.md",
     "_contextos/02_ETAPA2_MODELO_DE_NEGOCIO.md",
     "replyflow/src/components/reviews/AddManualReviewModal.tsx",
     "replyflow/src/components/locations/PlatformBadges.tsx",
@@ -195,9 +200,6 @@
     "replyflow/src/app/(dashboard)/locations/[id]/facebook-pages/page.tsx",
     "replyflow/src/app/(dashboard)/locations/[id]/facebook-pages",
     "replyflow/src/app/api/facebook/callback/route.ts",
-    "replyflow/src/app/api/facebook/callback",
-    "replyflow/src/app/api/facebook/auth/route.ts",
-    "replyflow/src/app/api/facebook/auth",
     "_contextos/01_ETAPA1_DEFINICAO_ESTRATEGICA.md",
     "replyflow/README.md",
     "README.md"

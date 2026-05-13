@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { z } from "zod";
+import { localeFromAcceptLanguage } from "@/lib/i18n/locale";
 
 const onboardingSchema = z.object({
   orgName: z.string().min(2).max(100),
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
   }
 
   const { orgName, locationName, niche, tone } = parsed.data;
+  const preferredLocale = localeFromAcceptLanguage(request.headers.get("accept-language"));
   const serviceClient = createServiceClient();
 
   // Verificar se já tem organização
@@ -66,6 +68,7 @@ export async function POST(request: Request) {
       organization_id: orgId,
       email: user.email,
       name: user.user_metadata?.name ?? null,
+      preferred_locale: preferredLocale,
     });
   }
 
