@@ -7,15 +7,17 @@ import { DemoSeedButton } from "@/components/reviews/DemoSeedButton";
 import { PLAN_LIMITS } from "@/types";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
+import { AddManualReviewButton } from "@/components/reviews/AddManualReviewButton";
 
 // ── Platform filter tabs ──────────────────────────────────────────────────────
 
 // TODO: adicionar "facebook" quando Meta aprovar permissões avançadas
-type PlatformKey = "google" | "tripadvisor";
+type PlatformKey = "google" | "tripadvisor" | "reclame_aqui";
 
 const PLATFORM_META: Record<PlatformKey, { label: string; color: string }> = {
-  google:      { label: "Google",      color: "text-[#4285F4]" },
-  tripadvisor: { label: "TripAdvisor", color: "text-[#00AF87]" },
+  google:       { label: "Google",       color: "text-[#4285F4]" },
+  tripadvisor:  { label: "TripAdvisor",  color: "text-[#00AF87]" },
+  reclame_aqui: { label: "Reclame Aqui", color: "text-[#E8281C]" },
 };
 
 interface PlatformTabsProps {
@@ -85,7 +87,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
   const { data: locations } = await serviceClient
     .from("locations")
-    .select("id, name, google_access_token, tripadvisor_connected, facebook_connected")
+    .select("id, name, google_access_token, tripadvisor_connected, tripadvisor_url, facebook_connected, reclame_aqui_connected, reclame_aqui_url")
     .eq("organization_id", userRecord!.organization_id)
     .eq("active", true);
 
@@ -94,11 +96,27 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   // Determinar quais plataformas estão conectadas (para mostrar as tabs corretas)
   const connectedPlatforms = new Set<PlatformKey>();
   for (const loc of locations ?? []) {
-    if (loc.google_access_token)   connectedPlatforms.add("google");
-    if (loc.tripadvisor_connected) connectedPlatforms.add("tripadvisor");
+    if (loc.google_access_token)    connectedPlatforms.add("google");
+    if (loc.tripadvisor_connected)  connectedPlatforms.add("tripadvisor");
+    if (loc.reclame_aqui_connected) connectedPlatforms.add("reclame_aqui");
     // Facebook oculto — if (loc.facebook_connected) connectedPlatforms.add("facebook");
   }
   const activePlatforms = Array.from(connectedPlatforms);
+
+  // Locations connected to the currently selected manual platform (for the add button)
+  const isManualPlatform = params.platform === "tripadvisor" || params.platform === "reclame_aqui";
+  const manualLocations = isManualPlatform
+    ? (locations ?? []).filter((loc) =>
+        params.platform === "tripadvisor"
+          ? loc.tripadvisor_connected
+          : loc.reclame_aqui_connected
+      ).map((loc) => ({
+        id:               loc.id,
+        name:             loc.name,
+        tripadvisor_url:  loc.tripadvisor_url  ?? null,
+        reclame_aqui_url: loc.reclame_aqui_url ?? null,
+      }))
+    : [];
 
   if (locationIds.length === 0) {
     // Check if there are inactive locations (soft-deleted)
@@ -218,6 +236,12 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {isManualPlatform && manualLocations.length > 0 && (
+            <AddManualReviewButton
+              platform={params.platform as "tripadvisor" | "reclame_aqui"}
+              locations={manualLocations}
+            />
+          )}
           <DemoSeedButton hasDemo={hasDemo} />
           <ExportCsvButton locationIds={locationIds} filters={{ status: params.status, rating: params.rating, locationId: params.locationId, search: params.search }} />
         </div>

@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw, PowerOff, X, AlertTriangle, Link2, Plus } from "lucide-react";
+import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw, PowerOff, X, AlertTriangle, Link2 } from "lucide-react";
 import type { Location } from "@/types";
 import { GmbLinkWizard } from "@/components/locations/GmbLinkWizard";
 import { TripAdvisorLinkWizard } from "@/components/locations/TripAdvisorLinkWizard";
 import { ReclamaAquiLinkWizard } from "@/components/locations/ReclamaAquiLinkWizard";
-import { AddManualReviewModal } from "@/components/reviews/AddManualReviewModal";
 
 const NICHES = [
   { value: "clinica",      label: "Clínica / Saúde",    icon: "🏥" },
@@ -51,18 +50,6 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
   const [showDelete,       setShowDelete]      = useState(false);
   const [deleting,         setDeleting]        = useState(false);
   const [relinking,        setRelinking]       = useState(false);
-
-  // TripAdvisor
-  const [taUrl,        setTaUrl]        = useState(location.tripadvisor_url ?? "");
-  const [taConnected,  setTaConnected]  = useState(location.tripadvisor_connected);
-  const [taSaving,     setTaSaving]     = useState(false);
-  const [showAddReview, setShowAddReview] = useState(false);
-
-  // Reclame Aqui
-  const [raUrl,        setRaUrl]        = useState(location.reclame_aqui_url ?? "");
-  const [raConnected,  setRaConnected]  = useState(location.reclame_aqui_connected);
-  const [raSaving,     setRaSaving]     = useState(false);
-  const [showAddRaReview, setShowAddRaReview] = useState(false);
 
   // Facebook
   const [fbConnected,  setFbConnected]  = useState(location.facebook_connected);
@@ -149,86 +136,6 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
       toastError("Erro ao salvar", "Verifique sua conexão e tente novamente.");
     } finally {
       setSaving(false); }
-  }
-
-  async function handleSaveTripAdvisor() {
-    if (!taUrl.trim()) return;
-    setTaSaving(true);
-    try {
-      const res = await fetch(`/api/locations/${location.id}`, {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ tripadvisor_url: taUrl.trim(), tripadvisor_connected: true }),
-      });
-      if (!res.ok) throw new Error();
-      setTaConnected(true);
-      success("TripAdvisor vinculado!", "Você já pode adicionar avaliações manualmente.");
-      router.refresh();
-    } catch {
-      toastError("Erro", "Não foi possível vincular o TripAdvisor.");
-    } finally {
-      setTaSaving(false);
-    }
-  }
-
-  async function handleDisconnectTripAdvisor() {
-    setTaSaving(true);
-    try {
-      const res = await fetch(`/api/locations/${location.id}`, {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ tripadvisor_url: null, tripadvisor_connected: false }),
-      });
-      if (!res.ok) throw new Error();
-      setTaConnected(false);
-      setTaUrl("");
-      info("TripAdvisor desvinculado.", "");
-      router.refresh();
-    } catch {
-      toastError("Erro", "Não foi possível desvincular.");
-    } finally {
-      setTaSaving(false);
-    }
-  }
-
-  async function handleSaveReclamaAqui() {
-    if (!raUrl.trim()) return;
-    setRaSaving(true);
-    try {
-      const res = await fetch(`/api/locations/${location.id}`, {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ reclame_aqui_url: raUrl.trim(), reclame_aqui_connected: true }),
-      });
-      if (!res.ok) throw new Error();
-      setRaConnected(true);
-      success("Reclame Aqui vinculado!", "Você já pode adicionar reclamações manualmente.");
-      router.refresh();
-    } catch {
-      toastError("Erro", "Não foi possível vincular o Reclame Aqui.");
-    } finally {
-      setRaSaving(false);
-    }
-  }
-
-  async function handleDisconnectReclamaAqui() {
-    setRaSaving(true);
-    try {
-      const res = await fetch(`/api/locations/${location.id}`, {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ reclame_aqui_url: null, reclame_aqui_connected: false }),
-      });
-      if (!res.ok) throw new Error();
-      setRaConnected(false);
-      setRaUrl("");
-      info("Reclame Aqui desvinculado.", "");
-      router.refresh();
-    } catch {
-      toastError("Erro", "Não foi possível desvincular.");
-    } finally {
-      setRaSaving(false);
-    }
   }
 
   async function handleDisconnectFacebook() {
@@ -621,16 +528,6 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
           taUrl={location.tripadvisor_url}
           taConnected={location.tripadvisor_connected}
         />
-        {taConnected && (
-          <button
-            type="button"
-            onClick={() => setShowAddReview(true)}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#00AF87] hover:bg-[#009975] px-3 py-2 rounded-lg transition-colors"
-          >
-            <Plus size={14} />
-            Adicionar avaliação
-          </button>
-        )}
       </div>
 
       {/* ── Facebook — TODO: oculto até aprovação Meta ──────────────────────────
@@ -655,39 +552,7 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
           raUrl={location.reclame_aqui_url}
           raConnected={location.reclame_aqui_connected}
         />
-        {raConnected && (
-          <button
-            type="button"
-            onClick={() => setShowAddRaReview(true)}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#E8281C] hover:bg-[#c51f15] px-3 py-2 rounded-lg transition-colors"
-          >
-            <Plus size={14} />
-            Adicionar reclamação
-          </button>
-        )}
       </div>
-
-      {/* Modal: adicionar avaliação manual (TripAdvisor) */}
-      {showAddReview && (
-        <AddManualReviewModal
-          locationId={location.id}
-          platform="tripadvisor"
-          tripadvisorUrl={location.tripadvisor_url}
-          onClose={() => setShowAddReview(false)}
-          onAdded={() => { setShowAddReview(false); router.refresh(); }}
-        />
-      )}
-
-      {/* Modal: adicionar reclamação manual (Reclame Aqui) */}
-      {showAddRaReview && (
-        <AddManualReviewModal
-          locationId={location.id}
-          platform="reclame_aqui"
-          reclamaAquiUrl={location.reclame_aqui_url}
-          onClose={() => setShowAddRaReview(false)}
-          onAdded={() => { setShowAddRaReview(false); router.refresh(); }}
-        />
-      )}
 
       {/* Botões */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
