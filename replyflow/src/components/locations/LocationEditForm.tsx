@@ -638,57 +638,11 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
         )}
       </div>
 
-      {/* ── Facebook ─────────────────────────────────────────────────────────── */}
-      <div className="card p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", fbConnected ? "bg-blue-50" : "bg-gray-100")}>
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-[#1877F2]">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-gray-900">Facebook</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {fbConnected
-                ? `Página conectada: ${fbPageName || "—"}`
-                : "Conecte sua Página do Facebook para importar e responder avaliações."}
-            </p>
-          </div>
-          {fbConnected && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full shrink-0">
-              <CheckCircle2 size={11} /> Conectado
-            </span>
-          )}
-        </div>
-
-        {!fbConnected ? (
-          <div className="space-y-3">
-            <a
-              href={`/api/facebook/auth?locationId=${location.id}`}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#1877F2] hover:bg-[#166fe5] px-4 py-2.5 rounded-xl transition-colors"
-            >
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-              Conectar com Facebook
-            </a>
-            <p className="text-xs text-gray-400">
-              Você será redirecionado ao Facebook para autorizar o acesso à sua Página. As avaliações serão importadas automaticamente.
-            </p>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleDisconnectFacebook}
-              disabled={fbDisconnecting}
-              className="text-xs text-gray-400 hover:text-red-500 transition-colors"
-            >
-              {fbDisconnecting ? "Desconectando…" : "Desconectar página"}
-            </button>
-          </div>
-        )}
-      </div>
+      {/* ── Facebook — TODO: oculto até aprovação Meta ──────────────────────────
+           Integração implementada em /api/facebook/auth + /api/facebook/callback
+           + /api/locations/[id]/facebook-pages. Reativar quando Meta aprovar as
+           permissões pages_manage_engagement / pages_read_user_content.
+      ──────────────────────────────────────────────────────────────────────── */}
 
       {/* Modal: adicionar avaliação manual (TripAdvisor) */}
       {showAddReview && (

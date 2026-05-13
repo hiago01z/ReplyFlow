@@ -10,12 +10,12 @@ import { MapPin } from "lucide-react";
 
 // ── Platform filter tabs ──────────────────────────────────────────────────────
 
-type PlatformKey = "google" | "tripadvisor" | "facebook";
+// TODO: adicionar "facebook" quando Meta aprovar permissões avançadas
+type PlatformKey = "google" | "tripadvisor";
 
 const PLATFORM_META: Record<PlatformKey, { label: string; color: string }> = {
   google:      { label: "Google",      color: "text-[#4285F4]" },
   tripadvisor: { label: "TripAdvisor", color: "text-[#00AF87]" },
-  facebook:    { label: "Facebook",    color: "text-[#1877F2]" },
 };
 
 interface PlatformTabsProps {
@@ -96,7 +96,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   for (const loc of locations ?? []) {
     if (loc.google_access_token)   connectedPlatforms.add("google");
     if (loc.tripadvisor_connected) connectedPlatforms.add("tripadvisor");
-    if (loc.facebook_connected)    connectedPlatforms.add("facebook");
+    // Facebook oculto — if (loc.facebook_connected) connectedPlatforms.add("facebook");
   }
   const activePlatforms = Array.from(connectedPlatforms);
 

@@ -61,8 +61,8 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
   const platformLimit = PLATFORM_LIMIT[plan] ?? 3;
   const connectedCount =
     (loc.google_access_token ? 1 : 0) +
-    (loc.tripadvisor_connected ? 1 : 0) +
-    (loc.facebook_connected ? 1 : 0);
+    (loc.tripadvisor_connected ? 1 : 0);
+    // facebook_connected omitted — integration hidden pending Meta approval
   const atPlatformLimit = connectedCount >= platformLimit;
 
   const googleConnected = !!loc.google_access_token && !!loc.google_location_name;
@@ -89,16 +89,19 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
       isLink:    false,
       available: platformLimit >= 2,
     },
-    {
-      key:       "facebook",
-      label:     "Facebook",
-      icon:      <FacebookIcon size={compact ? 12 : 13} />,
-      connected: loc.facebook_connected,
-      pending:   false,
-      href:      `/api/facebook/auth?locationId=${loc.id}`,
-      isLink:    true,
-      available: platformLimit >= 3,
-    },
+    // TODO: Facebook — integração planejada para sprint futuro.
+    // Requer aprovação de permissões avançadas pelo Meta (pages_manage_engagement).
+    // Remova este comentário e restaure o bloco abaixo quando a revisão Meta for aprovada:
+    // {
+    //   key:       "facebook",
+    //   label:     "Facebook",
+    //   icon:      <FacebookIcon size={compact ? 12 : 13} />,
+    //   connected: loc.facebook_connected,
+    //   pending:   false,
+    //   href:      `/api/facebook/auth?locationId=${loc.id}`,
+    //   isLink:    true,
+    //   available: platformLimit >= 3,
+    // },
   ];
 
   return (
