@@ -145,6 +145,65 @@
   pointer-events: none;
 }
 
+/* ── Story Arc — breadcrumb narrativo entre slides ─────────────── */
+/*
+   Mostra ao leitor em qual parte da história ele está:
+   ① O Problema → ② A Solução → ③ Os Benefícios
+   • arc-past   = slide anterior (✓ concluído)
+   • arc-active = slide atual (número, em gradiente)
+   • arc-next   = slide futuro (número, apagado)
+*/
+.story-arc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.arc-step {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+.arc-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.arc-sep {
+  width: 28px;
+  height: 1px;
+  flex-shrink: 0;
+}
+
+/* Variant para slides escuros (1 e 3) */
+.arc-on-dark .arc-step.arc-past              { color: rgba(255,255,255,0.32); }
+.arc-on-dark .arc-step.arc-past  .arc-num   { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.32); }
+.arc-on-dark .arc-step.arc-active            { color: rgba(255,255,255,0.88); }
+.arc-on-dark .arc-step.arc-active .arc-num  { background: var(--brand-grad); color: white; }
+.arc-on-dark .arc-step.arc-next              { color: rgba(255,255,255,0.2); }
+.arc-on-dark .arc-step.arc-next  .arc-num   { border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.2); }
+.arc-on-dark .arc-sep                        { background: rgba(255,255,255,0.1); }
+
+/* Variant para slide claro (2) */
+.arc-on-light .arc-step.arc-past             { color: var(--indigo); }
+.arc-on-light .arc-step.arc-past  .arc-num  { background: var(--indigo-light); color: var(--indigo); }
+.arc-on-light .arc-step.arc-active           { color: var(--text-dark); }
+.arc-on-light .arc-step.arc-active .arc-num { background: var(--brand-grad); color: white; }
+.arc-on-light .arc-step.arc-next             { color: var(--text-soft); }
+.arc-on-light .arc-step.arc-next  .arc-num  { border: 1px solid var(--light-border); color: var(--text-soft); }
+.arc-on-light .arc-sep                       { background: var(--light-border); }
+
 /* ── Utility ───────────────────────────────────────────────────── */
 .flex         { display: flex; }
 .flex-col     { flex-direction: column; }
