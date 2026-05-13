@@ -52,17 +52,24 @@ export function SettingsForm({ organization, user }: SettingsFormProps) {
           orgName,
           alertEmail: alertEmail.trim() || null,
           userName,
-          whatsapp: whatsapp || null,
+          whatsapp: whatsapp.trim() || null,
           emailAlerts,
           webhookUrl: webhookUrl.trim() || null,
           webhookSecret: webhookSecret.trim() || null,
         }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const msg = data?.error ?? `HTTP ${res.status}`;
+        console.error("[settings] save error:", msg, data);
+        toastError("Erro ao salvar", msg);
+        return;
+      }
       success("Configurações salvas!", "Suas alterações foram salvas com sucesso.");
       router.refresh();
-    } catch {
-      toastError("Erro ao salvar", "Ocorreu um erro. Tente novamente.");
+    } catch (err) {
+      console.error("[settings] fetch error:", err);
+      toastError("Erro ao salvar", "Falha de rede. Verifique sua conexão e tente novamente.");
     } finally {
       setSaving(false);
     }

@@ -25,7 +25,11 @@ export async function PATCH(request: Request) {
   const parsed = schema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    console.error("[settings PATCH] validation error:", parsed.error.flatten());
+    return NextResponse.json(
+      { error: "Dados inválidos", detail: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const serviceClient = createServiceClient();
@@ -68,15 +72,18 @@ export async function PATCH(request: Request) {
     );
   }
 
+  console.log("[settings PATCH] orgUpdate:", JSON.stringify(orgUpdate));
+  console.log("[settings PATCH] userUpdate:", JSON.stringify(userUpdate));
+
   const results = await Promise.all(updates);
 
   // Surface any DB errors instead of silently swallowing them
   for (const result of results) {
-    const r = result as { error?: { message?: string } } | null;
+    const r = result as { error?: { message?: string; code?: string; details?: string } } | null;
     if (r && r.error) {
-      console.error("[settings PATCH] DB error:", r.error.message);
+      console.error("[settings PATCH] DB error:", r.error.code, r.error.message, r.error.details);
       return NextResponse.json(
-        { error: r.error.message ?? "Database error" },
+        { error: r.error.message ?? "Erro no banco de dados", code: r.error.code },
         { status: 500 }
       );
     }
