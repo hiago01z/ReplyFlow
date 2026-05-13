@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Zap, ArrowLeft, Trash2, Mail, Clock, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Zap, ArrowLeft, Trash2, Mail, Clock, ShieldCheck, AlertTriangle, CheckCircle2 } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,9 +7,14 @@ export const metadata: Metadata = {
   description: "Saiba como solicitar a exclusão completa dos seus dados pessoais no ReplyFlow.",
 };
 
-const LAST_UPDATED = "12 de maio de 2026";
+const LAST_UPDATED = "13 de maio de 2026";
 
-export default function DataDeletionPage() {
+export default async function DataDeletionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  const { code } = await searchParams;
   return (
     <div className="min-h-screen bg-white dark:bg-[#0f0f13]">
       {/* Header */}
@@ -42,6 +47,25 @@ export default function DataDeletionPage() {
         <p className="text-sm text-gray-400 dark:text-gray-500 mb-12">
           Última atualização: {LAST_UPDATED}
         </p>
+
+        {/* Banner de confirmação — exibido quando Meta redireciona com ?code= */}
+        {code && (
+          <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/40 rounded-xl mb-10">
+            <CheckCircle2 size={18} className="text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-green-800 dark:text-green-300">
+                Solicitação de exclusão recebida
+              </p>
+              <p className="text-xs text-green-700 dark:text-green-400 mt-0.5">
+                Código de confirmação: <span className="font-mono font-bold">{code}</span>. Seus dados serão
+                removidos em até 30 dias. Em caso de dúvidas, entre em contato com{" "}
+                <a href="mailto:privacidade@replyflow-hivi.com" className="underline">
+                  privacidade@replyflow-hivi.com
+                </a>.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="prose prose-gray dark:prose-invert max-w-none space-y-8 text-gray-600 dark:text-gray-400 leading-relaxed">
 
