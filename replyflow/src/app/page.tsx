@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { CheckCircle2, Star, Zap, Sparkles, MessageSquare, Bell, FileText, RefreshCw, Building2, Send } from "lucide-react";
 import { CountUp } from "@/components/landing/CountUp";
-import { LandingPricing } from "@/components/landing/LandingPricing";
+import { LandingPricing, type LandingPlan } from "@/components/landing/LandingPricing";
+import { getCurrencyFromCountry, CURRENCY_PLANS, CURRENCY_ANNUAL_PLANS, type SupportedCurrency } from "@/lib/stripe/client";
 
 const TESTIMONIALS = [
   {
@@ -60,7 +62,47 @@ const FAQ = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const headersList = await headers();
+  const country = headersList.get("x-vercel-ip-country");
+  const currency = getCurrencyFromCountry(country) as SupportedCurrency;
+  const monthly = CURRENCY_PLANS[currency];
+  const annual = CURRENCY_ANNUAL_PLANS[currency];
+  const CURRENCY_SYMBOL: Record<SupportedCurrency, string> = { brl: "R$", usd: "$", eur: "€" };
+  const symbol = CURRENCY_SYMBOL[currency];
+
+  const pricingPlans: LandingPlan[] = [
+    {
+      name: "Starter",
+      monthlyPrice: monthly.starter.price,
+      annualPrice: annual.starter.price,
+      annualMonthlyEquiv: annual.starter.monthlyEquiv,
+      description: "Para autônomos e pequenos negócios",
+      features: ["1 local", "3 plataformas", "100 respostas IA/mês", "Alerta por e-mail", "Tom personalizado"],
+      cta: "Assinar Starter",
+      highlight: false,
+    },
+    {
+      name: "Pro",
+      monthlyPrice: monthly.pro.price,
+      annualPrice: annual.pro.price,
+      annualMonthlyEquiv: annual.pro.monthlyEquiv,
+      description: "Para negócios com múltiplas unidades",
+      features: ["Até 3 locais", "Todas as plataformas", "Respostas ilimitadas", "Alerta via WhatsApp", "Aprovação em 1 clique", "Relatório mensal PDF"],
+      cta: "Assinar Pro",
+      highlight: true,
+    },
+    {
+      name: "Agência",
+      monthlyPrice: monthly.agency.price,
+      annualPrice: annual.agency.price,
+      annualMonthlyEquiv: annual.agency.monthlyEquiv,
+      description: "Para agências gerenciando múltiplos clientes",
+      features: ["Até 10 clientes no painel", "3 locais por cliente", "IA ilimitada", "Alerta WhatsApp + aprovação 1 clique", "Relatório mensal PDF"],
+      cta: "Assinar Agência",
+      highlight: false,
+    },
+  ];
   return (
     <main className="min-h-screen bg-white dark:bg-[#0f0f13]">
 
@@ -327,7 +369,7 @@ export default function LandingPage() {
           <p className="text-center text-gray-600 dark:text-gray-400 mb-12">
             Comece grátis. Faça upgrade quando precisar. Cancele quando quiser.
           </p>
-          <LandingPricing />
+          <LandingPricing symbol={symbol} plans={pricingPlans} />
           <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-8">
             Todos os planos incluem teste de 7 dias grátis. Sem fidelidade.
           </p>

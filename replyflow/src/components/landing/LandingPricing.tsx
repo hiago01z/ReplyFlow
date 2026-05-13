@@ -3,56 +3,23 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const PLANS = [
-  {
-    name: "Starter",
-    monthlyPrice: 97,
-    annualPrice: 970,
-    description: "Para autônomos e pequenos negócios",
-    features: [
-      "1 local",
-      "3 plataformas",
-      "100 respostas IA/mês",
-      "Alerta por e-mail",
-      "Tom personalizado",
-    ],
-    cta: "Assinar Starter",
-    highlight: false,
-  },
-  {
-    name: "Pro",
-    monthlyPrice: 197,
-    annualPrice: 1970,
-    description: "Para negócios com múltiplas unidades",
-    features: [
-      "Até 3 locais",
-      "Todas as plataformas",
-      "Respostas ilimitadas",
-      "Alerta via WhatsApp",
-      "Aprovação em 1 clique",
-      "Relatório mensal PDF",
-    ],
-    cta: "Assinar Pro",
-    highlight: true,
-  },
-  {
-    name: "Agência",
-    monthlyPrice: 497,
-    annualPrice: 4970,
-    description: "Para agências gerenciando múltiplos clientes",
-    features: [
-      "Até 10 clientes no painel",
-      "3 locais por cliente",
-      "IA ilimitada",
-      "Alerta WhatsApp + aprovação 1 clique",
-      "Relatório mensal PDF",
-    ],
-    cta: "Assinar Agência",
-    highlight: false,
-  },
-];
+export type LandingPlan = {
+  name: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  annualMonthlyEquiv: number;
+  description: string;
+  features: string[];
+  cta: string;
+  highlight: boolean;
+};
 
-export function LandingPricing() {
+export type LandingPricingProps = {
+  symbol: string;
+  plans: LandingPlan[];
+};
+
+export function LandingPricing({ symbol, plans }: LandingPricingProps) {
   const [annual, setAnnual] = useState(false);
 
   return (
@@ -87,9 +54,9 @@ export function LandingPricing() {
 
       {/* ── Cards de planos ───────────────────────────────────────────────── */}
       <div className="grid md:grid-cols-3 gap-6 items-center">
-        {PLANS.map((plan) => {
+        {plans.map((plan) => {
           const displayPrice = annual
-            ? Math.round(plan.annualPrice / 12)
+            ? plan.annualMonthlyEquiv
             : plan.monthlyPrice;
 
           return (
@@ -123,7 +90,7 @@ export function LandingPricing() {
                     plan.highlight ? "text-white" : "text-gray-900 dark:text-gray-100"
                   }`}
                 >
-                  R$ {displayPrice}
+                  {symbol} {displayPrice}
                 </span>
                 <span
                   className={`text-sm mb-1 ${
@@ -141,7 +108,7 @@ export function LandingPricing() {
                     plan.highlight ? "text-indigo-200" : "text-gray-400 dark:text-gray-500"
                   }`}
                 >
-                  R$ {plan.annualPrice}/ano — economia de R${" "}
+                  {symbol} {plan.annualPrice}/ano — economia de {symbol}{" "}
                   {plan.monthlyPrice * 12 - plan.annualPrice}
                 </p>
               )}
