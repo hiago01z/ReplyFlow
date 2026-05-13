@@ -105,12 +105,13 @@ export function LandingPricing({ symbol, plans }: LandingPricingProps) {
               {/* Total anual */}
               {annual && (
                 <p
-                  translate="no"
                   className={`text-xs mb-2 ${
                     plan.highlight ? "text-indigo-200" : "text-gray-400 dark:text-gray-500"
                   }`}
                 >
-                  {`${symbol} ${plan.annualPrice}/ano — economia de ${symbol} ${plan.monthlyPrice * 12 - plan.annualPrice}`}
+                  <span translate="no">{symbol} {plan.annualPrice}</span>
+                  /ano — economia de{" "}
+                  <span translate="no">{symbol} {plan.monthlyPrice * 12 - plan.annualPrice}</span>
                 </p>
               )}
 
