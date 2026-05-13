@@ -54,6 +54,7 @@ export async function GET(request: Request) {
             await sendWelcomeEmail({
               to: data.user.email,
               name: data.user.user_metadata?.name ?? data.user.email,
+              locale: preferredLocale,
             }).catch(() => null);
           }
         }

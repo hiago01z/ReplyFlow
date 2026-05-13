@@ -13,6 +13,8 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
+import { parseLocale } from "@/lib/i18n/locale";
+import { DIGEST } from "@/lib/i18n/strings-digest";
 
 const resend  = new Resend(process.env.RESEND_API_KEY);
 const FROM    = process.env.RESEND_FROM_EMAIL ?? "noreply@replyflow-hivi.com";
@@ -35,7 +37,7 @@ export async function GET(request: Request) {
   // Fetch all active orgs with owner email + alert preference
   const { data: orgUsers } = await serviceClient
     .from("users")
-    .select("email, email_alerts, name, organization:organizations(id, name, plan)")
+    .select("email, email_alerts, name, preferred_locale, organization:organizations(id, name, plan)")
     .eq("role", "owner");
 
   const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
@@ -94,11 +96,13 @@ export async function GET(request: Request) {
     if ((weeklyTotal ?? 0) === 0 && (pendingTotal ?? 0) === 0) continue;
 
     const firstName   = (u.name ?? u.email).split(" ")[0];
+    const locale      = parseLocale((u as unknown as { preferred_locale?: string }).preferred_locale)
+    const d           = DIGEST[locale]
     const reviewsUrl  = `${APP_URL}/reviews`;
     const dashboardUrl = `${APP_URL}/dashboard`;
 
     const html = `<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="${d.htmlLang}">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
@@ -113,7 +117,7 @@ export async function GET(request: Request) {
           <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:28px 32px">
             <p style="margin:0;color:#fff;font-size:18px;font-weight:800">⚡ ReplyFlow</p>
             <p style="margin:6px 0 0;color:rgba(255,255,255,.85);font-size:14px">
-              Seu resumo semanal, ${firstName}
+              ${d.subtitle(firstName)}
             </p>
             <p style="margin:4px 0 0;color:rgba(255,255,255,.6);font-size:12px">${org.name}</p>
           </td>
@@ -125,10 +129,10 @@ export async function GET(request: Request) {
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 ${[
-                  { label: "Reviews recebidos", value: weeklyTotal ?? 0, color: "#6366f1" },
-                  { label: "Taxa de resposta",  value: `${replyRate}%`,  color: "#16a34a" },
-                  { label: "Nota média",        value: avgRating ? `${avgRating} ★` : "—", color: "#f59e0b" },
-                  { label: "Pendentes",         value: pendingTotal ?? 0, color: "#dc2626" },
+                  { label: d.kpiReceived,  value: weeklyTotal ?? 0, color: "#6366f1" },
+                  { label: d.kpiRate,      value: `${replyRate}%`,  color: "#16a34a" },
+                  { label: d.kpiAvgRating, value: avgRating ? `${avgRating} ★` : "—", color: "#f59e0b" },
+                  { label: d.kpiPending,   value: pendingTotal ?? 0, color: "#dc2626" },
                 ].map(kpi => `
                   <td width="25%" style="text-align:center;padding:0 6px">
                     <div style="background:#f9fafb;border-radius:12px;padding:16px 8px">
@@ -146,15 +150,15 @@ export async function GET(request: Request) {
           <td style="padding:24px 32px 32px;text-align:center">
             ${(pendingTotal ?? 0) > 0
               ? `<p style="margin:0 0 16px;font-size:14px;color:#374151">
-                  Você tem <strong style="color:#dc2626">${pendingTotal} review${(pendingTotal ?? 0) !== 1 ? "s" : ""} pendente${(pendingTotal ?? 0) !== 1 ? "s" : ""}</strong> aguardando resposta.
+                  ${d.pendingMsg(pendingTotal ?? 0)}
                 </p>`
               : `<p style="margin:0 0 16px;font-size:14px;color:#374151">
-                  Ótimo trabalho! Todos os reviews estão respondidos. 🎉
+                  ${d.allDoneMsg}
                 </p>`
             }
             <a href="${(pendingTotal ?? 0) > 0 ? reviewsUrl + "?status=pending" : dashboardUrl}"
                style="display:inline-block;background:#6366f1;color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-weight:700;font-size:14px">
-              ${(pendingTotal ?? 0) > 0 ? "Responder reviews →" : "Ver dashboard →"}
+              ${(pendingTotal ?? 0) > 0 ? d.ctaPending : d.ctaDone}
             </a>
           </td>
         </tr>
@@ -163,8 +167,8 @@ export async function GET(request: Request) {
         <tr>
           <td style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb">
             <p style="margin:0;font-size:11px;color:#9ca3af">
-              ReplyFlow · Resumo semanal de reputação.<br/>
-              Para parar de receber, acesse <a href="${APP_URL}/settings" style="color:#6366f1">Configurações</a> e desative alertas.
+              ${d.footer1}<br/>
+              ${d.footer2(`${APP_URL}/settings`)}
             </p>
           </td>
         </tr>
@@ -179,7 +183,7 @@ export async function GET(request: Request) {
       await resend.emails.send({
         from:    `ReplyFlow <${FROM}>`,
         to:      u.email,
-        subject: `📊 Seu resumo semanal — ${weeklyTotal ?? 0} review${(weeklyTotal ?? 0) !== 1 ? "s" : ""}, ${replyRate}% respondidos`,
+        subject: d.subject(weeklyTotal ?? 0, replyRate),
         html,
       });
       sent++;

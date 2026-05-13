@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { GoogleMyBusinessClient } from '@/lib/google/myBusiness'
 import { generateReviewResponse } from '@/lib/openai/generateResponse'
 import { sendNegativeReviewAlert, sendWhatsAppAlert } from '@/lib/email/alerts'
+import type { AppLocale } from '@/lib/i18n/locale'
 import { sendWebhook, type WebhookPayload } from '@/lib/webhooks/sendWebhook'
 import type { LocationNiche, LocationTone } from '@/types'
 
@@ -188,7 +189,7 @@ async function runSync() {
         if (rating <= 2) {
           const { data: directOwner } = await serviceClient
             .from('users')
-            .select('email, whatsapp, email_alerts')
+            .select('email, whatsapp, email_alerts, preferred_locale')
             .eq('organization_id', location.organization_id)
             .eq('role', 'owner')
             .single()
@@ -204,7 +205,7 @@ async function runSync() {
           if (!orgUser && org?.parent_agency_id) {
             const { data: agencyOwner } = await serviceClient
               .from('users')
-              .select('email, whatsapp, email_alerts')
+              .select('email, whatsapp, email_alerts, preferred_locale')
               .eq('organization_id', org.parent_agency_id)
               .eq('role', 'owner')
               .single()
@@ -225,6 +226,7 @@ async function runSync() {
               rating,
               content:      gmbReview.comment ?? '',
               reviewId:     inserted.id,
+              locale:       (orgUser?.preferred_locale ?? 'pt') as AppLocale,
             }).catch(() => null)
 
             await serviceClient.from('alerts').insert({
@@ -242,6 +244,7 @@ async function runSync() {
                 rating,
                 content:      gmbReview.comment ?? '',
                 reviewId:     inserted.id,
+                locale:       (orgUser.preferred_locale ?? 'pt') as AppLocale,
               }).catch(() => null)
 
               await serviceClient.from('alerts').insert({
@@ -367,7 +370,7 @@ async function runSync() {
         if (rating <= 2) {
           const { data: directOwner } = await serviceClient
             .from('users')
-            .select('email, whatsapp, email_alerts')
+            .select('email, whatsapp, email_alerts, preferred_locale')
             .eq('organization_id', location.organization_id)
             .eq('role', 'owner')
             .single()
@@ -383,7 +386,7 @@ async function runSync() {
           if (!orgUser && org?.parent_agency_id) {
             const { data: agencyOwner } = await serviceClient
               .from('users')
-              .select('email, whatsapp, email_alerts')
+              .select('email, whatsapp, email_alerts, preferred_locale')
               .eq('organization_id', org.parent_agency_id)
               .eq('role', 'owner')
               .single()
@@ -402,6 +405,7 @@ async function runSync() {
               rating,
               content:      content ?? '',
               reviewId:     inserted.id,
+              locale:       (orgUser?.preferred_locale ?? 'pt') as AppLocale,
             }).catch(() => null)
 
             await serviceClient.from('alerts').insert({
@@ -418,6 +422,7 @@ async function runSync() {
                 rating,
                 content:      content ?? '',
                 reviewId:     inserted.id,
+                locale:       (orgUser.preferred_locale ?? 'pt') as AppLocale,
               }).catch(() => null)
 
               await serviceClient.from('alerts').insert({

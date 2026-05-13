@@ -185,6 +185,10 @@
   },
   "active": "b33f56191cc9bc79",
   "lastOpenFiles": [
+    "replyflow/src/lib/i18n/strings-report.ts",
+    "replyflow/src/lib/i18n/strings-digest.ts",
+    "replyflow/src/lib/i18n/strings-email.ts",
+    "replyflow/src/lib/i18n/strings-whatsapp.ts",
     "replyflow/src/lib/i18n/locale.ts",
     "replyflow/src/lib/i18n",
     "replyflow/supabase/migrations/017_user_locale.sql",
@@ -196,10 +200,6 @@
     "replyflow/src/components/reviews/AddManualReviewModal.tsx",
     "replyflow/src/components/locations/PlatformBadges.tsx",
     "replyflow/src/app/api/reviews/manual/route.ts",
-    "replyflow/src/app/api/reviews/manual",
-    "replyflow/src/app/(dashboard)/locations/[id]/facebook-pages/page.tsx",
-    "replyflow/src/app/(dashboard)/locations/[id]/facebook-pages",
-    "replyflow/src/app/api/facebook/callback/route.ts",
     "_contextos/01_ETAPA1_DEFINICAO_ESTRATEGICA.md",
     "replyflow/README.md",
     "README.md"

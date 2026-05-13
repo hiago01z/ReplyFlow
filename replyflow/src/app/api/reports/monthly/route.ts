@@ -10,7 +10,8 @@
 
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { getLocaleFromRequest } from "@/lib/locale";
+import { parseLocale } from "@/lib/i18n/locale";
+import { REPORT } from "@/lib/i18n/strings-report";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com";
 
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
 
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("organization_id, organization:organizations(name, plan)")
+    .select("organization_id, preferred_locale, organization:organizations(name, plan)")
     .eq("id", user.id)
     .single();
 
@@ -43,12 +44,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No organization" }, { status: 403 });
   }
 
+  const locale = parseLocale((userRecord as unknown as { preferred_locale?: string }).preferred_locale)
+  const rpt = REPORT[locale]
+
   const org = userRecord.organization as unknown as { name: string; plan: string } | null;
 
   // Plan gate
   if (!REPORT_PLANS.has(org?.plan ?? "free")) {
     return NextResponse.json(
-      { error: "upgrade_required", message: "Relatórios mensais estão disponíveis nos planos Pro e Agência." },
+      { error: "upgrade_required", message: rpt.upgradeMsg },
       { status: 403 },
     );
   }
@@ -71,7 +75,7 @@ export async function GET(request: Request) {
   const start = new Date(year, month - 1, 1).toISOString();
   const end   = new Date(year, month, 0, 23, 59, 59).toISOString();
 
-  const monthLabel = new Date(year, month - 1, 1).toLocaleDateString(getLocaleFromRequest(request), { month: "long", year: "numeric" });
+  const monthLabel = new Date(year, month - 1, 1).toLocaleDateString(rpt.htmlLang, { month: "long", year: "numeric" });
 
   // Fetch org's location IDs
   const { data: locs } = await serviceClient
@@ -157,19 +161,19 @@ export async function GET(request: Request) {
   const highlightItems = highlights.map((r) => `
     <div class="highlight-card">
       <div class="hl-header">
-        <span class="hl-author">${r.author_name ?? "Anônimo"}</span>
+        <span class="hl-author">${r.author_name ?? rpt.anonymous}</span>
         <span class="hl-stars">${stars(r.rating ?? 5)}</span>
-        <span class="hl-date">${new Date(r.created_at).toLocaleDateString(getLocaleFromRequest(request))}</span>
+        <span class="hl-date">${new Date(r.created_at).toLocaleDateString(rpt.htmlLang)}</span>
       </div>
       <p class="hl-text">"${(r.content ?? "").slice(0, 200)}${(r.content ?? "").length > 200 ? "…" : ""}"</p>
     </div>`).join("");
 
   const html = `<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="${rpt.htmlLang}">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Relatório de Reputação — ${monthLabel}</title>
+<title>${rpt.title} — ${monthLabel}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
@@ -219,11 +223,11 @@ export async function GET(request: Request) {
 <body>
 <div class="page">
   <div class="print-btn">
-    <button onclick="window.print()">📄 Salvar como PDF</button>
+    <button onclick="window.print()">${rpt.savePdf}</button>
   </div>
 
   <div class="header">
-    <h1>Relatório de Reputação</h1>
+    <h1>${rpt.title}</h1>
     <p>${monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}</p>
     <div class="org">🏢 ${org?.name ?? "Empresa"}</div>
   </div>
@@ -231,33 +235,33 @@ export async function GET(request: Request) {
   <div class="kpi-grid">
     <div class="kpi">
       <div class="kpi-value">${total}</div>
-      <div class="kpi-label">Reviews recebidos</div>
+      <div class="kpi-label">${rpt.kpiReceived}</div>
     </div>
     <div class="kpi">
       <div class="kpi-value">${replyRate}</div>
-      <div class="kpi-label">Taxa de resposta</div>
+      <div class="kpi-label">${rpt.kpiRate}</div>
     </div>
     <div class="kpi">
       <div class="kpi-value">${avgRating > 0 ? avgRating.toFixed(1) + " ★" : "—"}</div>
-      <div class="kpi-label">Nota média</div>
+      <div class="kpi-label">${rpt.kpiAvgRating}</div>
     </div>
     <div class="kpi">
       <div class="kpi-value">${pending}</div>
-      <div class="kpi-label">Pendentes</div>
+      <div class="kpi-label">${rpt.kpiPending}</div>
     </div>
   </div>
 
   ${locIds.length > 1 ? `
   <div class="section">
-    <h2>Por local</h2>
+    <h2>${rpt.secByLocation}</h2>
     <table>
       <thead>
         <tr>
-          <th>Local</th>
-          <th class="num">Reviews</th>
-          <th class="num">Respondidos</th>
-          <th class="num">Taxa</th>
-          <th class="num">Média</th>
+          <th>${rpt.colLocation}</th>
+          <th class="num">${rpt.colReviews}</th>
+          <th class="num">${rpt.colReplied}</th>
+          <th class="num">${rpt.colRate}</th>
+          <th class="num">${rpt.colAvg}</th>
         </tr>
       </thead>
       <tbody>${locRows}</tbody>
@@ -265,18 +269,18 @@ export async function GET(request: Request) {
   </div>` : ""}
 
   <div class="section">
-    <h2>Distribuição de estrelas</h2>
+    <h2>${rpt.secStarDist}</h2>
     ${ratingRows}
   </div>
 
   ${highlights.length > 0 ? `
   <div class="section">
-    <h2>Reviews respondidos recentemente</h2>
+    <h2>${rpt.secHighlights}</h2>
     ${highlightItems}
   </div>` : ""}
 
   <div class="footer">
-    Gerado em ${new Date().toLocaleDateString(getLocaleFromRequest(request))} · ReplyFlow — ${APP_URL}
+    ${rpt.footer(new Date().toLocaleDateString(rpt.htmlLang), APP_URL)}
   </div>
 </div>
 </body>

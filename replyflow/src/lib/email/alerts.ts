@@ -1,4 +1,7 @@
 import { Resend } from 'resend'
+import type { AppLocale } from '@/lib/i18n/locale'
+import { EMAIL_ALERT, EMAIL_WELCOME } from '@/lib/i18n/strings-email'
+import { WA } from '@/lib/i18n/strings-whatsapp'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = process.env.RESEND_FROM_EMAIL ?? 'noreply@replyflow-hivi.com'
@@ -11,16 +14,19 @@ interface NegativeReviewAlertParams {
   rating: number
   content: string
   reviewId: string
+  locale?: AppLocale
 }
 
 export async function sendNegativeReviewAlert(params: NegativeReviewAlertParams) {
-  const { to, businessName, authorName, rating, content, reviewId } = params
+  const { to, businessName, authorName, rating, content, reviewId, locale } = params
+  const t = EMAIL_ALERT[locale ?? 'pt']
+  const htmlLang = locale === 'en' ? 'en-US' : locale === 'es' ? 'es-419' : 'pt-BR'
   const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating)
   const reviewUrl = `${APP_URL}/reviews?highlight=${reviewId}`
 
   const html = `
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="${htmlLang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +39,7 @@ export async function sendNegativeReviewAlert(params: NegativeReviewAlertParams)
         <!-- Header -->
         <tr>
           <td style="background:#dc2626;padding:24px 32px">
-            <p style="margin:0;color:#fff;font-size:20px;font-weight:700">⚠️ Review negativo recebido</p>
+            <p style="margin:0;color:#fff;font-size:20px;font-weight:700">${t.negativeTitle}</p>
             <p style="margin:4px 0 0;color:#fecaca;font-size:14px">${businessName}</p>
           </td>
         </tr>
@@ -41,17 +47,17 @@ export async function sendNegativeReviewAlert(params: NegativeReviewAlertParams)
         <!-- Body -->
         <tr>
           <td style="padding:32px">
-            <p style="margin:0 0 4px;font-size:14px;color:#6b7280">Avaliação de <strong style="color:#111">${authorName}</strong></p>
+            <p style="margin:0 0 4px;font-size:14px;color:#6b7280">${t.reviewFrom(`<strong style="color:#111">${authorName}</strong>`)}</p>
             <p style="margin:0 0 20px;font-size:24px;color:#f59e0b">${stars}</p>
 
             ${content ? `
             <div style="background:#f9fafb;border-left:3px solid #dc2626;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px">
               <p style="margin:0;font-size:15px;color:#374151;line-height:1.6">"${content}"</p>
             </div>
-            ` : '<p style="color:#6b7280;margin-bottom:24px">Sem comentário.</p>'}
+            ` : `<p style="color:#6b7280;margin-bottom:24px">${t.noComment}</p>`}
 
             <a href="${reviewUrl}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600;font-size:14px">
-              Responder agora →
+              ${t.replyNow}
             </a>
           </td>
         </tr>
@@ -60,7 +66,7 @@ export async function sendNegativeReviewAlert(params: NegativeReviewAlertParams)
         <tr>
           <td style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb">
             <p style="margin:0;font-size:12px;color:#9ca3af">
-              ReplyFlow · Você recebe este e-mail porque tem alertas de reviews negativos ativados.
+              ReplyFlow · ${t.footer}
             </p>
           </td>
         </tr>
@@ -74,7 +80,7 @@ export async function sendNegativeReviewAlert(params: NegativeReviewAlertParams)
   return resend.emails.send({
     from: `ReplyFlow <${FROM}>`,
     to,
-    subject: `⚠️ Review negativo em ${businessName} (${stars})`,
+    subject: t.negativeSubject(businessName, stars),
     html,
   })
 }
@@ -157,23 +163,25 @@ interface WhatsAppAlertParams {
   rating:       number
   content:      string
   reviewId:     string
+  locale?:      AppLocale
 }
 
 export async function sendWhatsAppAlert(params: WhatsAppAlertParams): Promise<void> {
-  const { phone, businessName, authorName, rating, content, reviewId } = params
+  const { phone, businessName, authorName, rating, content, reviewId, locale } = params
+  const w = WA[locale ?? 'pt']
   const stars     = '★'.repeat(rating) + '☆'.repeat(5 - rating)
   const reviewUrl = `${APP_URL}/reviews?highlight=${reviewId}`
 
   const message = [
-    `⚠️ *Review negativo recebido!*`,
+    w.alertTitle,
     ``,
     `🏢 *${businessName}*`,
     `👤 ${authorName}`,
-    `${stars} (${rating} estrela${rating > 1 ? 's' : ''})`,
+    `${stars} ${w.stars(rating)}`,
     ``,
     content ? `💬 "${content.slice(0, 200)}${content.length > 200 ? '...' : ''}"` : '',
     ``,
-    `👉 Responder agora: ${reviewUrl}`,
+    `${w.replyNow} ${reviewUrl}`,
   ].filter(Boolean).join('\n')
 
   await sendWhatsAppMessage(phone, message)
@@ -189,25 +197,27 @@ interface WhatsAppApprovalParams {
   responseDraft: string
   approveUrl:    string  // signed token URL (válido 48h)
   dashboardUrl:  string
+  locale?:       AppLocale
 }
 
 export async function sendWhatsAppApproval(params: WhatsAppApprovalParams): Promise<void> {
-  const { phone, businessName, authorName, rating, responseDraft, approveUrl, dashboardUrl } = params
+  const { phone, businessName, authorName, rating, responseDraft, approveUrl, dashboardUrl, locale } = params
+  const w = WA[locale ?? 'pt']
   const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating)
 
   const message = [
-    `⚡ *ReplyFlow — Resposta pronta para aprovar*`,
+    w.approvalTitle,
     ``,
     `🏢 *${businessName}*`,
     `👤 ${authorName} · ${stars}`,
     ``,
-    `📝 *Rascunho:*`,
+    w.draft,
     `"${responseDraft.slice(0, 300)}${responseDraft.length > 300 ? '...' : ''}"`,
     ``,
-    `✅ *Aprovar e publicar agora:*`,
+    w.approveNow,
     approveUrl,
     ``,
-    `✏️ Editar no dashboard: ${dashboardUrl}`,
+    `${w.editDashboard} ${dashboardUrl}`,
   ].join('\n')
 
   await sendWhatsAppMessage(phone, message)
@@ -216,9 +226,11 @@ export async function sendWhatsAppApproval(params: WhatsAppApprovalParams): Prom
 interface WelcomeEmailParams {
   to: string
   name: string
+  locale?: AppLocale
 }
 
-export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
+export async function sendWelcomeEmail({ to, name, locale }: WelcomeEmailParams) {
+  const t = EMAIL_WELCOME[locale ?? 'pt']
   const firstName = name.split(' ')[0]
   const dashboardUrl  = `${APP_URL}/dashboard`
   const locationsUrl  = `${APP_URL}/locations`
@@ -226,7 +238,7 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
 
   const html = `
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="${t.htmlLang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -247,10 +259,10 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
               </tr>
             </table>
             <h1 style="margin:20px 0 8px;font-size:26px;font-weight:800;color:#fff;line-height:1.2">
-              Bem-vindo, ${firstName}! 🎉
+              ${t.greeting(firstName)}
             </h1>
             <p style="margin:0;font-size:15px;color:rgba(255,255,255,0.85);line-height:1.5">
-              Sua conta está pronta. Veja o que fazer agora:
+              ${t.subtitle}
             </p>
           </td>
         </tr>
@@ -259,7 +271,7 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
         <tr>
           <td style="padding:36px 40px 8px">
             <p style="margin:0 0 24px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af">
-              PRÓXIMOS PASSOS
+              ${t.nextSteps}
             </p>
 
             <!-- Step 1 -->
@@ -269,12 +281,12 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
                   <div style="width:32px;height:32px;background:#eef2ff;border-radius:50%;text-align:center;line-height:32px;font-size:14px;font-weight:700;color:#6366f1">1</div>
                 </td>
                 <td style="padding-left:12px">
-                  <p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#111827">Conecte o Google Meu Negócio</p>
+                  <p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#111827">${t.step1Title}</p>
                   <p style="margin:0 0 8px;font-size:14px;color:#6b7280;line-height:1.5">
                     Autentique sua conta Google para o ReplyFlow começar a monitorar seus reviews automaticamente a cada 30 minutos.
                   </p>
                   <a href="${locationsUrl}" style="font-size:13px;color:#6366f1;font-weight:600;text-decoration:none">
-                    Ir para Locais →
+                    ${t.goToLocations}
                   </a>
                 </td>
               </tr>
@@ -290,12 +302,12 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
                   <div style="width:32px;height:32px;background:#eef2ff;border-radius:50%;text-align:center;line-height:32px;font-size:14px;font-weight:700;color:#6366f1">2</div>
                 </td>
                 <td style="padding-left:12px">
-                  <p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#111827">Gere sua primeira resposta com IA</p>
+                  <p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#111827">${t.step2Title}</p>
                   <p style="margin:0 0 8px;font-size:14px;color:#6b7280;line-height:1.5">
                     Clique em qualquer review e depois em <strong>"Gerar com IA"</strong>. A resposta será criada em segundos, personalizada para o seu negócio.
                   </p>
                   <a href="${dashboardUrl}" style="font-size:13px;color:#6366f1;font-weight:600;text-decoration:none">
-                    Ver reviews →
+                    ${t.goToReviews}
                   </a>
                 </td>
               </tr>
@@ -311,7 +323,7 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
                   <div style="width:32px;height:32px;background:#eef2ff;border-radius:50%;text-align:center;line-height:32px;font-size:14px;font-weight:700;color:#6366f1">3</div>
                 </td>
                 <td style="padding-left:12px">
-                  <p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#111827">Ative o piloto automático (opcional)</p>
+                  <p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#111827">${t.step3Title}</p>
                   <p style="margin:0 0 8px;font-size:14px;color:#6b7280;line-height:1.5">
                     Nos locais, ative <strong>"Auto-publicar"</strong> para o ReplyFlow responder tudo sozinho, com delay natural de 5-20 minutos para parecer humano.
                   </p>
@@ -325,7 +337,7 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
         <tr>
           <td style="padding:24px 40px 36px">
             <a href="${dashboardUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:700;font-size:15px;letter-spacing:-0.2px">
-              Acessar meu dashboard →
+              ${t.cta}
             </a>
           </td>
         </tr>
@@ -336,12 +348,12 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
             <table cellpadding="0" cellspacing="0" width="100%">
               <tr>
                 <td>
-                  <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#374151">Você está no plano Free</p>
+                  <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#374151">${t.planLabel('Free')}</p>
                   <p style="margin:0;font-size:13px;color:#6b7280">10 respostas/mês · 1 local · Sem auto-publicação</p>
                 </td>
                 <td align="right">
                   <a href="${billingUrl}" style="font-size:13px;color:#6366f1;font-weight:600;text-decoration:none;white-space:nowrap">
-                    Ver planos →
+                    ${t.viewPlans}
                   </a>
                 </td>
               </tr>
@@ -353,8 +365,7 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
         <tr>
           <td style="padding:20px 40px;border-top:1px solid #f3f4f6">
             <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6">
-              ReplyFlow · Sua reputação no piloto automático.<br>
-              Você recebe este e-mail porque criou uma conta em replyflow-hivi.com
+              ReplyFlow · ${t.footer}
             </p>
           </td>
         </tr>
@@ -368,7 +379,7 @@ export async function sendWelcomeEmail({ to, name }: WelcomeEmailParams) {
   return resend.emails.send({
     from: `ReplyFlow <${FROM}>`,
     to,
-    subject: `${firstName}, sua conta ReplyFlow está pronta! ⚡`,
+    subject: t.subject(firstName),
     html,
   })
 }

@@ -6,6 +6,7 @@ import { rateLimit } from '@/lib/ratelimit'
 import { canGenerateAiResponse } from '@/lib/plan-limits'
 import { createApprovalToken } from '@/lib/approvalToken'
 import { sendWhatsAppApproval } from '@/lib/email/alerts'
+import type { AppLocale } from '@/lib/i18n/locale'
 import type { Location, Plan } from '@/types'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow-hivi.com'
@@ -61,7 +62,7 @@ export async function POST(
   // ── Verificar acesso: usuário pertence à organização do review ────────────
   const { data: userRecord } = await serviceClient
     .from('users')
-    .select('organization_id, whatsapp, organization:organizations(id, plan, trial_ends_at, ai_responses_count, ai_responses_month)')
+    .select('organization_id, whatsapp, preferred_locale, organization:organizations(id, plan, trial_ends_at, ai_responses_count, ai_responses_month)')
     .eq('id', user.id)
     .single()
 
@@ -246,6 +247,7 @@ export async function POST(
         responseDraft: content,
         approveUrl,
         dashboardUrl:  dashUrl,
+        locale:        ((userRecord as unknown as { preferred_locale?: string })?.preferred_locale ?? 'pt') as AppLocale,
       })
     } catch (err) {
       // Non-fatal: WhatsApp failure must not break the generate response
