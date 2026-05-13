@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "replyflow/README.md",
-                "mode": "preview",
+                "file": "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "13_SPRINT_PLATAFORMAS_SYNC"
             }
           }
         ]
@@ -185,10 +185,21 @@
   },
   "active": "b33f56191cc9bc79",
   "lastOpenFiles": [
-    "replyflow/src/components/settings/SettingsForm.tsx.tmp.7944.1778592426975",
-    "replyflow/src/components/settings/SettingsForm.tsx.tmp.7944.1778592417347",
-    "replyflow/src/app/api/settings/whatsapp-test/route.ts",
-    "replyflow/src/app/api/settings/whatsapp-test",
+    "_contextos/12_SPRINT_PLATAFORMAS.md",
+    "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
+    "_contextos/02_ETAPA2_MODELO_DE_NEGOCIO.md",
+    "replyflow/src/components/reviews/AddManualReviewModal.tsx",
+    "replyflow/src/components/locations/PlatformBadges.tsx",
+    "replyflow/src/app/api/reviews/manual/route.ts",
+    "replyflow/src/app/api/reviews/manual",
+    "replyflow/src/app/(dashboard)/locations/[id]/facebook-pages/page.tsx",
+    "replyflow/src/app/(dashboard)/locations/[id]/facebook-pages",
+    "replyflow/src/app/api/facebook/callback/route.ts",
+    "replyflow/src/app/api/facebook/callback",
+    "replyflow/src/app/api/facebook/auth/route.ts",
+    "replyflow/src/app/api/facebook/auth",
+    "_contextos/01_ETAPA1_DEFINICAO_ESTRATEGICA.md",
+    "replyflow/README.md",
     "README.md"
   ]
 }

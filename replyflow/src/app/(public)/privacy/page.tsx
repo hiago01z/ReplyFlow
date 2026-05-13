@@ -319,6 +319,7 @@ export default function PrivacyPage() {
           <p>© 2026 ReplyFlow. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/terms" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Termos de Serviço</Link>
+            <Link href="/data-deletion" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Exclusão de dados</Link>
             <Link href="/" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Página inicial</Link>
           </div>
         </div>

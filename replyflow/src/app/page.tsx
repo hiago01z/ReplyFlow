@@ -458,6 +458,7 @@ export default function LandingPage() {
             <span className="text-gray-200 dark:text-gray-700 select-none">·</span>
             <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Privacidade</Link>
             <Link href="/terms" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Termos</Link>
+            <Link href="/data-deletion" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Exclusão de dados</Link>
           </div>
 
           {/* Social + copyright */}
