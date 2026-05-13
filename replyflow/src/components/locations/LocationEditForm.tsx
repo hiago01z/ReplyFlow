@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw, PowerOff, X, AlertTriangle, Link2, Plus } from "lucide-react";
 import type { Location } from "@/types";
 import { GmbLinkWizard } from "@/components/locations/GmbLinkWizard";
+import { TripAdvisorLinkWizard } from "@/components/locations/TripAdvisorLinkWizard";
+import { ReclamaAquiLinkWizard } from "@/components/locations/ReclamaAquiLinkWizard";
 import { AddManualReviewModal } from "@/components/reviews/AddManualReviewModal";
 
 const NICHES = [
@@ -605,82 +607,29 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
 
       {/* ── TripAdvisor ─────────────────────────────────────────────────────── */}
       <div className="card p-6 space-y-4" id="tripadvisor">
-        <div className="flex items-center gap-3">
-          <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", taConnected ? "bg-green-50" : "bg-gray-100")}>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-9 h-9 rounded-xl bg-[#00AF87]/10 flex items-center justify-center shrink-0">
             <span className="text-base">🦉</span>
           </div>
-          <div className="flex-1 min-w-0">
+          <div>
             <h2 className="text-sm font-semibold text-gray-900">TripAdvisor</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {taConnected
-                ? "Vinculado — adicione avaliações manualmente para responder com IA."
-                : "Cole a URL da sua página no TripAdvisor para vincular."}
-            </p>
+            <p className="text-xs text-gray-500 mt-0.5">Avaliações importadas manualmente — IA gera a resposta</p>
           </div>
-          {taConnected && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full shrink-0">
-              <CheckCircle2 size={11} /> Vinculado
-            </span>
-          )}
         </div>
-
-        {!taConnected ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <input
-                type="url"
-                value={taUrl}
-                onChange={(e) => setTaUrl(e.target.value)}
-                placeholder="https://www.tripadvisor.com.br/Restaurant_Review-..."
-                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-              <button
-                type="button"
-                onClick={handleSaveTripAdvisor}
-                disabled={taSaving || !taUrl.trim()}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#00AF87] hover:bg-[#009975] px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
-              >
-                <Link2 size={14} />
-                {taSaving ? "Salvando…" : "Vincular"}
-              </button>
-            </div>
-            <p className="text-xs text-gray-400">
-              O TripAdvisor não possui API pública. Após vincular, você pode <strong>adicionar avaliações manualmente</strong> para que a IA gere respostas.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-              <Link2 size={13} className="text-gray-400 shrink-0" />
-              <a
-                href={taUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-indigo-600 hover:underline flex-1 truncate"
-              >
-                {taUrl}
-              </a>
-              <ExternalLink size={12} className="text-gray-400 shrink-0" />
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowAddReview(true)}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#00AF87] hover:bg-[#009975] px-3 py-2 rounded-lg transition-colors"
-              >
-                <Plus size={14} />
-                Adicionar avaliação
-              </button>
-              <button
-                type="button"
-                onClick={handleDisconnectTripAdvisor}
-                disabled={taSaving}
-                className="text-xs text-gray-400 hover:text-red-500 transition-colors"
-              >
-                Desvincular
-              </button>
-            </div>
-          </div>
+        <TripAdvisorLinkWizard
+          locationId={location.id}
+          taUrl={location.tripadvisor_url}
+          taConnected={location.tripadvisor_connected}
+        />
+        {taConnected && (
+          <button
+            type="button"
+            onClick={() => setShowAddReview(true)}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#00AF87] hover:bg-[#009975] px-3 py-2 rounded-lg transition-colors"
+          >
+            <Plus size={14} />
+            Adicionar avaliação
+          </button>
         )}
       </div>
 
@@ -692,82 +641,29 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
 
       {/* ── Reclame Aqui ───────────────────────────────────────────────────── */}
       <div className="card p-6 space-y-4" id="reclame-aqui">
-        <div className="flex items-center gap-3">
-          <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", raConnected ? "bg-green-50" : "bg-gray-100")}>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-9 h-9 rounded-xl bg-[#E8281C]/10 flex items-center justify-center shrink-0">
             <span className="text-base">🔴</span>
           </div>
-          <div className="flex-1 min-w-0">
+          <div>
             <h2 className="text-sm font-semibold text-gray-900">Reclame Aqui</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {raConnected
-                ? "Vinculado — adicione reclamações manualmente para responder com IA."
-                : "Cole a URL da sua empresa no Reclame Aqui para vincular."}
-            </p>
+            <p className="text-xs text-gray-500 mt-0.5">Reclamações importadas manualmente — IA gera respostas empáticas</p>
           </div>
-          {raConnected && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full shrink-0">
-              <CheckCircle2 size={11} /> Vinculado
-            </span>
-          )}
         </div>
-
-        {!raConnected ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <input
-                type="url"
-                value={raUrl}
-                onChange={(e) => setRaUrl(e.target.value)}
-                placeholder="https://www.reclameaqui.com.br/empresa/nome-da-empresa/"
-                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-              <button
-                type="button"
-                onClick={handleSaveReclamaAqui}
-                disabled={raSaving || !raUrl.trim()}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#E8281C] hover:bg-[#c51f15] px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
-              >
-                <Link2 size={14} />
-                {raSaving ? "Salvando…" : "Vincular"}
-              </button>
-            </div>
-            <p className="text-xs text-gray-400">
-              O Reclame Aqui não possui API pública. Após vincular, você pode <strong>adicionar reclamações manualmente</strong> para que a IA gere respostas empáticas e profissionais.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-              <Link2 size={13} className="text-gray-400 shrink-0" />
-              <a
-                href={raUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-indigo-600 hover:underline flex-1 truncate"
-              >
-                {raUrl}
-              </a>
-              <ExternalLink size={12} className="text-gray-400 shrink-0" />
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowAddRaReview(true)}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#E8281C] hover:bg-[#c51f15] px-3 py-2 rounded-lg transition-colors"
-              >
-                <Plus size={14} />
-                Adicionar reclamação
-              </button>
-              <button
-                type="button"
-                onClick={handleDisconnectReclamaAqui}
-                disabled={raSaving}
-                className="text-xs text-gray-400 hover:text-red-500 transition-colors"
-              >
-                Desvincular
-              </button>
-            </div>
-          </div>
+        <ReclamaAquiLinkWizard
+          locationId={location.id}
+          raUrl={location.reclame_aqui_url}
+          raConnected={location.reclame_aqui_connected}
+        />
+        {raConnected && (
+          <button
+            type="button"
+            onClick={() => setShowAddRaReview(true)}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#E8281C] hover:bg-[#c51f15] px-3 py-2 rounded-lg transition-colors"
+          >
+            <Plus size={14} />
+            Adicionar reclamação
+          </button>
         )}
       </div>
 
