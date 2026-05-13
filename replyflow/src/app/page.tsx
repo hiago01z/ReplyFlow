@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, Star, Zap, Sparkles, MessageSquare, Bell, FileText, RefreshCw, Building2, Send } from "lucide-react";
 import { CountUp } from "@/components/landing/CountUp";
+import { LandingPricing } from "@/components/landing/LandingPricing";
 
 const TESTIMONIALS = [
   {
@@ -326,69 +327,7 @@ export default function LandingPage() {
           <p className="text-center text-gray-600 dark:text-gray-400 mb-12">
             Comece grátis. Faça upgrade quando precisar. Cancele quando quiser.
           </p>
-          <div className="grid md:grid-cols-3 gap-6 items-center">
-            {[
-              {
-                name: "Starter", price: "R$ 97", period: "/mês",
-                description: "Para autônomos e pequenos negócios",
-                features: ["1 local","3 plataformas","Respostas ilimitadas","Alerta por e-mail","Tom personalizado"],
-                cta: "Assinar Starter", highlight: false,
-              },
-              {
-                name: "Pro", price: "R$ 197", period: "/mês",
-                description: "Para negócios com múltiplas unidades",
-                features: ["Até 3 locais","Todas as plataformas","Respostas ilimitadas","Alerta via WhatsApp","Aprovação em 1 clique","Relatório mensal PDF"],
-                cta: "Assinar Pro", highlight: true,
-              },
-              {
-                name: "Agência", price: "R$ 497", period: "/mês",
-                description: "Para agências gerenciando múltiplos clientes",
-                features: ["Até 10 clientes no painel","3 locais por cliente","IA ilimitada","Alerta WhatsApp + aprovação 1 clique","Relatório mensal PDF"],
-                cta: "Assinar Agência", highlight: false,
-              },
-            ].map((plan) => (
-              <div
-                key={plan.name}
-                className={`rounded-2xl p-8 ${
-                  plan.highlight
-                    ? "bg-indigo-600 text-white shadow-xl scale-105"
-                    : "bg-white dark:bg-[#18181f] border border-gray-200 dark:border-[#2a2a35]"
-                }`}
-              >
-                {plan.highlight && (
-                  <div className="text-xs font-bold text-indigo-200 mb-3 tracking-widest">★ MAIS POPULAR</div>
-                )}
-                <div className={`text-sm font-medium mb-1 ${plan.highlight ? "text-indigo-200" : "text-indigo-600 dark:text-indigo-400"}`}>
-                  {plan.name}
-                </div>
-                <div className="flex items-end gap-1 mb-2">
-                  <span className={`text-4xl font-bold ${plan.highlight ? "text-white" : "text-gray-900 dark:text-gray-100"}`}>{plan.price}</span>
-                  <span className={`text-sm mb-1 ${plan.highlight ? "text-indigo-200" : "text-gray-500 dark:text-gray-400"}`}>{plan.period}</span>
-                </div>
-                <p className={`text-sm mb-6 ${plan.highlight ? "text-indigo-100" : "text-gray-500 dark:text-gray-400"}`}>
-                  {plan.description}
-                </p>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className={`flex items-center gap-2 text-sm ${plan.highlight ? "text-white" : "text-gray-700 dark:text-gray-300"}`}>
-                      <span className={plan.highlight ? "text-indigo-300" : "text-indigo-600 dark:text-indigo-400"}>✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/register"
-                  className={`block text-center py-3 rounded-xl font-semibold text-sm transition-colors ${
-                    plan.highlight
-                      ? "bg-white text-indigo-600 hover:bg-indigo-50"
-                      : "bg-indigo-600 text-white hover:bg-indigo-700"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-              </div>
-            ))}
-          </div>
+          <LandingPricing />
           <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-8">
             Todos os planos incluem teste de 7 dias grátis. Sem fidelidade.
           </p>
