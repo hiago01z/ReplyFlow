@@ -10,10 +10,11 @@ interface LocationData {
   name: string;
   tripadvisor_url?: string | null;
   reclame_aqui_url?: string | null;
+  booking_url?: string | null;
 }
 
 interface Props {
-  platform: "tripadvisor" | "reclame_aqui";
+  platform: "tripadvisor" | "reclame_aqui" | "booking";
   locations: LocationData[];
 }
 
@@ -26,11 +27,14 @@ export function AddManualReviewButton({ platform, locations }: Props) {
 
   if (!selected) return null;
 
-  const label = platform === "tripadvisor" ? "Adicionar avaliação" : "Adicionar reclamação";
+  const label =
+    platform === "tripadvisor" ? "Adicionar avaliação" :
+    platform === "booking"     ? "Adicionar avaliação" :
+    "Adicionar reclamação";
   const colorClass =
-    platform === "tripadvisor"
-      ? "bg-[#00AF87] hover:bg-[#009975]"
-      : "bg-[#E8281C] hover:bg-[#c51f15]";
+    platform === "tripadvisor" ? "bg-[#00AF87] hover:bg-[#009975]" :
+    platform === "booking"     ? "bg-[#003580] hover:bg-[#002a66]" :
+    "bg-[#E8281C] hover:bg-[#c51f15]";
 
   return (
     <>
@@ -62,6 +66,7 @@ export function AddManualReviewButton({ platform, locations }: Props) {
           platform={platform}
           tripadvisorUrl={selected.tripadvisor_url}
           reclamaAquiUrl={selected.reclame_aqui_url}
+          bookingUrl={selected.booking_url}
           onClose={() => setOpen(false)}
           onAdded={() => { setOpen(false); router.refresh(); }}
         />

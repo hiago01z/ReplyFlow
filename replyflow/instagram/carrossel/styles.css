@@ -1,0 +1,156 @@
+/* ─────────────────────────────────────────────────────────────────
+   ReplyFlow — Instagram Carousel
+   Formato: 1080 × 1350 px  (4:5 — feed portrait, padrão Instagram)
+   Design System: Linear/Vercel inspired · Indigo → Violet → Purple
+   ───────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Reset ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Tokens ────────────────────────────────────────────────────── */
+:root {
+  --brand-start : #6366f1;
+  --brand-mid   : #8b5cf6;
+  --brand-end   : #a855f7;
+  --brand-grad  : linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  --brand-grad-r: linear-gradient(315deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+
+  --dark-bg     : #0d0d14;
+  --dark-surface: #16161f;
+  --dark-border : rgba(255,255,255,0.08);
+
+  --light-bg    : #f5f5fa;
+  --light-card  : #ffffff;
+  --light-border: #e5e7eb;
+
+  --text-white  : #ffffff;
+  --text-light  : rgba(255,255,255,0.75);
+  --text-muted  : rgba(255,255,255,0.45);
+  --text-dark   : #111827;
+  --text-mid    : #4b5563;
+  --text-soft   : #9ca3af;
+
+  --indigo      : #6366f1;
+  --violet      : #8b5cf6;
+  --purple      : #a855f7;
+  --indigo-light: #eef2ff;
+  --green       : #10b981;
+  --amber       : #f59e0b;
+
+  --radius-sm   : 12px;
+  --radius-md   : 18px;
+  --radius-lg   : 24px;
+  --radius-xl   : 32px;
+  --radius-pill : 999px;
+
+  --shadow-card : 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md   : 0 4px 20px rgba(0,0,0,.08);
+  --shadow-lg   : 0 12px 40px rgba(0,0,0,.12);
+  --shadow-glow : 0 0 40px rgba(99,102,241,0.35);
+  --shadow-glow2: 0 0 60px rgba(168,85,247,0.3);
+}
+
+/* ── Canvas ────────────────────────────────────────────────────── */
+.slide {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  width: 1080px;
+  height: 1350px;
+  position: relative;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Swipe indicator ──────────────────────────────────────────── */
+.swipe-hint {
+  position: absolute;
+  bottom: 48px;
+  right: 60px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  opacity: 0.55;
+}
+.swipe-hint svg { width: 16px; height: 16px; }
+
+/* ── Slide counter ──────────────────────────────────────────────- */
+.slide-counter {
+  position: absolute;
+  bottom: 48px;
+  left: 60px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.slide-counter .current { opacity: 1; }
+.slide-counter .sep     { opacity: 0.35; margin: 0 3px; }
+.slide-counter .total   { opacity: 0.35; }
+
+/* ── Brand logo pill ───────────────────────────────────────────── */
+.brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-pill);
+  padding: 8px 18px 8px 12px;
+}
+.brand-pill .zap {
+  width: 26px;
+  height: 26px;
+  background: var(--brand-grad);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.brand-pill .zap svg { width: 14px; height: 14px; fill: white; }
+.brand-pill span {
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.01em;
+}
+
+/* brand-pill variante dark (para slide claro) */
+.brand-pill.dark {
+  background: rgba(99,102,241,0.08);
+  border-color: rgba(99,102,241,0.2);
+}
+.brand-pill.dark span { color: var(--indigo); }
+
+/* ── Tag label ─────────────────────────────────────────────────── */
+.tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tag.on-dark { color: rgba(255,255,255,0.5); }
+.tag.on-light { color: var(--indigo); }
+
+/* ── Decorative blobs ──────────────────────────────────────────── */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+/* ── Utility ───────────────────────────────────────────────────── */
+.flex         { display: flex; }
+.flex-col     { flex-direction: column; }
+.items-center { align-items: center; }
+.gap-12       { gap: 12px; }
+.gap-16       { gap: 16px; }
+.gap-20       { gap: 20px; }
+.gap-24       { gap: 24px; }
+.mt-auto      { margin-top: auto; }

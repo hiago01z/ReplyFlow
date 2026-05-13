@@ -12,12 +12,13 @@ import { AddManualReviewButton } from "@/components/reviews/AddManualReviewButto
 // ── Platform filter tabs ──────────────────────────────────────────────────────
 
 // TODO: adicionar "facebook" quando Meta aprovar permissões avançadas
-type PlatformKey = "google" | "tripadvisor" | "reclame_aqui";
+type PlatformKey = "google" | "tripadvisor" | "reclame_aqui" | "booking";
 
 const PLATFORM_META: Record<PlatformKey, { label: string; color: string }> = {
   google:       { label: "Google",       color: "text-[#4285F4]" },
   tripadvisor:  { label: "TripAdvisor",  color: "text-[#00AF87]" },
   reclame_aqui: { label: "Reclame Aqui", color: "text-[#E8281C]" },
+  booking:      { label: "Booking.com",  color: "text-[#003580]" },
 };
 
 interface PlatformTabsProps {
@@ -87,7 +88,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
   const { data: locations } = await serviceClient
     .from("locations")
-    .select("id, name, google_access_token, tripadvisor_connected, tripadvisor_url, facebook_connected, reclame_aqui_connected, reclame_aqui_url")
+    .select("id, name, google_access_token, tripadvisor_connected, tripadvisor_url, facebook_connected, reclame_aqui_connected, reclame_aqui_url, booking_connected, booking_url")
     .eq("organization_id", userRecord!.organization_id)
     .eq("active", true);
 
@@ -99,22 +100,26 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
     if (loc.google_access_token)    connectedPlatforms.add("google");
     if (loc.tripadvisor_connected)  connectedPlatforms.add("tripadvisor");
     if (loc.reclame_aqui_connected) connectedPlatforms.add("reclame_aqui");
+    if (loc.booking_connected)      connectedPlatforms.add("booking");
     // Facebook oculto — if (loc.facebook_connected) connectedPlatforms.add("facebook");
   }
   const activePlatforms = Array.from(connectedPlatforms);
 
   // Locations connected to the currently selected manual platform (for the add button)
-  const isManualPlatform = params.platform === "tripadvisor" || params.platform === "reclame_aqui";
+  const isManualPlatform = params.platform === "tripadvisor" || params.platform === "reclame_aqui" || params.platform === "booking";
   const manualLocations = isManualPlatform
     ? (locations ?? []).filter((loc) =>
         params.platform === "tripadvisor"
           ? loc.tripadvisor_connected
-          : loc.reclame_aqui_connected
+          : params.platform === "booking"
+            ? loc.booking_connected
+            : loc.reclame_aqui_connected
       ).map((loc) => ({
         id:               loc.id,
         name:             loc.name,
         tripadvisor_url:  loc.tripadvisor_url  ?? null,
         reclame_aqui_url: loc.reclame_aqui_url ?? null,
+        booking_url:      loc.booking_url      ?? null,
       }))
     : [];
 
@@ -238,7 +243,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         <div className="flex items-center gap-2">
           {isManualPlatform && manualLocations.length > 0 && (
             <AddManualReviewButton
-              platform={params.platform as "tripadvisor" | "reclame_aqui"}
+              platform={params.platform as "tripadvisor" | "reclame_aqui" | "booking"}
               locations={manualLocations}
             />
           )}

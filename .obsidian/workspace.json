@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_contextos/15_PLANEJAMENTO_I18N.md",
+                "file": "replyflow/instagram/carrossel/TEXTOS-E-LEGENDA.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "15_PLANEJAMENTO_I18N"
+              "title": "TEXTOS-E-LEGENDA"
             }
           }
         ]
@@ -185,9 +185,11 @@
   },
   "active": "b33f56191cc9bc79",
   "lastOpenFiles": [
+    "_contextos/15_PLANEJAMENTO_I18N.md",
+    "replyflow/src/components/locations/BookingLinkWizard.tsx",
+    "replyflow/supabase/migrations/018_booking.sql",
     "_contextos/12_SPRINT_PLATAFORMAS.md",
     "_contextos/12_INTEGRACAO_PLATAFORMAS.md",
-    "_contextos/15_PLANEJAMENTO_I18N.md",
     "replyflow/src/lib/i18n/strings-report.ts",
     "replyflow/src/lib/i18n/strings-digest.ts",
     "replyflow/src/lib/i18n/strings-email.ts",
@@ -199,8 +201,6 @@
     "_contextos/14_SPRINT_LOCALE_DINAMICO.md",
     "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
     "_contextos/02_ETAPA2_MODELO_DE_NEGOCIO.md",
-    "replyflow/src/components/reviews/AddManualReviewModal.tsx",
-    "replyflow/src/components/locations/PlatformBadges.tsx",
     "_contextos/01_ETAPA1_DEFINICAO_ESTRATEGICA.md",
     "replyflow/README.md",
     "README.md"

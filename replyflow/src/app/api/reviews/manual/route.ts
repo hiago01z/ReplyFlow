@@ -13,7 +13,7 @@ import { z } from "zod";
 
 const schema = z.object({
   locationId:   z.string().uuid(),
-  platform:     z.enum(["tripadvisor", "facebook", "reclame_aqui"]),
+  platform:     z.enum(["tripadvisor", "facebook", "reclame_aqui", "booking"]),
   authorName:   z.string().min(1).max(100),
   rating:       z.number().int().min(1).max(5),
   content:      z.string().min(1).max(5000),
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
   const { data: location } = await serviceClient
     .from("locations")
-    .select("id, tripadvisor_connected, facebook_connected, reclame_aqui_connected")
+    .select("id, tripadvisor_connected, facebook_connected, reclame_aqui_connected, booking_connected")
     .eq("id", locationId)
     .eq("organization_id", userRecord.organization_id)
     .single();
@@ -66,6 +66,9 @@ export async function POST(request: Request) {
   }
   if (platform === "reclame_aqui" && !location.reclame_aqui_connected) {
     return NextResponse.json({ error: "Reclame Aqui não está vinculado a este local." }, { status: 403 });
+  }
+  if (platform === "booking" && !location.booking_connected) {
+    return NextResponse.json({ error: "Booking.com não está vinculado a este local." }, { status: 403 });
   }
 
   // external_id: "manual-" + uuid para não colidir com reviews reais

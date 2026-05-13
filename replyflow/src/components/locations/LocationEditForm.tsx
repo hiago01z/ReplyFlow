@@ -11,6 +11,7 @@ import type { Location } from "@/types";
 import { GmbLinkWizard } from "@/components/locations/GmbLinkWizard";
 import { TripAdvisorLinkWizard } from "@/components/locations/TripAdvisorLinkWizard";
 import { ReclamaAquiLinkWizard } from "@/components/locations/ReclamaAquiLinkWizard";
+import { BookingLinkWizard } from "@/components/locations/BookingLinkWizard";
 
 const NICHES = [
   { value: "clinica",      label: "Clínica / Saúde",    icon: "🏥" },
@@ -554,7 +555,23 @@ export function LocationEditForm({ location, backHref = "/locations" }: Location
           raConnected={location.reclame_aqui_connected}
         />
       </div>
-
+      {/* ── Booking.com ──────────────────────────────────────────────── */}
+      <div className="card p-6 space-y-4" id="booking">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-9 h-9 rounded-xl bg-[#003580]/10 flex items-center justify-center shrink-0">
+            <span className="text-base">🏨</span>
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Booking.com</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Avaliações importadas manualmente — IA gera respostas para hóspedes</p>
+          </div>
+        </div>
+        <BookingLinkWizard
+          locationId={location.id}
+          bookingUrl={location.booking_url}
+          bookingConnected={location.booking_connected}
+        />
+      </div>
       {/* Botões */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <Button type="submit" loading={saving} disabled={!name.trim()}>
