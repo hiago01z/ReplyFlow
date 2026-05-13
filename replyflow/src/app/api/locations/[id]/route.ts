@@ -196,13 +196,14 @@ export async function PATCH(
   }
 
   // ── Conexão de nova plataforma: verificar limite do plano ────────────────
-  const connectingTripAdvisor = parsed.data.tripadvisor_connected === true;
-  const connectingFacebook    = parsed.data.facebook_connected === true;
+  const connectingTripAdvisor  = parsed.data.tripadvisor_connected === true;
+  const connectingFacebook     = parsed.data.facebook_connected === true;
+  const connectingReclamaAqui  = parsed.data.reclame_aqui_connected === true;
 
-  if (connectingTripAdvisor || connectingFacebook) {
+  if (connectingTripAdvisor || connectingFacebook || connectingReclamaAqui) {
     const { data: locFull } = await serviceClient
       .from("locations")
-      .select("google_access_token, tripadvisor_connected, facebook_connected")
+      .select("google_access_token, tripadvisor_connected, facebook_connected, reclame_aqui_connected")
       .eq("id", id)
       .single();
 
@@ -213,8 +214,9 @@ export async function PATCH(
 
       // Verificar se a plataforma específica já está conectada (evitar falso positivo)
       const alreadyConnected =
-        (connectingTripAdvisor && locFull.tripadvisor_connected) ||
-        (connectingFacebook    && locFull.facebook_connected);
+        (connectingTripAdvisor  && locFull.tripadvisor_connected) ||
+        (connectingFacebook     && locFull.facebook_connected) ||
+        (connectingReclamaAqui  && locFull.reclame_aqui_connected);
 
       if (!alreadyConnected && currentCount >= platformLimit) {
         return NextResponse.json(
