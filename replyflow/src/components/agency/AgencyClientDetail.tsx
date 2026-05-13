@@ -7,6 +7,7 @@ import {
   Sparkles, Send, ChevronDown, ChevronUp, Loader2, Wifi, Trash2, Plus, ExternalLink, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AddManualReviewButton } from "@/components/reviews/AddManualReviewButton";
 
 const AGENCY_CLIENT_LOCATION_LIMIT = 3;
 
@@ -15,6 +16,8 @@ const AGENCY_CLIENT_LOCATION_LIMIT = 3;
 interface ClientLocation {
   id: string; name: string; niche: string | null;
   active: boolean; google_connected: boolean; has_google_token: boolean; auto_publish: boolean;
+  tripadvisor_connected: boolean; tripadvisor_url: string | null;
+  reclame_aqui_connected: boolean; reclame_aqui_url: string | null;
 }
 
 interface ClientDetail {
@@ -362,6 +365,26 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
       {/* Reviews tab */}
       {tab === "reviews" && (
         <div>
+          {/* Botão Adicionar avaliação manual (TripAdvisor / Reclame Aqui) */}
+          {(() => {
+            const taLocs = locations
+              .filter((l) => l.tripadvisor_connected)
+              .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: l.tripadvisor_url, reclame_aqui_url: null }));
+            const raLocs = locations
+              .filter((l) => l.reclame_aqui_connected)
+              .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: null, reclame_aqui_url: l.reclame_aqui_url }));
+            if (taLocs.length === 0 && raLocs.length === 0) return null;
+            return (
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                {taLocs.length > 0 && (
+                  <AddManualReviewButton platform="tripadvisor" locations={taLocs} />
+                )}
+                {raLocs.length > 0 && (
+                  <AddManualReviewButton platform="reclame_aqui" locations={raLocs} />
+                )}
+              </div>
+            );
+          })()}
           {reviews.length === 0 ? (
             <div className="card p-10 text-center">
               <CheckCircle2 size={24} className="text-green-400 mx-auto mb-3" />
