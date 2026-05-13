@@ -74,6 +74,7 @@ export function LandingPricing({ symbol, plans }: LandingPricingProps) {
                 </div>
               )}
               <div
+                translate="no"
                 className={`text-sm font-medium mb-1 ${
                   plan.highlight
                     ? "text-indigo-200"
@@ -108,8 +109,7 @@ export function LandingPricing({ symbol, plans }: LandingPricingProps) {
                     plan.highlight ? "text-indigo-200" : "text-gray-400 dark:text-gray-500"
                   }`}
                 >
-                  {symbol} {plan.annualPrice}/ano — economia de {symbol}{" "}
-                  {plan.monthlyPrice * 12 - plan.annualPrice}
+                  {`${symbol} ${plan.annualPrice}/ano — economia de ${symbol} ${plan.monthlyPrice * 12 - plan.annualPrice}`}
                 </p>
               )}
 
@@ -145,6 +145,7 @@ export function LandingPricing({ symbol, plans }: LandingPricingProps) {
 
               <Link
                 href="/register"
+                translate="no"
                 className={`block text-center py-3 rounded-xl font-semibold text-sm transition-colors ${
                   plan.highlight
                     ? "bg-white text-indigo-600 hover:bg-indigo-50"

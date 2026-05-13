@@ -81,7 +81,7 @@ export default function RootLayout({
         {/* Script inline anti-FOUC: aplica .dark ANTES do CSS, evita flash */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <ToastProvider>{children}</ToastProvider>
         <Analytics />
       </body>

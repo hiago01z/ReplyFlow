@@ -29,7 +29,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
               <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
             </svg>
           </div>
-          <span className="text-xl font-bold text-white tracking-tight">ReplyFlow</span>
+          <span className="text-xl font-bold text-white tracking-tight" translate="no">ReplyFlow</span>
         </Link>
 
         {/* Headline */}
@@ -88,7 +88,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       {/* ── Form panel (right) ── */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-[#f5f5fa]">
         {/* Mobile logo */}
-        <Link href="/" className="lg:hidden mb-10 text-xl font-bold text-indigo-600">
+        <Link href="/" className="lg:hidden mb-10 text-xl font-bold text-indigo-600" translate="no">
           ⚡ ReplyFlow
         </Link>
         <div className="w-full max-w-[400px]">

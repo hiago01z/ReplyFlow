@@ -62,7 +62,7 @@ function SidebarContent({
           <div className="w-8 h-8 brand-gradient rounded-lg flex items-center justify-center shadow-sm shrink-0">
             <Zap size={15} className="text-white fill-white" />
           </div>
-          <span className="font-bold text-gray-900 dark:text-gray-100 text-sm tracking-tight">ReplyFlow</span>
+          <span className="font-bold text-gray-900 dark:text-gray-100 text-sm tracking-tight" translate="no">ReplyFlow</span>
         </Link>
         {onClose && (
           <button onClick={onClose} className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-white/10 dark:hover:text-gray-200 md:hidden">
@@ -158,7 +158,7 @@ export function Sidebar(props: SidebarProps) {
           <div className="w-7 h-7 brand-gradient rounded-lg flex items-center justify-center shadow-sm">
             <Zap size={13} className="text-white fill-white" />
           </div>
-          <span className="font-bold text-gray-900 dark:text-gray-100 text-sm tracking-tight">ReplyFlow</span>
+          <span className="font-bold text-gray-900 dark:text-gray-100 text-sm tracking-tight" translate="no">ReplyFlow</span>
         </Link>
         <button
           onClick={() => setMobileOpen(true)}
