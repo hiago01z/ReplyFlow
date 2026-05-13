@@ -206,7 +206,7 @@ function OnboardingContent() {
         <div className="w-8 h-8 brand-gradient rounded-lg flex items-center justify-center shadow-sm">
           <Zap size={15} className="text-white fill-white" />
         </div>
-        <span className="font-bold text-gray-900 text-lg tracking-tight">ReplyFlow</span>
+        <span className="font-bold text-gray-900 text-lg tracking-tight" translate="no">ReplyFlow</span>
       </Link>
 
       {/* Step indicators */}

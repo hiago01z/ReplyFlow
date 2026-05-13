@@ -112,7 +112,7 @@ export default async function LandingPage() {
           <div className="w-7 h-7 brand-gradient rounded-lg flex items-center justify-center shadow-sm">
             <Zap size={13} className="text-white fill-white" />
           </div>
-          ReplyFlow
+          <span translate="no">ReplyFlow</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           {[
@@ -167,7 +167,7 @@ export default async function LandingPage() {
           </h1>
 
           <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            ReplyFlow responde reviews do Google com IA personalizada para o seu negócio —
+            <span translate="no">ReplyFlow</span> responde reviews do Google com IA personalizada para o seu negócio —
             em segundos, no tom certo, sem você fazer nada.
           </p>
 
@@ -298,7 +298,7 @@ export default async function LandingPage() {
             <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3">Plataforma completa</p>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Tudo que você precisa para gerir sua reputação</h2>
             <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto text-sm">
-              Muito mais do que gerar respostas. O ReplyFlow é um sistema completo de gestão de reputação local.
+              Muito mais do que gerar respostas. O <span translate="no">ReplyFlow</span> é um sistema completo de gestão de reputação local.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -332,7 +332,7 @@ export default async function LandingPage() {
             Quem usa, aprova
           </h2>
           <p className="text-center text-gray-600 dark:text-gray-400 mb-12">
-            Negócios reais que recuperaram horas do dia com o ReplyFlow
+            Negócios reais que recuperaram horas do dia com o <span translate="no">ReplyFlow</span>
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             {TESTIMONIALS.map((t) => (
@@ -428,7 +428,7 @@ export default async function LandingPage() {
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
 
           {/* Logo */}
-          <div className="font-bold text-indigo-600 dark:text-indigo-400 text-lg">⚡ ReplyFlow</div>
+          <div className="font-bold text-indigo-600 dark:text-indigo-400 text-lg" translate="no">⚡ ReplyFlow</div>
 
           {/* Nav links */}
           <div className="flex flex-wrap justify-center gap-5 text-sm text-gray-500 dark:text-gray-400">
@@ -488,7 +488,7 @@ export default async function LandingPage() {
               </a>
             </div>
 
-            <p className="text-xs text-gray-400 dark:text-gray-500">© 2026 ReplyFlow. Todos os direitos reservados.</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">© 2026 <span translate="no">ReplyFlow</span>. Todos os direitos reservados.</p>
           </div>
 
         </div>
