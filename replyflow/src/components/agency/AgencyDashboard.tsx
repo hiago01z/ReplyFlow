@@ -92,7 +92,7 @@ export function AgencyDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <AgencyDemoButton hasDemo={hasDemo} />
+          <AgencyDemoButton hasDemo={hasDemo} onRefresh={fetchClients} />
           <button
             onClick={() => { setShowAdd(true); setAddError(""); }}
             className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"

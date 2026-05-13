@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FlaskConical, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
 interface Props {
   hasDemo?: boolean;
+  onRefresh?: () => void;
 }
 
-export function AgencyDemoButton({ hasDemo = false }: Props) {
+export function AgencyDemoButton({ hasDemo = false, onRefresh }: Props) {
   const router = useRouter();
   const { success, error: toastError } = useToast();
   const [loading,     setLoading]     = useState(false);
   const [showDelete,  setShowDelete]  = useState(hasDemo);
+
+  // Sync with parent when clients list updates (e.g. after onRefresh)
+  useEffect(() => { setShowDelete(hasDemo); }, [hasDemo]);
 
   async function handleSeed() {
     setLoading(true);
@@ -26,7 +30,7 @@ export function AgencyDemoButton({ hasDemo = false }: Props) {
           "Clientes demo criados!",
           `${data.clients} clientes com ${data.reviews} reviews de teste adicionados.`,
         );
-        router.refresh();
+        onRefresh ? onRefresh() : router.refresh();
       } else {
         toastError("Erro", data.error ?? "Não foi possível criar os dados de demo.");
       }
@@ -45,7 +49,7 @@ export function AgencyDemoButton({ hasDemo = false }: Props) {
       if (res.ok) {
         setShowDelete(false);
         success("Demo removido", `${data.deleted} cliente(s) de teste removidos.`);
-        router.refresh();
+        onRefresh ? onRefresh() : router.refresh();
       } else {
         toastError("Erro", data.error ?? "Não foi possível remover os dados de demo.");
       }
