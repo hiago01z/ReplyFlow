@@ -455,6 +455,9 @@ export default function LandingPage() {
             <Link href="#precos" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Preços</Link>
             <Link href="#faq" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">FAQ</Link>
             <Link href="/login" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Entrar</Link>
+            <span className="text-gray-200 dark:text-gray-700 select-none">·</span>
+            <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Privacidade</Link>
+            <Link href="/terms" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Termos</Link>
           </div>
 
           {/* Social + copyright */}
