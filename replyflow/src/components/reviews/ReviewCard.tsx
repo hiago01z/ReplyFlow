@@ -192,7 +192,7 @@ export function ReviewCard({
     <div
       ref={cardRef}
       className={cn(
-        "card overflow-hidden transition-shadow hover:shadow-md",
+        "card transition-shadow hover:shadow-md",
         isNegative && review.status === "pending" && "border-red-200",
         highlighted && "ring-2 ring-indigo-400 ring-offset-1",
       )}
@@ -200,7 +200,7 @@ export function ReviewCard({
       {/* ── Header row ── */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full text-left px-5 py-4 flex items-start justify-between gap-4 hover:bg-gray-50/60 transition-colors"
+        className="w-full text-left px-5 py-4 flex items-start justify-between gap-4 hover:bg-gray-50/60 transition-colors rounded-t-[18px]"
       >
         <div className="flex items-start gap-3 min-w-0">
           {/* Bulk select checkbox */}
