@@ -8,6 +8,7 @@ import { PlatformBadges } from "@/components/locations/PlatformBadges";
 import { PLAN_LIMITS, getEffectiveLocationLimit, type Plan } from "@/lib/plan-limits";
 import { EXTRA_LOCATION_PRICES, getCurrencyFromCountry } from "@/lib/stripe/client";
 import { headers } from "next/headers";
+import { getLocaleFromHeaders } from "@/lib/locale";
 
 interface LocationsPageProps {
   searchParams: Promise<{ success?: string; error?: string; loc?: string }>;
@@ -24,6 +25,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
   const country = reqHeaders.get("x-vercel-ip-country");
   const currency = getCurrencyFromCountry(country);
   const addon = EXTRA_LOCATION_PRICES[currency];
+  const locale = getLocaleFromHeaders(reqHeaders);
 
   const { data: userRecord } = await serviceClient
     .from("users")
@@ -172,7 +174,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
             const isConnected = !!loc.google_access_token;
             const lastSync = syncMap[loc.id];
             const lastSyncLabel = lastSync
-              ? new Date(lastSync).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })
+              ? new Date(lastSync).toLocaleDateString(locale, { day: "2-digit", month: "short", year: "2-digit" })
               : null;
             return (
               <div

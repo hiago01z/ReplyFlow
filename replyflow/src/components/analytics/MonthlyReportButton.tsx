@@ -16,7 +16,7 @@ export function MonthlyReportButton() {
   for (let i = 0; i < 6; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const value = d.toISOString().slice(0, 7); // YYYY-MM
-    const label = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const label = d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
     months.push({ label: label.charAt(0).toUpperCase() + label.slice(1), value });
   }
 

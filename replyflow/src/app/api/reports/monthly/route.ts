@@ -10,6 +10,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { getLocaleFromRequest } from "@/lib/locale";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com";
 
@@ -70,7 +71,7 @@ export async function GET(request: Request) {
   const start = new Date(year, month - 1, 1).toISOString();
   const end   = new Date(year, month, 0, 23, 59, 59).toISOString();
 
-  const monthLabel = new Date(year, month - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const monthLabel = new Date(year, month - 1, 1).toLocaleDateString(getLocaleFromRequest(request), { month: "long", year: "numeric" });
 
   // Fetch org's location IDs
   const { data: locs } = await serviceClient
@@ -158,7 +159,7 @@ export async function GET(request: Request) {
       <div class="hl-header">
         <span class="hl-author">${r.author_name ?? "Anônimo"}</span>
         <span class="hl-stars">${stars(r.rating ?? 5)}</span>
-        <span class="hl-date">${new Date(r.created_at).toLocaleDateString("pt-BR")}</span>
+        <span class="hl-date">${new Date(r.created_at).toLocaleDateString(getLocaleFromRequest(request))}</span>
       </div>
       <p class="hl-text">"${(r.content ?? "").slice(0, 200)}${(r.content ?? "").length > 200 ? "…" : ""}"</p>
     </div>`).join("");
@@ -275,7 +276,7 @@ export async function GET(request: Request) {
   </div>` : ""}
 
   <div class="footer">
-    Gerado em ${new Date().toLocaleDateString("pt-BR")} · ReplyFlow — ${APP_URL}
+    Gerado em ${new Date().toLocaleDateString(getLocaleFromRequest(request))} · ReplyFlow — ${APP_URL}
   </div>
 </div>
 </body>

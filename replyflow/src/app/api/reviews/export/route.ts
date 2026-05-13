@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { getLocaleFromRequest } from "@/lib/locale";
 
 function escapeCsv(value: string | null | undefined): string {
   if (value == null) return "";
@@ -87,9 +88,9 @@ export async function GET(request: Request) {
       String(r.rating ?? ""),
       r.status,
       r.content,
-      r.platform_published_at ? new Date(r.platform_published_at).toLocaleDateString("pt-BR") : "",
+      r.platform_published_at ? new Date(r.platform_published_at).toLocaleDateString(getLocaleFromRequest(request)) : "",
       resp?.content ?? "",
-      resp?.published_at ? new Date(resp.published_at).toLocaleDateString("pt-BR") : "",
+      resp?.published_at ? new Date(resp.published_at).toLocaleDateString(getLocaleFromRequest(request)) : "",
     ]);
   });
 

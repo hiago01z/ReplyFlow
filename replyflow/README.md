@@ -32,7 +32,7 @@ ReplyFlow é um SaaS que responde automaticamente reviews do Google, TripAdvisor
 | Backend | Next.js API Routes (Serverless) |
 | Banco de Dados | PostgreSQL via Supabase |
 | Autenticação | Supabase Auth (email + Google OAuth) |
-| Pagamentos | Stripe (assinaturas recorrentes em BRL) |
+| Pagamentos | Stripe (assinaturas recorrentes em BRL, USD e EUR — detecção automática por país) |
 | IA | OpenAI GPT-4o-mini |
 | Filas | Upstash QStash |
 | Cache / Rate Limit | Upstash Redis |
@@ -189,6 +189,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 45 (Remover Facebook da UI; backend documentado para ativação futura) | ✅ Concluída |
 | Etapa 6 — Sprint 46 (i18n: IA responde no idioma do review; locale dinâmico na landing) | ✅ Concluída |
 | Etapa 6 — Sprint 47 (Landing page: toggle preços mensal/anual + correção Starter features) | ✅ Concluída |
+| Etapa 6 — Sprint 48 (Multi-moeda: BRL/USD/EUR — detecção automática por país via Vercel geo) | ✅ Concluída |
 
 ---
 
@@ -245,7 +246,7 @@ Todo o planejamento estratégico e técnico está documentado em `_contextos/`:
 | `08_SPRINT5_VALIDACAO_DEPLOY.md` | Validação local, correções TypeScript, alertas de segurança |
 | `09_DESIGN_SYSTEM.md` | Design system: tokens CSS, componentes UI, ícones Lucide, padrões de página |
 | `10_SPRINT_VALIDACAO.md` | Sprint de validação: checklist de deploy, fluxo crítico, status por serviço |
-| `11_SPRINT_LIMITES_E_LOCAIS_AGENCIA.md` | Limites de plano, locais por cliente agência, add-on R$49/local |
+| `11_SPRINT_LIMITES_E_LOCAIS_AGENCIA.md` | Limites de plano, locais por cliente agência, add-on (BRL/USD/EUR) |
 | `12_SPRINT_PLATAFORMAS.md` | Integração multi-plataforma: Facebook OAuth + TripAdvisor manual import |
 | `13_SPRINT_PLATAFORMAS_SYNC.md` | Planejamento sync Facebook + melhorias TripAdvisor (6 tarefas com checklists) |
 

@@ -7,11 +7,14 @@ import { WeeklySparkline } from "@/components/dashboard/WeeklySparkline";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
 import { PLAN_LIMITS, canGenerateAiResponse, type Plan } from "@/lib/plan-limits";
+import { headers } from "next/headers";
+import { getLocaleFromHeaders } from "@/lib/locale";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const serviceClient = createServiceClient();
+  const locale = getLocaleFromHeaders(await headers());
 
   const { data: userRecord } = await serviceClient
     .from("users")
@@ -101,7 +104,7 @@ export default async function DashboardPage() {
   const sparkData = Object.entries(weekBuckets)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, total]) => ({
-      label: new Date(key + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+      label: new Date(key + "T00:00:00").toLocaleDateString(locale, { day: "2-digit", month: "2-digit" }),
       total,
     }));
 

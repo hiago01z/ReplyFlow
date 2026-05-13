@@ -26,9 +26,9 @@ interface RatingLineChartProps {
 function formatDate(dateStr: string, days: number): string {
   const d = new Date(dateStr + "T00:00:00");
   if (days <= 14) {
-    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+    return d.toLocaleDateString(undefined, { day: "2-digit", month: "short" });
   }
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+  return d.toLocaleDateString(undefined, { day: "2-digit", month: "short" });
 }
 
 interface TooltipPayload {
@@ -51,8 +51,8 @@ function CustomTooltip({
   const point = payload[0].payload;
   const d = new Date((label ?? "") + "T00:00:00");
   const dateLabel = days <= 14
-    ? d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })
-    : `Semana de ${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}`;
+    ? d.toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short" })
+    : `Semana de ${d.toLocaleDateString(undefined, { day: "2-digit", month: "short" })}`;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2.5 text-xs">

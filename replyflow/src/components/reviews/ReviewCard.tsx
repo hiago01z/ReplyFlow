@@ -78,7 +78,7 @@ export function ReviewCard({
 
   const statusCfg = STATUS_CONFIG[review.status] ?? STATUS_CONFIG.pending;
   const publishedDate = review.platform_published_at
-    ? new Date(review.platform_published_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })
+    ? new Date(review.platform_published_at).toLocaleDateString(undefined, { day: "2-digit", month: "short" })
     : null;
   const isNegative = (review.rating ?? 5) <= 2;
   const isEditable = review.status !== "published" && review.status !== "ignored";

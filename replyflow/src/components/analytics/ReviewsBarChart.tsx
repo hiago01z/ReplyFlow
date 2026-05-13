@@ -19,10 +19,10 @@ interface Props {
 function formatDate(iso: string, days: number) {
   const d = new Date(iso + "T00:00:00");
   if (days <= 14) {
-    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+    return d.toLocaleDateString(undefined, { day: "2-digit", month: "short" });
   }
   // Weekly grouping label — just show day/month
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  return d.toLocaleDateString(undefined, { day: "2-digit", month: "2-digit" });
 }
 
 function aggregateByWeek(data: DayData[]): DayData[] {

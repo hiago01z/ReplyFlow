@@ -259,7 +259,7 @@ export function AgencyDashboard() {
                   </span>
                 )}
                 <span className="text-[11px] text-gray-400 dark:text-gray-500">
-                  desde {new Date(client.created_at).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" })}
+                  desde {new Date(client.created_at).toLocaleDateString(undefined, { month: "short", year: "2-digit" })}
                 </span>
                 <ChevronRight size={14} className="text-gray-300 dark:text-gray-600 group-hover:text-indigo-400 transition-colors" />
               </div>
