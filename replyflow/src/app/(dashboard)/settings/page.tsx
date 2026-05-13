@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 import { TemplatesManager } from "@/components/settings/TemplatesManager";
+import { DeleteAccountButton } from "@/components/settings/DeleteAccountButton";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -84,6 +85,10 @@ export default async function SettingsPage() {
 
       <div className="max-w-xl mt-5">
         <TemplatesManager />
+      </div>
+
+      <div className="max-w-xl mt-5">
+        <DeleteAccountButton userEmail={userRecord?.email ?? user!.email ?? ""} />
       </div>
     </div>
   );
