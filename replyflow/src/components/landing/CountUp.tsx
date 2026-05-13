@@ -58,7 +58,7 @@ export function CountUp({
   }, [started, end, duration]);
 
   return (
-    <span ref={ref} className={className}>
+    <span ref={ref} className={className} translate="no">
       {prefix}{value.toLocaleString(undefined)}{suffix}
     </span>
   );

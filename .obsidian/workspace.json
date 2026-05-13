@@ -14,7 +14,7 @@
               "type": "markdown",
               "state": {
                 "file": "_contextos/15_PLANEJAMENTO_I18N.md",
-                "mode": "source",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
@@ -185,6 +185,9 @@
   },
   "active": "b33f56191cc9bc79",
   "lastOpenFiles": [
+    "_contextos/12_SPRINT_PLATAFORMAS.md",
+    "_contextos/12_INTEGRACAO_PLATAFORMAS.md",
+    "_contextos/15_PLANEJAMENTO_I18N.md",
     "replyflow/src/lib/i18n/strings-report.ts",
     "replyflow/src/lib/i18n/strings-digest.ts",
     "replyflow/src/lib/i18n/strings-email.ts",
@@ -195,11 +198,9 @@
     "_contextos/_fix_encoding.py",
     "_contextos/14_SPRINT_LOCALE_DINAMICO.md",
     "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
-    "_contextos/12_SPRINT_PLATAFORMAS.md",
     "_contextos/02_ETAPA2_MODELO_DE_NEGOCIO.md",
     "replyflow/src/components/reviews/AddManualReviewModal.tsx",
     "replyflow/src/components/locations/PlatformBadges.tsx",
-    "replyflow/src/app/api/reviews/manual/route.ts",
     "_contextos/01_ETAPA1_DEFINICAO_ESTRATEGICA.md",
     "replyflow/README.md",
     "README.md"
