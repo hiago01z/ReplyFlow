@@ -115,7 +115,7 @@ export function AgencyDashboard() {
               <kpi.icon size={16} className="text-white" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">{kpi.value}</div>
+              <div className="text-2xl font-bold text-gray-900" translate="no">{kpi.value}</div>
               <div className="text-xs text-gray-500 mt-0.5">{kpi.label}</div>
             </div>
           </div>

@@ -15,7 +15,12 @@ export default function DashboardError({
 
   useEffect(() => {
     console.error("[DashboardError]", error);
-  }, [error]);
+    // Auto-retry once: Google Translate DOM mutations can cause a one-time crash;
+    // a second render with fresh nodes recovers automatically.
+    const t = setTimeout(() => reset(), 1500);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center animate-fade-in">
