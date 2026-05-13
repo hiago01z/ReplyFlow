@@ -56,6 +56,12 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
   const [taSaving,     setTaSaving]     = useState(false);
   const [showAddReview, setShowAddReview] = useState(false);
 
+  // Reclame Aqui
+  const [raUrl,        setRaUrl]        = useState(location.reclame_aqui_url ?? "");
+  const [raConnected,  setRaConnected]  = useState(location.reclame_aqui_connected);
+  const [raSaving,     setRaSaving]     = useState(false);
+  const [showAddRaReview, setShowAddRaReview] = useState(false);
+
   // Facebook
   const [fbConnected,  setFbConnected]  = useState(location.facebook_connected);
   const [fbPageName,   setFbPageName]   = useState(location.facebook_page_name ?? "");
@@ -180,6 +186,46 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
       toastError("Erro", "Não foi possível desvincular.");
     } finally {
       setTaSaving(false);
+    }
+  }
+
+  async function handleSaveReclamaAqui() {
+    if (!raUrl.trim()) return;
+    setRaSaving(true);
+    try {
+      const res = await fetch(`/api/locations/${location.id}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ reclame_aqui_url: raUrl.trim(), reclame_aqui_connected: true }),
+      });
+      if (!res.ok) throw new Error();
+      setRaConnected(true);
+      success("Reclame Aqui vinculado!", "Você já pode adicionar reclamações manualmente.");
+      router.refresh();
+    } catch {
+      toastError("Erro", "Não foi possível vincular o Reclame Aqui.");
+    } finally {
+      setRaSaving(false);
+    }
+  }
+
+  async function handleDisconnectReclamaAqui() {
+    setRaSaving(true);
+    try {
+      const res = await fetch(`/api/locations/${location.id}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ reclame_aqui_url: null, reclame_aqui_connected: false }),
+      });
+      if (!res.ok) throw new Error();
+      setRaConnected(false);
+      setRaUrl("");
+      info("Reclame Aqui desvinculado.", "");
+      router.refresh();
+    } catch {
+      toastError("Erro", "Não foi possível desvincular.");
+    } finally {
+      setRaSaving(false);
     }
   }
 
@@ -644,6 +690,87 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
            permissões pages_manage_engagement / pages_read_user_content.
       ──────────────────────────────────────────────────────────────────────── */}
 
+      {/* ── Reclame Aqui ───────────────────────────────────────────────────── */}
+      <div className="card p-6 space-y-4" id="reclame-aqui">
+        <div className="flex items-center gap-3">
+          <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", raConnected ? "bg-green-50" : "bg-gray-100")}>
+            <span className="text-base">🔴</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-semibold text-gray-900">Reclame Aqui</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {raConnected
+                ? "Vinculado — adicione reclamações manualmente para responder com IA."
+                : "Cole a URL da sua empresa no Reclame Aqui para vincular."}
+            </p>
+          </div>
+          {raConnected && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full shrink-0">
+              <CheckCircle2 size={11} /> Vinculado
+            </span>
+          )}
+        </div>
+
+        {!raConnected ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="url"
+                value={raUrl}
+                onChange={(e) => setRaUrl(e.target.value)}
+                placeholder="https://www.reclameaqui.com.br/empresa/nome-da-empresa/"
+                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+              <button
+                type="button"
+                onClick={handleSaveReclamaAqui}
+                disabled={raSaving || !raUrl.trim()}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#E8281C] hover:bg-[#c51f15] px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Link2 size={14} />
+                {raSaving ? "Salvando…" : "Vincular"}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">
+              O Reclame Aqui não possui API pública. Após vincular, você pode <strong>adicionar reclamações manualmente</strong> para que a IA gere respostas empáticas e profissionais.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+              <Link2 size={13} className="text-gray-400 shrink-0" />
+              <a
+                href={raUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-indigo-600 hover:underline flex-1 truncate"
+              >
+                {raUrl}
+              </a>
+              <ExternalLink size={12} className="text-gray-400 shrink-0" />
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowAddRaReview(true)}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#E8281C] hover:bg-[#c51f15] px-3 py-2 rounded-lg transition-colors"
+              >
+                <Plus size={14} />
+                Adicionar reclamação
+              </button>
+              <button
+                type="button"
+                onClick={handleDisconnectReclamaAqui}
+                disabled={raSaving}
+                className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+              >
+                Desvincular
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Modal: adicionar avaliação manual (TripAdvisor) */}
       {showAddReview && (
         <AddManualReviewModal
@@ -652,6 +779,17 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
           tripadvisorUrl={location.tripadvisor_url}
           onClose={() => setShowAddReview(false)}
           onAdded={() => { setShowAddReview(false); router.refresh(); }}
+        />
+      )}
+
+      {/* Modal: adicionar reclamação manual (Reclame Aqui) */}
+      {showAddRaReview && (
+        <AddManualReviewModal
+          locationId={location.id}
+          platform="reclame_aqui"
+          reclamaAquiUrl={location.reclame_aqui_url}
+          onClose={() => setShowAddRaReview(false)}
+          onAdded={() => { setShowAddRaReview(false); router.refresh(); }}
         />
       )}
 

@@ -4,19 +4,21 @@ import { useState } from "react";
 import { X, Loader2, ExternalLink, Info } from "lucide-react";
 
 interface Props {
-  locationId:      string;
-  platform:        "tripadvisor" | "facebook";
-  tripadvisorUrl?: string | null;
-  onClose:         () => void;
-  onAdded:         () => void;
+  locationId:       string;
+  platform:         "tripadvisor" | "facebook" | "reclame_aqui";
+  tripadvisorUrl?:  string | null;
+  reclamaAquiUrl?:  string | null;
+  onClose:          () => void;
+  onAdded:          () => void;
 }
 
 const PLATFORM_LABEL: Record<string, string> = {
-  tripadvisor: "TripAdvisor",
-  facebook:    "Facebook",
+  tripadvisor:  "TripAdvisor",
+  facebook:     "Facebook",
+  reclame_aqui: "Reclame Aqui",
 };
 
-export function AddManualReviewModal({ locationId, platform, tripadvisorUrl, onClose, onAdded }: Props) {
+export function AddManualReviewModal({ locationId, platform, tripadvisorUrl, reclamaAquiUrl, onClose, onAdded }: Props) {
   const [authorName,  setAuthorName]  = useState("");
   const [rating,      setRating]      = useState(5);
   const [content,     setContent]     = useState("");
@@ -93,6 +95,33 @@ export function AddManualReviewModal({ locationId, platform, tripadvisorUrl, onC
                 >
                   <ExternalLink size={11} />
                   Abrir minha página no TripAdvisor
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Instrução para Reclame Aqui */}
+        {platform === "reclame_aqui" && (
+          <div className="mb-4 bg-[#E8281C]/10 border border-[#E8281C]/30 rounded-xl px-4 py-3 flex items-start gap-3">
+            <Info size={15} className="text-[#E8281C] mt-0.5 shrink-0" />
+            <div className="text-xs text-[#a31a12] space-y-1">
+              <p className="font-semibold">Como importar do Reclame Aqui:</p>
+              <ol className="list-decimal list-inside space-y-0.5">
+                <li>Acesse sua empresa no Reclame Aqui</li>
+                <li>Abra a reclamação que deseja responder</li>
+                <li>Copie o texto da reclamação</li>
+                <li>Cole no campo abaixo e gere a resposta com IA</li>
+              </ol>
+              {reclamaAquiUrl && (
+                <a
+                  href={reclamaAquiUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-semibold mt-1.5 hover:underline"
+                >
+                  <ExternalLink size={11} />
+                  Abrir minha página no Reclame Aqui
                 </a>
               )}
             </div>

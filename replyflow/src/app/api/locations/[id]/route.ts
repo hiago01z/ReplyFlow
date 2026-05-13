@@ -18,6 +18,9 @@ const updateSchema = z.object({
   // TripAdvisor
   tripadvisor_url:       z.string().url().nullable().optional(),
   tripadvisor_connected: z.boolean().optional(),
+  // Reclame Aqui
+  reclame_aqui_url:       z.string().url().nullable().optional(),
+  reclame_aqui_connected: z.boolean().optional(),
   // Facebook (set by callback; disconnect via false)
   facebook_page_id:      z.string().nullable().optional(),
   facebook_page_name:    z.string().nullable().optional(),

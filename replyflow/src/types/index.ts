@@ -5,7 +5,7 @@ export type ReviewStatus = 'pending' | 'draft' | 'approved' | 'published' | 'ign
 export type LocationNiche = 'clinica' | 'restaurante' | 'academia' | 'petshop' | 'barbearia' | 'outro'
 export type LocationTone = 'formal' | 'amigavel' | 'descontraido'
 export type AlertChannel = 'whatsapp' | 'email'
-export type ReviewPlatform = 'google' | 'tripadvisor' | 'facebook'
+export type ReviewPlatform = 'google' | 'tripadvisor' | 'facebook' | 'reclame_aqui'
 
 export interface Organization {
   id: string
@@ -49,6 +49,9 @@ export interface Location {
   // TripAdvisor (manual import)
   tripadvisor_url: string | null
   tripadvisor_connected: boolean
+  // Reclame Aqui (manual import)
+  reclame_aqui_url: string | null
+  reclame_aqui_connected: boolean
   // Facebook (Graph API OAuth)
   facebook_page_id: string | null
   facebook_page_name: string | null

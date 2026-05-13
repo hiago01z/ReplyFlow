@@ -11,13 +11,15 @@
  */
 
 interface LocationPlatformData {
-  id:                    string;
-  google_access_token:   string | null;
-  google_location_name:  string | null;
-  tripadvisor_connected: boolean;
-  tripadvisor_url:       string | null;
-  facebook_connected:    boolean;
-  facebook_page_name:    string | null;
+  id:                      string;
+  google_access_token:     string | null;
+  google_location_name:    string | null;
+  tripadvisor_connected:   boolean;
+  tripadvisor_url:         string | null;
+  facebook_connected:      boolean;
+  facebook_page_name:      string | null;
+  reclame_aqui_connected:  boolean;
+  reclame_aqui_url:        string | null;
 }
 
 interface Props {
@@ -61,7 +63,8 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
   const platformLimit = PLATFORM_LIMIT[plan] ?? 3;
   const connectedCount =
     (loc.google_access_token ? 1 : 0) +
-    (loc.tripadvisor_connected ? 1 : 0);
+    (loc.tripadvisor_connected ? 1 : 0) +
+    (loc.reclame_aqui_connected ? 1 : 0);
     // facebook_connected omitted — integration hidden pending Meta approval
   const atPlatformLimit = connectedCount >= platformLimit;
 
@@ -86,6 +89,16 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
       connected: loc.tripadvisor_connected,
       pending:   false,
       href:      `/locations/${loc.id}#tripadvisor`,
+      isLink:    false,
+      available: platformLimit >= 2,
+    },
+    {
+      key:       "reclame_aqui",
+      label:     "Reclame Aqui",
+      icon:      <span style={{ fontSize: compact ? 10 : 11, lineHeight: 1 }}>🔴</span>,
+      connected: loc.reclame_aqui_connected,
+      pending:   false,
+      href:      `/locations/${loc.id}#reclame-aqui`,
       isLink:    false,
       available: platformLimit >= 2,
     },

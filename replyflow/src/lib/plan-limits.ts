@@ -28,13 +28,15 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
 
 /** Número de plataformas atualmente conectadas em um local. */
 export function countConnectedPlatforms(loc: {
-  google_access_token:   string | null;
-  tripadvisor_connected: boolean;
-  facebook_connected:    boolean;
+  google_access_token:    string | null;
+  tripadvisor_connected:  boolean;
+  facebook_connected:     boolean;
+  reclame_aqui_connected: boolean;
 }): number {
   return (loc.google_access_token ? 1 : 0) +
          (loc.tripadvisor_connected ? 1 : 0) +
-         (loc.facebook_connected ? 1 : 0);
+         (loc.facebook_connected ? 1 : 0) +
+         (loc.reclame_aqui_connected ? 1 : 0);
 }
 
 /** Verifica se um local pode conectar mais uma plataforma. */

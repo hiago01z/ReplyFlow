@@ -148,7 +148,8 @@ export function ReviewCard({
         router.refresh();
         const platformLabel =
           review.platform === "facebook" ? "Facebook" :
-          review.platform === "tripadvisor" ? "TripAdvisor" : "Google";
+          review.platform === "tripadvisor" ? "TripAdvisor" :
+          review.platform === "reclame_aqui" ? "Reclame Aqui" : "Google";
         success("Resposta publicada!", `A resposta foi publicada no ${platformLabel}.`);
       } else {
         const data = await res.json().catch(() => ({})) as { error?: string; detail?: string };
@@ -175,7 +176,8 @@ export function ReviewCard({
     try {
       await navigator.clipboard.writeText(responseText);
       setCopied(true);
-      success("Resposta copiada!", "Cole a resposta diretamente no TripAdvisor.");
+      const platformLabel = review.platform === "reclame_aqui" ? "Reclame Aqui" : "TripAdvisor";
+      success("Resposta copiada!", `Cole a resposta diretamente no ${platformLabel}.`);
       setTimeout(() => setCopied(false), 3000);
     } catch {
       toastError("Erro ao copiar", "Não foi possível copiar para a área de transferência.");
@@ -243,6 +245,11 @@ export function ReviewCard({
               {review.platform === "tripadvisor" && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#00AF87] bg-[#00AF87]/10 border border-[#00AF87]/30 px-1.5 py-0.5 rounded-full">
                   🦉 TripAdvisor
+                </span>
+              )}
+              {review.platform === "reclame_aqui" && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#E8281C] bg-[#E8281C]/10 border border-[#E8281C]/30 px-1.5 py-0.5 rounded-full">
+                  🔴 Reclame Aqui
                 </span>
               )}
               {review.platform === "facebook" && (
@@ -332,14 +339,14 @@ export function ReviewCard({
 
               {responseText && (
                 <div className="flex items-center gap-2 flex-wrap">
-                  {review.platform === "tripadvisor" ? (
-                    // TripAdvisor não tem API — botão de copiar + link externo
+                  {review.platform === "tripadvisor" || review.platform === "reclame_aqui" ? (
+                    // TripAdvisor e Reclame Aqui não têm API — botão de copiar + link externo
                     <>
                       <Button size="sm" onClick={handleCopyResponse} className={cn("gap-1.5", copied ? "bg-green-600 hover:bg-green-700" : "bg-indigo-600 hover:bg-indigo-700")}>
                         {copied ? <CheckCircle2 size={13} /> : <Copy size={13} />}
                         {copied ? "Copiado!" : "Copiar resposta"}
                       </Button>
-                      {(review.location as { tripadvisor_url?: string } | undefined)?.tripadvisor_url && (
+                      {review.platform === "tripadvisor" && (review.location as { tripadvisor_url?: string } | undefined)?.tripadvisor_url && (
                         <a
                           href={(review.location as { tripadvisor_url?: string }).tripadvisor_url}
                           target="_blank"
@@ -348,6 +355,17 @@ export function ReviewCard({
                         >
                           <ExternalLink size={12} />
                           Abrir no TripAdvisor
+                        </a>
+                      )}
+                      {review.platform === "reclame_aqui" && (review.location as { reclame_aqui_url?: string } | undefined)?.reclame_aqui_url && (
+                        <a
+                          href={(review.location as { reclame_aqui_url?: string }).reclame_aqui_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#E8281C] hover:underline"
+                        >
+                          <ExternalLink size={12} />
+                          Abrir no Reclame Aqui
                         </a>
                       )}
                       <Button size="sm" variant="ghost" onClick={handleIgnore} className="gap-1.5 text-gray-500">
