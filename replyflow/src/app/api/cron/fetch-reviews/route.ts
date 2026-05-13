@@ -137,7 +137,7 @@ async function runSync() {
   // Apenas locais com google_location_name configurado (necessário para a API GMB)
   const { data: gmbLocations, error: gmbError } = await serviceClient
     .from('locations')
-    .select('*, organization:organizations(id, plan, subscription_status, alert_email, webhook_url, webhook_secret)')
+    .select('*, organization:organizations(id, plan, subscription_status, alert_email, webhook_url, webhook_secret, parent_agency_id)')
     .eq('active', true)
     .not('google_access_token', 'is', null)
     .not('google_location_name', 'is', null)
@@ -186,7 +186,7 @@ async function runSync() {
 
         // ── Alerta para reviews negativos (1-2 estrelas) ─────────────────────
         if (rating <= 2) {
-          const { data: orgUser } = await serviceClient
+          const { data: directOwner } = await serviceClient
             .from('users')
             .select('email, whatsapp, email_alerts')
             .eq('organization_id', location.organization_id)
@@ -196,7 +196,20 @@ async function runSync() {
           const org = location.organization as unknown as {
             plan: string; subscription_status: string; alert_email: string | null;
             webhook_url: string | null; webhook_secret: string | null;
+            parent_agency_id: string | null;
           } | null
+
+          // Agency client orgs have no users — fall back to agency owner
+          let orgUser = directOwner
+          if (!orgUser && org?.parent_agency_id) {
+            const { data: agencyOwner } = await serviceClient
+              .from('users')
+              .select('email, whatsapp, email_alerts')
+              .eq('organization_id', org.parent_agency_id)
+              .eq('role', 'owner')
+              .single()
+            orgUser = agencyOwner ?? null
+          }
 
           // Use custom alert email if set, otherwise fall back to user's login email
           const alertTo = org?.alert_email || orgUser?.email
@@ -289,7 +302,7 @@ async function runSync() {
   // ── PASS 2: Buscar novas avaliações do Facebook ──────────────────────────────
   const { data: facebookLocations, error: fbError } = await serviceClient
     .from('locations')
-    .select('id, name, niche, organization_id, facebook_page_id, facebook_access_token, organization:organizations(plan, alert_email, webhook_url, webhook_secret)')
+    .select('id, name, niche, organization_id, facebook_page_id, facebook_access_token, organization:organizations(plan, alert_email, webhook_url, webhook_secret, parent_agency_id)')
     .eq('active', true)
     .eq('facebook_connected', true)
     .not('facebook_access_token', 'is', null)
@@ -352,7 +365,7 @@ async function runSync() {
 
         // ── Alerta para avaliações negativas (1-2 estrelas) ──────────────────
         if (rating <= 2) {
-          const { data: orgUser } = await serviceClient
+          const { data: directOwner } = await serviceClient
             .from('users')
             .select('email, whatsapp, email_alerts')
             .eq('organization_id', location.organization_id)
@@ -362,7 +375,20 @@ async function runSync() {
           const org = location.organization as unknown as {
             plan: string; alert_email: string | null;
             webhook_url: string | null; webhook_secret: string | null;
+            parent_agency_id: string | null;
           } | null
+
+          // Agency client orgs have no users — fall back to agency owner
+          let orgUser = directOwner
+          if (!orgUser && org?.parent_agency_id) {
+            const { data: agencyOwner } = await serviceClient
+              .from('users')
+              .select('email, whatsapp, email_alerts')
+              .eq('organization_id', org.parent_agency_id)
+              .eq('role', 'owner')
+              .single()
+            orgUser = agencyOwner ?? null
+          }
 
           const alertTo = org?.alert_email || orgUser?.email
 

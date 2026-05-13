@@ -270,6 +270,28 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatus, filterPlatform, filterRating, filterSearch, filterLocation, fetchReviews, loading]);
 
+  // These must be here (before early returns) to satisfy Rules of Hooks
+  const availablePlatforms = useMemo(() => {
+    const set = new Set<string>();
+    for (const loc of locations) {
+      if (loc.google_connected || loc.has_google_token) set.add("google");
+      if (loc.tripadvisor_connected)  set.add("tripadvisor");
+      if (loc.reclame_aqui_connected) set.add("reclame_aqui");
+    }
+    return Array.from(set);
+  }, [locations]);
+
+  const taLocs = locations
+    .filter((l) => l.tripadvisor_connected)
+    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: l.tripadvisor_url, reclame_aqui_url: null }));
+  const raLocs = locations
+    .filter((l) => l.reclame_aqui_connected)
+    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: null, reclame_aqui_url: l.reclame_aqui_url }));
+
+  function refreshReviews() {
+    fetchReviews(filterStatus, filterPlatform, filterRating, filterSearch, filterLocation);
+  }
+
   async function handleRemoveClient() {
     if (!confirm(`Remover "${client?.name}" da agência? Os dados do cliente não serão deletados.`)) return;
     setRemoving(true);
@@ -325,27 +347,6 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   }
 
   const { stats } = client;
-
-  const availablePlatforms = useMemo(() => {
-    const set = new Set<string>();
-    for (const loc of locations) {
-      if (loc.google_connected || loc.has_google_token) set.add("google");
-      if (loc.tripadvisor_connected)  set.add("tripadvisor");
-      if (loc.reclame_aqui_connected) set.add("reclame_aqui");
-    }
-    return Array.from(set);
-  }, [locations]);
-
-  const taLocs = locations
-    .filter((l) => l.tripadvisor_connected)
-    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: l.tripadvisor_url, reclame_aqui_url: null }));
-  const raLocs = locations
-    .filter((l) => l.reclame_aqui_connected)
-    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: null, reclame_aqui_url: l.reclame_aqui_url }));
-
-  function refreshReviews() {
-    fetchReviews(filterStatus, filterPlatform, filterRating, filterSearch, filterLocation);
-  }
 
   return (
     <div className="animate-fade-in space-y-6">
