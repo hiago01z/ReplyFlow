@@ -29,9 +29,10 @@ const TONES = [
 
 interface LocationEditFormProps {
   location: Location;
+  backHref?: string;
 }
 
-export function LocationEditForm({ location }: LocationEditFormProps) {
+export function LocationEditForm({ location, backHref = "/locations" }: LocationEditFormProps) {
   const router = useRouter();
   const { success, error: toastError, info } = useToast();
 
@@ -174,7 +175,7 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
       if (!res.ok) throw new Error();
       info("Local desativado", `"${location.name}" foi desativado. Reviews pausados.`);
       setShowDeactivate(false);
-      router.push("/locations");
+      router.push(backHref);
       router.refresh();
     } catch {
       toastError("Erro", "Não foi possível desativar o local.");
@@ -190,7 +191,7 @@ export function LocationEditForm({ location }: LocationEditFormProps) {
       if (!res.ok) throw new Error();
       info("Local excluído", `"${location.name}" e todos os seus dados foram removidos.`);
       setShowDelete(false);
-      router.push("/locations");
+      router.push(backHref);
       router.refresh();
     } catch {
       toastError("Erro", "Não foi possível excluir o local.");

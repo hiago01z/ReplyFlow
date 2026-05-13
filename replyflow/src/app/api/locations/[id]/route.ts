@@ -54,13 +54,42 @@ async function getOwnedLocationWithOrg(userId: string, locationId: string) {
     .eq("organization_id", userRecord.organization_id)
     .single();
 
-  if (!location) return null;
+  if (location) {
+    return {
+      location,
+      org: userRecord.organization as unknown as OrgData,
+      orgId: userRecord.organization_id as string,
+    };
+  }
 
-  return {
-    location,
-    org: userRecord.organization as unknown as OrgData,
-    orgId: userRecord.organization_id as string,
-  };
+  // Allow agency users to access their client locations
+  const userOrg = userRecord.organization as unknown as OrgData;
+  if (userOrg?.plan === "agency") {
+    const { data: agencyLocation } = await serviceClient
+      .from("locations")
+      .select("id, organization_id, active")
+      .eq("id", locationId)
+      .single();
+
+    if (agencyLocation) {
+      const { data: clientOrg } = await serviceClient
+        .from("organizations")
+        .select("id, plan, extra_locations, stripe_subscription_id, stripe_extra_locations_item_id")
+        .eq("id", agencyLocation.organization_id)
+        .eq("parent_agency_id", userRecord.organization_id)
+        .single();
+
+      if (clientOrg) {
+        return {
+          location: agencyLocation,
+          org: clientOrg as unknown as OrgData,
+          orgId: agencyLocation.organization_id,
+        };
+      }
+    }
+  }
+
+  return null;
 }
 
 /**

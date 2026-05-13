@@ -11,9 +11,10 @@ import { z } from "zod";
 import { canAddClientLocation } from "@/lib/plan-limits";
 
 const createLocationSchema = z.object({
-  name:  z.string().min(2).max(100),
-  niche: z.enum(["clinica", "restaurante", "academia", "petshop", "barbearia", "outro"]),
-  tone:  z.enum(["formal", "amigavel", "descontraido"]),
+  name:         z.string().min(2).max(100),
+  niche:        z.enum(["clinica", "restaurante", "academia", "petshop", "barbearia", "outro"]),
+  tone:         z.enum(["formal", "amigavel", "descontraido"]),
+  auto_publish: z.boolean().optional(),
 });
 
 async function verifyAgencyOwnership(userId: string, clientId: string) {
@@ -87,7 +88,7 @@ export async function POST(
       name:            parsed.data.name,
       niche:           parsed.data.niche,
       tone:            parsed.data.tone,
-      auto_publish:    false,
+      auto_publish:    parsed.data.auto_publish ?? false,
     })
     .select()
     .single();

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Plus, Users, Clock, CheckCircle2, Loader2, X, ChevronRight } from "lucide-react";
+import { Building2, Plus, Users, Clock, CheckCircle2, Loader2, X, ChevronRight, FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AgencyDemoButton } from "@/components/agency/AgencyDemoButton";
 
 interface ClientOrg {
   id:        string;
@@ -73,6 +74,9 @@ export function AgencyDashboard() {
 
   const totalPending = clients.reduce((acc, c) => acc + c.pending, 0);
   const totalReviews = clients.reduce((acc, c) => acc + c.total,   0);
+  const DEMO_PREFIX  = "agency_demo_";
+  const realClients  = clients.filter((c) => !c.name.startsWith(DEMO_PREFIX));
+  const hasDemo      = clients.some((c)  => c.name.startsWith(DEMO_PREFIX));
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -87,21 +91,24 @@ export function AgencyDashboard() {
             Gerencie os clientes da sua agência.
           </p>
         </div>
-        <button
-          onClick={() => { setShowAdd(true); setAddError(""); }}
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-        >
-          <Plus size={15} />
-          Adicionar cliente
-        </button>
+        <div className="flex items-center gap-2">
+          <AgencyDemoButton hasDemo={hasDemo} />
+          <button
+            onClick={() => { setShowAdd(true); setAddError(""); }}
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            <Plus size={15} />
+            Adicionar cliente
+          </button>
+        </div>
       </div>
 
       {/* Summary KPIs */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Clientes",          value: clients.length, icon: Building2, color: "bg-indigo-500" },
-          { label: "Reviews pendentes", value: totalPending,   icon: Clock,     color: "bg-amber-500" },
-          { label: "Total de reviews",  value: totalReviews,   icon: CheckCircle2, color: "bg-green-500" },
+          { label: "Clientes",          value: realClients.length, icon: Building2, color: "bg-indigo-500" },
+          { label: "Reviews pendentes", value: totalPending,        icon: Clock,     color: "bg-amber-500" },
+          { label: "Total de reviews",  value: totalReviews,        icon: CheckCircle2, color: "bg-green-500" },
         ].map((kpi) => (
           <div key={kpi.label} className="card p-5 flex flex-col gap-3">
             <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", kpi.color)}>
@@ -180,7 +187,49 @@ export function AgencyDashboard() {
         </div>
       ) : (
         <div className="space-y-3">
-          {clients.map((client) => (
+          {/* Demo clients section */}
+          {hasDemo && (
+            <>
+              <p className="flex items-center gap-1.5 text-xs text-indigo-500 font-medium px-1">
+                <FlaskConical size={11} /> Clientes de demonstração
+              </p>
+              {clients.filter((c) => c.name.startsWith(DEMO_PREFIX)).map((client) => {
+                const displayName = client.name.slice(DEMO_PREFIX.length);
+                return (
+                  <button
+                    key={client.id}
+                    type="button"
+                    onClick={() => router.push(`/agency/clients/${client.id}`)}
+                    className="card w-full px-5 py-4 flex items-center justify-between gap-4 hover:shadow-md hover:border-indigo-200 transition-all text-left group border-dashed opacity-80"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                        <Building2 size={17} className="text-indigo-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-sm text-gray-700 truncate">{displayName}</p>
+                          <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded-full">DEMO</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {client.locations} local{client.locations !== 1 ? "is" : ""} · {client.total} review{client.total !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight size={14} className="text-gray-300 group-hover:text-indigo-400 transition-colors shrink-0" />
+                  </button>
+                );
+              })}
+              {realClients.length > 0 && (
+                <p className="flex items-center gap-1.5 text-xs text-gray-400 font-medium px-1 pt-1">
+                  Seus clientes
+                </p>
+              )}
+            </>
+          )}
+
+          {/* Real clients */}
+          {realClients.map((client) => (
             <button
               key={client.id}
               type="button"
