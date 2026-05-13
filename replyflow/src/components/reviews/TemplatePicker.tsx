@@ -26,6 +26,7 @@ export function TemplatePicker({ niche, rating, authorName, onSelect }: Template
   const [deleting, setDeleting] = useState<string | null>(null);
   const [showNew,  setShowNew]  = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  const [flipUp,   setFlipUp]   = useState(false);
   const containerRef            = useRef<HTMLDivElement>(null);
 
   const builtins = getTemplates(niche, rating, authorName);
@@ -62,6 +63,12 @@ export function TemplatePicker({ niche, rating, authorName, onSelect }: Template
   }, [open]);
 
   function handleOpen() {
+    if (!open && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      // Flip up if less than 320px below (approximate dropdown height)
+      setFlipUp(spaceBelow < 320);
+    }
     setOpen((v) => !v);
     if (!open) fetchCustom();
   }
@@ -118,9 +125,15 @@ export function TemplatePicker({ niche, rating, authorName, onSelect }: Template
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-30 w-80 rounded-xl border border-gray-200 dark:border-[#2a2a35] bg-white dark:bg-[#18181f] shadow-xl overflow-hidden animate-slide-up">
+        <div className={cn(
+          "absolute left-0 z-30 w-80 rounded-xl border border-gray-200 dark:border-[#2a2a35] bg-white dark:bg-[#18181f] shadow-xl animate-slide-up",
+          "flex flex-col",
+          flipUp ? "bottom-full mb-1" : "top-full mt-1",
+        )}
+          style={{ maxHeight: "min(420px, 80vh)" }}
+        >
           {/* Header */}
-          <div className="px-3 py-2 border-b border-gray-100 dark:border-[#2a2a35] flex items-center gap-2">
+          <div className="flex-none px-3 py-2 border-b border-gray-100 dark:border-[#2a2a35] flex items-center gap-2 rounded-t-xl">
             <Sparkles size={12} className="text-indigo-500" />
             <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
               Modelos de resposta
@@ -137,17 +150,19 @@ export function TemplatePicker({ niche, rating, authorName, onSelect }: Template
 
           {/* Save-current-text form */}
           {showNew && (
-            <SaveTemplateForm
-              onSave={handleSaveCustom}
-              onCancel={() => setShowNew(false)}
-              saving={saving}
-              newTitle={newTitle}
-              setNewTitle={setNewTitle}
-            />
+            <div className="flex-none">
+              <SaveTemplateForm
+                onSave={handleSaveCustom}
+                onCancel={() => setShowNew(false)}
+                saving={saving}
+                newTitle={newTitle}
+                setNewTitle={setNewTitle}
+              />
+            </div>
           )}
 
-          {/* Template list */}
-          <div className="max-h-72 overflow-y-auto divide-y divide-gray-50 dark:divide-[#2a2a35]">
+          {/* Template list — scrollable */}
+          <div className="flex-1 overflow-y-auto divide-y divide-gray-50 dark:divide-[#2a2a35] min-h-0">
             {!hasAny && (
               <div className="py-6 text-center">
                 <p className="text-xs text-gray-400">Nenhum template para {rating}★.</p>
@@ -179,7 +194,7 @@ export function TemplatePicker({ niche, rating, authorName, onSelect }: Template
           </div>
 
           {hasAny && (
-            <div className="px-3 py-1.5 border-t border-gray-100 dark:border-[#2a2a35]">
+            <div className="flex-none px-3 py-1.5 border-t border-gray-100 dark:border-[#2a2a35] rounded-b-xl">
               <p className="text-[10px] text-gray-400 dark:text-gray-500">
                 Clique em um modelo para usar · <button onClick={() => setShowNew(true)} className="text-indigo-500 hover:underline">Salvar modelo próprio</button>
               </p>
