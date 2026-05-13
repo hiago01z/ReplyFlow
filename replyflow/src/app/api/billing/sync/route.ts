@@ -48,7 +48,7 @@ async function resolvePlanFromStripePrice(priceId: string): Promise<string> {
       if (n.includes('pro'))                           return 'pro'
       if (n.includes('starter'))                       return 'starter'
     }
-    if (price.unit_amount && price.currency?.toLowerCase() === 'brl') {
+    if (price.unit_amount) {
       return AMOUNT_TO_PLAN[price.unit_amount] ?? 'free'
     }
   } catch (err) {

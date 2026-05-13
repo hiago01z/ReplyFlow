@@ -17,16 +17,26 @@ interface Props {
   planKey:     string;
   planName:    string;
   planPrice:   number;
+  planCurrency: string;
   currentPlan: string;
   hasStripe:   boolean;
 }
 
+function fmtCurrency(amount: number, currency: string) {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
 export function ChangePlanButton({
-  priceId, planKey, planName, planPrice, currentPlan, hasStripe,
+  priceId, planKey, planName, planPrice, planCurrency, currentPlan, hasStripe,
 }: Props) {
   const [showModal,    setShowModal]    = useState(false);
   const [loadPreview,  setLoadPreview]  = useState(false);
-  const [preview,      setPreview]      = useState<{ amountDue: number; lines: PreviewLine[] } | null>(null);
+  const [preview,      setPreview]      = useState<{ amountDue: number; currency: string; lines: PreviewLine[] } | null>(null);
   const [previewError, setPreviewError] = useState("");
   const [confirming,   setConfirming]   = useState(false);
   const [done,         setDone]         = useState(false);
@@ -66,7 +76,7 @@ export function ChangePlanButton({
           type="submit"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors"
         >
-          Assinar — R${planPrice}/mês
+          Assinar — {fmtCurrency(planPrice, planCurrency)}/mês
         </button>
       </form>
     );
@@ -161,7 +171,7 @@ export function ChangePlanButton({
               <span className="font-medium capitalize">{currentPlan}</span>
               <ArrowUp size={13} className={isUpgrade ? "text-indigo-500" : "text-gray-400 rotate-180"} />
               <span className="font-bold text-indigo-700">{planName}</span>
-              <span className="ml-auto text-xs text-gray-500">R${planPrice}/mês</span>
+              <span className="ml-auto text-xs text-gray-500">{fmtCurrency(planPrice, planCurrency)}/mês</span>
             </div>
 
             {/* Preview de cobrança */}
@@ -185,7 +195,7 @@ export function ChangePlanButton({
                   <div key={i} className="flex items-start justify-between gap-2 text-xs text-gray-600">
                     <span className="flex-1 leading-relaxed">{line.description}</span>
                     <span className={`font-semibold shrink-0 ${line.amount < 0 ? "text-green-600" : "text-gray-900"}`}>
-                      {line.amount < 0 ? "−" : ""}R$ {Math.abs(line.amount).toFixed(2)}
+                      {line.amount < 0 ? "−" : ""}{fmtCurrency(Math.abs(line.amount), preview.currency)}
                     </span>
                   </div>
                 ))}
@@ -194,7 +204,7 @@ export function ChangePlanButton({
                     {preview.amountDue > 0 ? "Total a pagar agora" : preview.amountDue < 0 ? "Crédito gerado" : "Sem cobrança imediata"}
                   </span>
                   <span className={`text-sm font-bold ${preview.amountDue > 0 ? "text-indigo-700" : "text-green-600"}`}>
-                    R$ {Math.abs(preview.amountDue).toFixed(2)}
+                    {fmtCurrency(Math.abs(preview.amountDue), preview.currency)}
                   </span>
                 </div>
               </div>

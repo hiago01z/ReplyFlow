@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { STRIPE_PLANS, STRIPE_ANNUAL_PLANS } from "@/lib/stripe/client";
+import { CURRENCY_PLANS, CURRENCY_ANNUAL_PLANS, getCurrencyFromCountry } from "@/lib/stripe/client";
 import { syncPlanFromStripe } from "@/lib/stripe/syncPlan";
+import { headers } from "next/headers";
 import { BillingPlanSelector } from "@/components/billing/BillingPlanSelector";
 import Link from "next/link";
 import {
@@ -46,6 +47,13 @@ export default async function BillingPage({
   }>;
 }) {
   const params = await searchParams;
+
+  // Detect user currency via Vercel geo header (falls back to USD for non-BR)
+  const reqHeaders = await headers();
+  const country = reqHeaders.get("x-vercel-ip-country");
+  const currency = getCurrencyFromCountry(country);
+  const activePlans = CURRENCY_PLANS[currency];
+  const activeAnnualPlans = CURRENCY_ANNUAL_PLANS[currency];
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -266,19 +274,19 @@ export default async function BillingPage({
         if (currentPlan === "free" && !isActive) {
           const selectorPlans = planKeys.map((key) => ({
             key,
-            name:           STRIPE_PLANS[key].name,
-            priceId:        STRIPE_PLANS[key].priceId,
-            price:          STRIPE_PLANS[key].price,
-            annualPriceId:  STRIPE_ANNUAL_PLANS[key].priceId,
-            annualPrice:    STRIPE_ANNUAL_PLANS[key].price,
-            annualMonthly:  STRIPE_ANNUAL_PLANS[key].monthlyEquiv,
+            name:           activePlans[key].name,
+            priceId:        activePlans[key].priceId,
+            price:          activePlans[key].price,
+            annualPriceId:  activeAnnualPlans[key].priceId,
+            annualPrice:    activeAnnualPlans[key].price,
+            annualMonthly:  activeAnnualPlans[key].monthlyEquiv,
             features:       PLAN_FEATURES[key] ?? [],
           }));
           const annualEnabled = selectorPlans.some((p) => !!p.annualPriceId);
           return (
             <>
               <p className="text-sm font-semibold text-gray-700 mb-4">Escolha um plano</p>
-              <BillingPlanSelector plans={selectorPlans} annualEnabled={annualEnabled} />
+              <BillingPlanSelector plans={selectorPlans} annualEnabled={annualEnabled} currency={currency} />
               <p className="text-xs text-center text-gray-400 mt-2">
                 Todos os planos incluem 7 dias grátis. Sem fidelidade. Cancele quando quiser.
               </p>
@@ -292,7 +300,7 @@ export default async function BillingPage({
             <p className="text-sm font-semibold text-gray-700 mb-3">Trocar plano</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {planKeys.map((key) => {
-                const plan = STRIPE_PLANS[key];
+                const plan = activePlans[key];
                 return (
                   <div
                     key={key}
@@ -302,7 +310,7 @@ export default async function BillingPage({
                       {PLAN_ICONS[key]}
                       <div>
                         <p className="text-sm font-bold text-gray-900">{plan.name}</p>
-                        <p className="text-xs text-gray-500">R$ {plan.price}/mês</p>
+                        <p className="text-xs text-gray-500">{new Intl.NumberFormat(undefined, { style: 'currency', currency: plan.currency.toUpperCase(), minimumFractionDigits: 0 }).format(plan.price)}/mês</p>
                       </div>
                     </div>
                     <ul className="space-y-1">
@@ -318,6 +326,7 @@ export default async function BillingPage({
                       planKey={key}
                       planName={plan.name}
                       planPrice={plan.price}
+                      planCurrency={plan.currency}
                       currentPlan={currentPlan}
                       hasStripe={hasStripe}
                     />

@@ -11,27 +11,59 @@ import { createServiceClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
 const PLAN_MAP: Record<string, string> = {
-  // Planos mensais
+  // Planos mensais BRL
   [process.env.STRIPE_PRICE_STARTER_MONTHLY ?? '__no_key__']: 'starter',
   [process.env.STRIPE_PRICE_PRO_MONTHLY     ?? '__no_key__']: 'pro',
   [process.env.STRIPE_PRICE_AGENCY_MONTHLY  ?? '__no_key__']: 'agency',
-  // Planos anuais (mesmo plano, ciclo diferente)
+  // Planos anuais BRL
   [process.env.STRIPE_PRICE_STARTER_ANNUAL  ?? '__no_key__']: 'starter',
   [process.env.STRIPE_PRICE_PRO_ANNUAL      ?? '__no_key__']: 'pro',
   [process.env.STRIPE_PRICE_AGENCY_ANNUAL   ?? '__no_key__']: 'agency',
+  // Planos mensais USD
+  [process.env.STRIPE_PRICE_STARTER_MONTHLY_USD ?? '__no_key__']: 'starter',
+  [process.env.STRIPE_PRICE_PRO_MONTHLY_USD     ?? '__no_key__']: 'pro',
+  [process.env.STRIPE_PRICE_AGENCY_MONTHLY_USD  ?? '__no_key__']: 'agency',
+  // Planos anuais USD
+  [process.env.STRIPE_PRICE_STARTER_ANNUAL_USD  ?? '__no_key__']: 'starter',
+  [process.env.STRIPE_PRICE_PRO_ANNUAL_USD      ?? '__no_key__']: 'pro',
+  [process.env.STRIPE_PRICE_AGENCY_ANNUAL_USD   ?? '__no_key__']: 'agency',
+  // Planos mensais EUR
+  [process.env.STRIPE_PRICE_STARTER_MONTHLY_EUR ?? '__no_key__']: 'starter',
+  [process.env.STRIPE_PRICE_PRO_MONTHLY_EUR     ?? '__no_key__']: 'pro',
+  [process.env.STRIPE_PRICE_AGENCY_MONTHLY_EUR  ?? '__no_key__']: 'agency',
+  // Planos anuais EUR
+  [process.env.STRIPE_PRICE_STARTER_ANNUAL_EUR  ?? '__no_key__']: 'starter',
+  [process.env.STRIPE_PRICE_PRO_ANNUAL_EUR      ?? '__no_key__']: 'pro',
+  [process.env.STRIPE_PRICE_AGENCY_ANNUAL_EUR   ?? '__no_key__']: 'agency',
 }
 
-// Price amount (in BRL cents) → plan name fallback
+// Price amount (in cents) → plan name fallback
 // Used when env-var price IDs don't match the subscription's price.
 const AMOUNT_TO_PLAN: Record<number, string> = {
-  // Mensais
+  // Mensais BRL
   9700:   'starter',  // R$ 97/mês
   19700:  'pro',      // R$197/mês
   49700:  'agency',   // R$497/mês
-  // Anuais
+  // Anuais BRL
   97000:  'starter',  // R$970/ano
   197000: 'pro',      // R$1970/ano
   497000: 'agency',   // R$4970/ano
+  // Mensais USD
+  1900:  'starter',   // $19/mês
+  3900:  'pro',       // $39/mês
+  9900:  'agency',    // $99/mês
+  // Anuais USD
+  19000: 'starter',   // $190/ano
+  39000: 'pro',       // $390/ano
+  99000: 'agency',    // $990/ano
+  // Mensais EUR
+  1700:  'starter',   // €17/mês
+  3500:  'pro',       // €35/mês
+  8900:  'agency',    // €89/mês
+  // Anuais EUR
+  17000: 'starter',   // €170/ano
+  35000: 'pro',       // €350/ano
+  89000: 'agency',    // €890/ano
 }
 
 function resolvePlan(priceId: string, productId?: string | null): string {
@@ -66,7 +98,7 @@ async function resolvePlanFromStripePrice(priceId: string): Promise<string> {
       if (name.includes('pro'))                               return 'pro'
       if (name.includes('starter'))                          return 'starter'
     }
-    if (price.unit_amount && price.currency?.toLowerCase() === 'brl') {
+    if (price.unit_amount) {
       return AMOUNT_TO_PLAN[price.unit_amount] ?? 'free'
     }
   } catch (err) {

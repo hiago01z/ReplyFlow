@@ -18,6 +18,16 @@ export interface PlanData {
 interface BillingPlanSelectorProps {
   plans:       PlanData[];
   annualEnabled: boolean; // true se pelo menos 1 annual price ID está configurado
+  currency: string;       // 'brl' | 'usd' | 'eur'
+}
+
+function fmtCurrency(amount: number, currency: string) {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
 }
 
 const PLAN_ICONS: Record<string, React.ReactNode> = {
@@ -26,7 +36,7 @@ const PLAN_ICONS: Record<string, React.ReactNode> = {
   agency:  <Building2 size={20} className="text-purple-500" />,
 };
 
-export function BillingPlanSelector({ plans, annualEnabled }: BillingPlanSelectorProps) {
+export function BillingPlanSelector({ plans, annualEnabled, currency }: BillingPlanSelectorProps) {
   const [annual, setAnnual] = useState(false);
 
   return (
@@ -91,12 +101,12 @@ export function BillingPlanSelector({ plans, annualEnabled }: BillingPlanSelecto
                   <p className="font-semibold text-gray-900">{plan.name}</p>
                 </div>
                 <p className="text-3xl font-bold text-gray-900">
-                  R$ {displayPrice}
+                  {fmtCurrency(displayPrice, currency)}
                   <span className="text-sm font-normal text-gray-500">{suffix}</span>
                 </p>
                 {useAnnual && (
                   <p className="text-xs text-green-600 font-medium mt-0.5">
-                    R$ {plan.annualPrice}/ano · economize R$ {plan.price * 2}
+                    {fmtCurrency(plan.annualPrice, currency)}/ano · economize {fmtCurrency(plan.price * 2, currency)}
                   </p>
                 )}
               </div>
@@ -133,7 +143,7 @@ export function BillingPlanSelector({ plans, annualEnabled }: BillingPlanSelecto
 
       {annual && (
         <p className="text-xs text-center text-gray-400 mb-2">
-          * Cobrado como R$ {plans.map((p) => p.annualPrice).join(" / R$ ")} por ano, de uma vez.
+          * Cobrado como {plans.map((p) => fmtCurrency(p.annualPrice, currency)).join(" / ")} por ano, de uma vez.
         </p>
       )}
     </div>

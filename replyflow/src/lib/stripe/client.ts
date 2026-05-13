@@ -69,3 +69,58 @@ export const STRIPE_ANNUAL_PLANS = {
     currency: 'brl',
   },
 } as const
+
+// ── Multi-currency support ────────────────────────────────────────────────────
+
+export type SupportedCurrency = 'brl' | 'usd' | 'eur'
+
+export const CURRENCY_PLANS: Record<SupportedCurrency, {
+  starter: { name: string; priceId: string; price: number; currency: string }
+  pro:     { name: string; priceId: string; price: number; currency: string }
+  agency:  { name: string; priceId: string; price: number; currency: string }
+}> = {
+  brl: STRIPE_PLANS,
+  usd: {
+    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_MONTHLY_USD ?? '', price: 19, currency: 'usd' },
+    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_MONTHLY_USD     ?? '', price: 39, currency: 'usd' },
+    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_MONTHLY_USD  ?? '', price: 99, currency: 'usd' },
+  },
+  eur: {
+    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_MONTHLY_EUR ?? '', price: 17, currency: 'eur' },
+    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_MONTHLY_EUR     ?? '', price: 35, currency: 'eur' },
+    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_MONTHLY_EUR  ?? '', price: 89, currency: 'eur' },
+  },
+}
+
+export const CURRENCY_ANNUAL_PLANS: Record<SupportedCurrency, {
+  starter: { name: string; priceId: string; price: number; monthlyEquiv: number; currency: string }
+  pro:     { name: string; priceId: string; price: number; monthlyEquiv: number; currency: string }
+  agency:  { name: string; priceId: string; price: number; monthlyEquiv: number; currency: string }
+}> = {
+  brl: STRIPE_ANNUAL_PLANS,
+  usd: {
+    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_ANNUAL_USD ?? '', price: 190, monthlyEquiv: 16, currency: 'usd' },
+    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_ANNUAL_USD     ?? '', price: 390, monthlyEquiv: 33, currency: 'usd' },
+    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_ANNUAL_USD  ?? '', price: 990, monthlyEquiv: 83, currency: 'usd' },
+  },
+  eur: {
+    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_ANNUAL_EUR ?? '', price: 170, monthlyEquiv: 14, currency: 'eur' },
+    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_ANNUAL_EUR     ?? '', price: 350, monthlyEquiv: 29, currency: 'eur' },
+    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_ANNUAL_EUR  ?? '', price: 890, monthlyEquiv: 74, currency: 'eur' },
+  },
+}
+
+// EU member states + common EUR-using countries
+const EUR_COUNTRIES = new Set([
+  'AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE',
+  'IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE',
+  'CH','NO','GB', // non-EU but EUR-friendly for pricing
+])
+
+export function getCurrencyFromCountry(country: string | null | undefined): SupportedCurrency {
+  if (!country) return 'usd'
+  const c = country.toUpperCase()
+  if (c === 'BR') return 'brl'
+  if (EUR_COUNTRIES.has(c)) return 'eur'
+  return 'usd'
+}
