@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080" />
+  <title>ReplyFlow — Slide 3</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── SLIDE 3 — Benefícios + CTA ───────────────────────────── */
+
+    body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+    .slide-3 {
+      background: var(--dark-bg);
+    }
+
+    /* ── Fundo: gradiente diagonal rico ── */
+    .bg-gradient {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(155deg,
+          #0d0d14 0%,
+          #0f0f1a 25%,
+          rgba(99,102,241,0.15) 45%,
+          rgba(139,92,246,0.2) 65%,
+          rgba(168,85,247,0.12) 80%,
+          #0d0d14 100%
+        );
+    }
+
+    /* Malha de pontos decorativa */
+    .bg-dots {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%);
+    }
+
+    /* ── Halo de luz central ── */
+    .center-halo {
+      position: absolute;
+      width: 800px;
+      height: 800px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.10) 40%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* ── Layout principal ── */
+    .content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 72px 80px;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 56px;
+    }
+
+    /* ── Título central ── */
+    .title-area {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .eyebrow {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 20px;
+    }
+    .headline {
+      font-size: 62px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.0;
+      color: white;
+      margin-bottom: 20px;
+    }
+    .headline .grad {
+      background: var(--brand-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sub {
+      font-size: 22px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.72);
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Grid de benefícios ── */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 52px;
+    }
+
+    .benefit-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: var(--radius-md);
+      padding: 26px 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.2s;
+    }
+    .benefit-card:hover {
+      border-color: rgba(99,102,241,0.3);
+    }
+
+    .benefit-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .benefit-icon svg { width: 22px; height: 22px; }
+
+    .bi-1 { background: rgba(99,102,241,0.2); }
+    .bi-2 { background: rgba(16,185,129,0.18); }
+    .bi-3 { background: rgba(245,158,11,0.18); }
+    .bi-4 { background: rgba(168,85,247,0.2); }
+
+    .benefit-text {}
+    .benefit-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: -0.02em;
+      margin-bottom: 5px;
+    }
+    .benefit-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.5;
+    }
+
+    /* ── CTA ── */
+    .cta-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: auto;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      color: #111827;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      padding: 20px 48px;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 8px 32px rgba(99,102,241,0.3);
+      white-space: nowrap;
+    }
+    .cta-btn .arrow {
+      width: 32px; height: 32px;
+      background: var(--brand-grad);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cta-btn .arrow svg { width: 16px; height: 16px; fill: none; stroke: white; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .cta-sub {
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.4);
+    }
+    .cta-sub strong { color: rgba(255,255,255,0.7); }
+
+    /* ── Divisor ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+      margin-bottom: 28px;
+      margin-top: 20px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .url-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-pill);
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.01em;
+    }
+    .url-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    .dots { display: flex; gap: 8px; align-items: center; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); }
+    .dot.active { background: white; width: 24px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<div class="slide slide-3">
+
+  <!-- Background -->
+  <div class="bg-gradient"></div>
+  <div class="bg-dots"></div>
+  <div class="center-halo"></div>
+
+  <!-- Blobs adicionais -->
+  <div class="blob" style="width:500px;height:500px;background:rgba(99,102,241,0.14);top:-150px;right:-100px;"></div>
+  <div class="blob" style="width:400px;height:400px;background:rgba(168,85,247,0.12);bottom:-100px;left:-80px;"></div>
+
+  <!-- Conteúdo -->
+  <div class="content">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="brand-pill">
+        <div class="zap">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="white"/></svg>
+        </div>
+        <span>ReplyFlow</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;letter-spacing:0.06em;color:rgba(255,255,255,0.35);text-transform:uppercase;">
+        Benefícios
+      </div>
+    </div>
+
+    <!-- Título -->
+    <div class="title-area">
+      <div class="eyebrow">O que você ganha</div>
+      <h1 class="headline">
+        <span class="grad">Sua reputação</span><br/>
+        no piloto automático.
+      </h1>
+      <p class="sub">Menos trabalho. Mais 5 estrelas.</p>
+    </div>
+
+    <!-- Grid de benefícios -->
+    <div class="benefits-grid">
+
+      <div class="benefit-card">
+        <div class="benefit-icon bi-1">
+          <!-- Globe/plataformas -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.75" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <div class="benefit-text">
+          <div class="benefit-title">3 Plataformas</div>
+          <div class="benefit-desc">Google, Facebook e TripAdvisor num único painel</div>
+        </div>
+      </div>
+
+      <div class="benefit-card">
+        <div class="benefit-icon bi-2">
+          <!-- Zap/automação -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.75" stroke-linecap="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <div class="benefit-text">
+          <div class="benefit-title">IA Personalizada</div>
+          <div class="benefit-desc">Tom e nicho do seu negócio em cada resposta</div>
+        </div>
+      </div>
+
+      <div class="benefit-card">
+        <div class="benefit-icon bi-3">
+          <!-- Message/WhatsApp -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="1.75" stroke-linecap="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <div class="benefit-text">
+          <div class="benefit-title">1 Clique no WhatsApp</div>
+          <div class="benefit-desc">Aprove ou publique direto pelo celular</div>
+        </div>
+      </div>
+
+      <div class="benefit-card">
+        <div class="benefit-icon bi-4">
+          <!-- Chart/relatório -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="1.75" stroke-linecap="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6"  y1="20" x2="6"  y2="14"/>
+            <line x1="2"  y1="20" x2="22" y2="20"/>
+          </svg>
+        </div>
+        <div class="benefit-text">
+          <div class="benefit-title">Relatório Mensal</div>
+          <div class="benefit-desc">PDF com evolução da sua reputação online</div>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+
+    <!-- CTA -->
+    <div class="cta-area">
+      <div class="cta-btn">
+        Comece grátis agora
+        <div class="arrow">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+      <div class="cta-sub">
+        <strong>Plano Free disponível</strong> · Sem cartão de crédito
+      </div>
+    </div>
+
+    <!-- Divisor -->
+    <div class="divider"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="url-badge">replyflow-hivi.com</div>
+      <div class="dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot active"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

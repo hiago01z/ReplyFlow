@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080" />
+  <title>ReplyFlow — Slide 1</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── SLIDE 1 — O Problema ──────────────────────────────────── */
+
+    body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+    .slide-1 {
+      background: var(--dark-bg);
+    }
+
+    /* ── Malha de gradiente de fundo ── */
+    .bg-mesh {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 900px 700px at 50% -100px, rgba(99,102,241,0.22) 0%, transparent 70%),
+        radial-gradient(ellipse 600px 500px at 100% 80%, rgba(168,85,247,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 500px 400px at -10% 60%, rgba(99,102,241,0.10) 0%, transparent 60%);
+    }
+
+    /* ── Grid de linhas decorativas ── */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    /* ── Partículas decorativas (estrelas) ── */
+    .stars {
+      position: absolute;
+      inset: 0;
+    }
+    .star {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.3;
+    }
+
+    /* ── Conteúdo principal ── */
+    .content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 72px 80px 72px;
+    }
+
+    /* ── Header: logo ── */
+    .header { margin-bottom: auto; }
+
+    /* ── Corpo central ── */
+    .body-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      max-width: 560px;
+    }
+
+    /* ── Label de contexto ── */
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .eyebrow::before {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 2px;
+      background: var(--brand-grad);
+      background: linear-gradient(90deg, var(--brand-start), var(--brand-end));
+      border-radius: 2px;
+    }
+
+    /* ── Headline ── */
+    .headline {
+      font-size: 76px;
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -0.04em;
+      color: white;
+      margin-bottom: 40px;
+    }
+    .headline .accent {
+      background: var(--brand-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Corpo de suporte ── */
+    .body-text {
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.72);
+      max-width: 560px;
+      margin-bottom: 56px;
+    }
+
+    /* ── Stat destaque ── */
+    .stat-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 20px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-left: 3px solid var(--brand-mid);
+      border-radius: var(--radius-md);
+      padding: 24px 32px;
+      backdrop-filter: blur(12px);
+      width: fit-content;
+    }
+    .stat-number {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      background: var(--brand-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 16px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.4;
+      max-width: 260px;
+    }
+    .stat-divider {
+      width: 1px;
+      height: 48px;
+      background: rgba(255,255,255,0.12);
+    }
+
+    /* ── Linha decorativa inferior ── */
+    .bottom-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+      margin-bottom: 32px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .swipe-hint-1 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.02em;
+    }
+
+    .dots {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+    }
+    .dot.active {
+      background: var(--indigo);
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    /* ── Ornamento: review card flutuante (decorativo) ── */
+    .review-card-deco {
+      position: absolute;
+      right: 44px;
+      top: 180px;
+      width: 320px;
+      background: rgba(22, 22, 31, 0.88);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), var(--shadow-glow);
+      transform: rotate(3deg);
+      z-index: 5;
+    }
+    .review-card-deco-2 {
+      position: absolute;
+      right: 80px;
+      top: 480px;
+      width: 290px;
+      background: rgba(22, 22, 31, 0.75);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-md);
+      padding: 20px 22px;
+      backdrop-filter: blur(20px);
+      transform: rotate(-2deg);
+      opacity: 0.72;
+      z-index: 4;
+    }
+    .review-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .review-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+    .review-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+    .review-platform {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 2px;
+    }
+    .review-stars {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 10px;
+    }
+    .review-stars svg {
+      width: 14px;
+      height: 14px;
+      fill: #f59e0b;
+    }
+    .review-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.5);
+    }
+    .no-reply-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 12px;
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #f87171;
+    }
+  </style>
+</head>
+<body>
+<div class="slide slide-1">
+
+  <!-- Background layers -->
+  <div class="bg-mesh"></div>
+  <div class="bg-grid"></div>
+
+  <!-- Blobs decorativos -->
+  <div class="blob" style="width:600px;height:600px;background:rgba(99,102,241,0.12);top:-200px;left:-100px;"></div>
+  <div class="blob" style="width:400px;height:400px;background:rgba(168,85,247,0.10);bottom:-100px;right:-100px;"></div>
+
+  <!-- Cards decorativos flutuando -->
+  <div class="review-card-deco">
+    <div class="review-author">
+      <div class="review-avatar" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">M</div>
+      <div>
+        <div class="review-name">Mariana Costa</div>
+        <div class="review-platform">Google · há 2 dias</div>
+      </div>
+    </div>
+    <div class="review-stars">
+      <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+      <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+      <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+    </div>
+    <div class="review-text">"Atendimento horrível. Fiquei esperando 40 minutos..."</div>
+    <div class="no-reply-badge">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Sem resposta há 2 dias
+    </div>
+  </div>
+
+  <div class="review-card-deco-2">
+    <div class="review-author">
+      <div class="review-avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">R</div>
+      <div>
+        <div class="review-name">Roberto Alves</div>
+        <div class="review-platform">Google · há 5 dias</div>
+      </div>
+    </div>
+    <div class="review-stars">
+      <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+      <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+    </div>
+    <div class="review-text">"Não recomendo. Sem respeito com o cliente."</div>
+    <div class="no-reply-badge">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Sem resposta há 5 dias
+    </div>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div class="content">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="brand-pill">
+        <div class="zap">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="white"/></svg>
+        </div>
+        <span>ReplyFlow</span>
+      </div>
+    </div>
+
+    <!-- Corpo -->
+    <div class="body-area">
+      <div class="eyebrow">Para donos de negócios locais</div>
+
+      <h1 class="headline">
+        Cada review<br/>
+        <span class="accent">sem resposta</span><br/>
+        custa clientes.
+      </h1>
+
+      <p class="body-text">
+        Você sabe que deveria responder. Mas o dia é curto,
+        as avaliações acumulam — e a reputação vai embora.
+      </p>
+
+      <div class="stat-box">
+        <div class="stat-number">87%</div>
+        <div class="stat-divider"></div>
+        <div class="stat-label">dos consumidores leem as respostas antes de escolher um negócio</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div>
+      <div class="bottom-line"></div>
+      <div class="footer">
+        <div class="swipe-hint-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Deslize para ver a solução
+        </div>
+        <div class="dots">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

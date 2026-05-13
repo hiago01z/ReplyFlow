@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080" />
+  <title>ReplyFlow — Slide 2</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── SLIDE 2 — A Solução ──────────────────────────────────── */
+
+    body { background: #e8e8f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+    .slide-2 {
+      background: var(--light-bg);
+    }
+
+    /* Faixa de gradiente no topo */
+    .top-band {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: var(--brand-grad);
+    }
+
+    /* Mancha de cor suave no centro */
+    .bg-glow {
+      position: absolute;
+      width: 700px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(99,102,241,0.06) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 64px 80px 64px;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 52px;
+    }
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--indigo);
+    }
+
+    /* ── Titulo ── */
+    .title-area {
+      margin-bottom: 56px;
+    }
+    .headline {
+      font-size: 60px;
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -0.035em;
+      color: var(--text-dark);
+      margin-bottom: 18px;
+    }
+    .headline .grad {
+      background: var(--brand-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text-mid);
+      line-height: 1.5;
+      max-width: 680px;
+    }
+
+    /* ── Steps ── */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .step-card {
+      background: white;
+      border: 1px solid var(--light-border);
+      border-radius: var(--radius-md);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      box-shadow: var(--shadow-card);
+      transition: all 0.2s;
+    }
+    /* Step 2 = passo central, IA — destaque maior */
+    .step-card.highlight {
+      border-color: rgba(99,102,241,0.3);
+      background: linear-gradient(135deg, #fff 80%, rgba(99,102,241,0.04) 100%);
+      box-shadow: 0 0 0 1px rgba(99,102,241,0.12), 0 8px 32px rgba(99,102,241,0.12);
+    }
+
+    /* Número do step */
+    .step-num {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+    .step-num.n1 { background: #fef3c7; color: #d97706; }
+    .step-num.n2 { background: var(--indigo-light); color: var(--indigo); }
+    .step-num.n3 { background: #d1fae5; color: #059669; }
+
+    .step-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-icon.i1 { background: #fef3c7; }
+    .step-icon.i2 { background: var(--indigo-light); }
+    .step-icon.i3 { background: #d1fae5; }
+    .step-icon svg { width: 26px; height: 26px; }
+
+    .step-body { flex: 1; }
+    .step-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+    .step-desc {
+      font-size: 16px;
+      color: var(--text-mid);
+      line-height: 1.5;
+    }
+
+    /* Plataformas inline no step 1 */
+    .platform-badges {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .pbadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid;
+    }
+    .pbadge.google  { color: #4285F4; background: rgba(66,133,244,0.07); border-color: rgba(66,133,244,0.2); }
+    .pbadge.fb      { color: #1877F2; background: rgba(24,119,242,0.07); border-color: rgba(24,119,242,0.2); }
+    .pbadge.ta      { color: #00AF87; background: rgba(0,175,135,0.07); border-color: rgba(0,175,135,0.2); }
+
+    /* Seta conectora entre steps */
+    .step-connector {
+      display: flex;
+      justify-content: flex-start;
+      padding-left: 54px;
+      margin: -4px 0;
+      z-index: 1;
+    }
+    .step-connector svg {
+      width: 20px;
+      height: 20px;
+      color: #d1d5db;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 36px;
+      padding-top: 28px;
+      border-top: 1px solid var(--light-border);
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .footer-brand .zap-sm {
+      width: 26px; height: 26px;
+      background: var(--brand-grad);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .footer-brand .zap-sm svg { width: 13px; height: 13px; fill: white; }
+
+    .dots {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; }
+    .dot.active { background: var(--indigo); width: 24px; border-radius: 4px; }
+
+    .swipe-hint {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .swipe-hint svg { width: 15px; height: 15px; }
+  </style>
+</head>
+<body>
+<div class="slide slide-2">
+
+  <!-- Decoração -->
+  <div class="top-band"></div>
+  <div class="bg-glow"></div>
+
+  <!-- Conteúdo -->
+  <div class="content">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="section-label">Como funciona</div>
+      <div class="brand-pill dark">
+        <div class="zap">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="white"/></svg>
+        </div>
+        <span>ReplyFlow</span>
+      </div>
+    </div>
+
+    <!-- Título -->
+    <div class="title-area">
+      <h1 class="headline">
+        IA que responde<br/>
+        <span class="grad">por você.</span>
+      </h1>
+      <p class="subtitle">
+        Do recebimento à publicação — automático,<br/>
+        personalizado e no tom certo para o seu negócio.
+      </p>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+
+      <!-- Step 1 -->
+      <div class="step-card">
+        <div class="step-icon i1">
+          <!-- Star icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <div class="step-body">
+          <div class="step-title">Avaliação chega</div>
+          <div class="step-desc">Google, Facebook e TripAdvisor monitorados 24/7 — cada novo review capturado na hora.</div>
+          <div class="platform-badges">
+            <span class="pbadge google">
+              <svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              Google
+            </span>
+            <span class="pbadge fb">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              Facebook
+            </span>
+            <span class="pbadge ta">🦉 TripAdvisor</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conector -->
+      <div class="step-connector">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step-card highlight">
+        <div class="step-icon i2">
+          <!-- Sparkles icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.75" stroke-linecap="round">
+            <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/>
+            <path d="M19 14l.75 2.25L22 17l-2.25.75L19 20l-.75-2.25L16 17l2.25-.75L19 14z"/>
+            <path d="M5 18l.5 1.5L7 20l-1.5.5L5 22l-.5-1.5L3 20l1.5-.5L5 18z"/>
+          </svg>
+        </div>
+        <div class="step-body">
+          <div class="step-title">IA gera a resposta</div>
+          <div class="step-desc">Personalizada pelo nicho, rating e tom do seu negócio — pronta em segundos.</div>
+        </div>
+      </div>
+
+      <!-- Conector -->
+      <div class="step-connector">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step-card">
+        <div class="step-icon i3">
+          <!-- Check circle icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div class="step-body">
+          <div class="step-title">Você aprova com 1 clique</div>
+          <div class="step-desc">Pelo WhatsApp ou pelo painel — ou ative o modo automático e ela publica sozinha.</div>
+        </div>
+      </div>
+
+    </div><!-- /steps -->
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="swipe-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Ver os benefícios
+      </div>
+      <div class="dots">
+        <div class="dot"></div>
+        <div class="dot active"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
