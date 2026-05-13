@@ -180,6 +180,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 39 (Limites de plano + locais agência + add-on R$17/local) | ✅ Concluída |
 | Etapa 6 — Sprint 40 (Fix limite agência: 3 locais próprios + 3/cliente) | ✅ Concluída |
 | Etapa 6 — Sprint 41 (Compra de local extra via Stripe direto dos painéis) | ✅ Concluída |
+| Etapa 6 — Sprint 42 (Facebook: fix OAuth scopes + token expiry + cron alert) | ✅ Concluída |
 | Etapa 6 — Sprint 42 (Multi-plataforma: Facebook OAuth + TripAdvisor manual import) | ✅ Concluída |
 | Etapa 6 — Sprint 43 (Sync Facebook cron + publicar resposta + filtro plataformas + TA UX) | ✅ Concluída |
 
@@ -227,6 +228,7 @@ Todo o planejamento estratégico e técnico está documentado em `_contextos/`:
 | Arquivo | Conteúdo |
 |---------|---------|
 | `00_INDEX.md` | Mapa central e status atual |
+| `12_INTEGRACAO_PLATAFORMAS.md` | Facebook + TripAdvisor: status, permissões, limitações, App Review, checklist |
 | `01_ETAPA1_DEFINICAO_ESTRATEGICA.md` | 3 ideias analisadas + escolha |
 | `02_ETAPA2_MODELO_DE_NEGOCIO.md` | Planos, MRR, CAC/LTV, crescimento |
 | `03_ETAPA3_ARQUITETURA_TECNICA.md` | Stack, schema, diagrama, custos |
