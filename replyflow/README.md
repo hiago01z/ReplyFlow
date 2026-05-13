@@ -184,6 +184,11 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 42 (Multi-plataforma: Facebook OAuth + TripAdvisor manual import) | ✅ Concluída |
 | Etapa 6 — Sprint 43 (Sync Facebook cron + publicar resposta + filtro plataformas + TA UX) | ✅ Concluída |
 | Etapa 6 — Sprint 44 (Política de Privacidade `/privacy` + Termos de Serviço `/terms`) | ✅ Concluída |
+| Etapa 6 — Sprint 44 (Página de exclusão de dados `/data-deletion` + endpoint Meta) | ✅ Concluída |
+| Etapa 6 — Sprint 44 (Botão "Excluir conta" com modal de confirmação HMAC) | ✅ Concluída |
+| Etapa 6 — Sprint 45 (Remover Facebook da UI; backend documentado para ativação futura) | ✅ Concluída |
+| Etapa 6 — Sprint 46 (i18n: IA responde no idioma do review; locale dinâmico na landing) | ✅ Concluída |
+| Etapa 6 — Sprint 47 (Landing page: toggle preços mensal/anual + correção Starter features) | ✅ Concluída |
 
 ---
 
