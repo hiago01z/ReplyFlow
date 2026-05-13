@@ -183,6 +183,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 42 (Facebook: fix OAuth scopes + token expiry + cron alert) | ✅ Concluída |
 | Etapa 6 — Sprint 42 (Multi-plataforma: Facebook OAuth + TripAdvisor manual import) | ✅ Concluída |
 | Etapa 6 — Sprint 43 (Sync Facebook cron + publicar resposta + filtro plataformas + TA UX) | ✅ Concluída |
+| Etapa 6 — Sprint 44 (Política de Privacidade `/privacy` + Termos de Serviço `/terms`) | ✅ Concluída |
 
 ---
 
