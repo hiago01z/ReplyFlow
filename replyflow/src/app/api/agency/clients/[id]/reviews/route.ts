@@ -37,8 +37,11 @@ export async function GET(
 ) {
   const { id } = await params;
   const { searchParams } = new URL(req.url);
-  const statusFilter = searchParams.get("status") ?? "open";
-  const locationId   = searchParams.get("locationId");
+  const statusFilter   = searchParams.get("status")     ?? "open";
+  const locationId     = searchParams.get("locationId");
+  const platformFilter = searchParams.get("platform")   ?? "";
+  const ratingFilter   = searchParams.get("rating")     ?? "";
+  const searchFilter   = searchParams.get("search")     ?? "";
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -66,15 +69,21 @@ export async function GET(
   // Busca reviews
   let reviewsQuery = serviceClient
     .from("reviews")
-    .select("id, author_name, rating, content, status, published_at, created_at, location_id, response:responses(id, content)")
+    .select("id, author_name, rating, content, status, platform, platform_published_at, created_at, location_id, response:responses(id, content)")
     .in("location_id", locIds)
-    .order("created_at", { ascending: false })
-    .limit(60);
+    .order("platform_published_at", { ascending: false })
+    .limit(100);
 
   if (statusFilter === "open") {
     reviewsQuery = reviewsQuery.in("status", ["pending", "draft"]);
   } else if (statusFilter !== "all") {
     reviewsQuery = reviewsQuery.eq("status", statusFilter);
+  }
+  if (platformFilter) reviewsQuery = reviewsQuery.eq("platform", platformFilter);
+  if (ratingFilter)   reviewsQuery = reviewsQuery.eq("rating",   parseInt(ratingFilter));
+  if (searchFilter) {
+    const term = `%${searchFilter}%`;
+    reviewsQuery = reviewsQuery.or(`content.ilike.${term},author_name.ilike.${term}`);
   }
 
   const { data: reviews } = await reviewsQuery;

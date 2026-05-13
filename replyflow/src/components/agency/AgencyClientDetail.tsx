@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Building2, MapPin, Star, Clock, CheckCircle2,
-  Sparkles, Send, ChevronDown, ChevronUp, Loader2, Wifi, Trash2, Plus, ExternalLink, Settings,
+  Sparkles, Send, ChevronDown, ChevronUp, Loader2, Wifi, Trash2, Plus, ExternalLink, Settings, Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddManualReviewButton } from "@/components/reviews/AddManualReviewButton";
@@ -28,7 +28,7 @@ interface ClientDetail {
 
 interface ReviewItem {
   id: string; author_name: string | null; rating: number | null;
-  content: string | null; status: string; created_at: string;
+  content: string | null; status: string; platform: string; created_at: string;
   location: { id: string; name: string; niche: string | null } | null;
   response: { id: string; content: string } | null;
 }
@@ -36,6 +36,12 @@ interface ReviewItem {
 const NICHE_LABELS: Record<string, string> = {
   restaurante: "🍽️", clinica: "🏥", academia: "💪",
   salao: "✂️", petshop: "🐾", hotel: "🏨", outro: "🏢",
+};
+
+const PLATFORM_META: Record<string, { label: string; badge: string }> = {
+  google:       { label: "Google",       badge: "bg-blue-50 text-blue-600 border-blue-200" },
+  tripadvisor:  { label: "TripAdvisor",  badge: "bg-[#00AF87]/10 text-[#00AF87] border-[#00AF87]/20" },
+  reclame_aqui: { label: "Reclame Aqui", badge: "bg-red-50 text-red-600 border-red-200" },
 };
 
 const STAR_COLORS: Record<number, string> = {
@@ -60,6 +66,7 @@ function AgencyReviewCard({
 
   const stars = review.rating ?? 0;
   const base  = `/api/agency/clients/${clientId}/reviews/${review.id}`;
+  const pm    = PLATFORM_META[review.platform] ?? { label: review.platform, badge: "bg-gray-100 text-gray-500 border-gray-200" };
 
   async function handleGenerate() {
     setGenerating(true);
@@ -120,6 +127,7 @@ function AgencyReviewCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{review.author_name ?? "Anônimo"}</p>
+            <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full border", pm.badge)}>{pm.label}</span>
             <span className={cn("flex items-center gap-0.5 text-xs font-medium", STAR_COLORS[stars] ?? "text-gray-400")}>
               {"★".repeat(stars)}{"☆".repeat(5 - stars)}
             </span>
@@ -203,9 +211,17 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   const [locations,       setLocations]       = useState<ClientLocation[]>([]);
   const [reviews,         setReviews]         = useState<ReviewItem[]>([]);
   const [loading,         setLoading]         = useState(true);
+  const [reviewsLoading,  setReviewsLoading]  = useState(false);
   const [tab,             setTab]             = useState<"reviews" | "locations">(initialTab);
   const [removing,        setRemoving]        = useState(false);
   const [agencyHasStripe, setAgencyHasStripe] = useState(false);
+
+  // Filter state
+  const [filterStatus,   setFilterStatus]   = useState("all");
+  const [filterPlatform, setFilterPlatform] = useState("");
+  const [filterRating,   setFilterRating]   = useState("");
+  const [filterSearch,   setFilterSearch]   = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
 
   // Compra de local extra para este cliente
   const [buyingExtra,   setBuyingExtra]   = useState(false);
@@ -214,26 +230,45 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [detailRes, reviewsRes] = await Promise.all([
-        fetch(`/api/agency/clients/${clientId}`),
-        fetch(`/api/agency/clients/${clientId}/reviews`),
-      ]);
+      const detailRes = await fetch(`/api/agency/clients/${clientId}`);
       if (detailRes.ok) {
         const d = await detailRes.json();
         setClient(d.client);
         setLocations(d.locations ?? []);
         setAgencyHasStripe(!!d.agencyHasStripe);
       }
-      if (reviewsRes.ok) {
-        const r = await reviewsRes.json();
-        setReviews(r.reviews ?? []);
-      }
     } finally {
       setLoading(false);
     }
   }, [clientId]);
 
+  const fetchReviews = useCallback(async (
+    status: string, platform: string, rating: string, search: string, locationId: string,
+  ) => {
+    setReviewsLoading(true);
+    try {
+      const p = new URLSearchParams({ status: status || "all" });
+      if (platform)   p.set("platform",   platform);
+      if (rating)     p.set("rating",     rating);
+      if (search)     p.set("search",     search);
+      if (locationId) p.set("locationId", locationId);
+      const res = await fetch(`/api/agency/clients/${clientId}/reviews?${p}`);
+      if (res.ok) {
+        const r = await res.json();
+        setReviews(r.reviews ?? []);
+      }
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [clientId]);
+
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (loading) return;
+    fetchReviews(filterStatus, filterPlatform, filterRating, filterSearch, filterLocation);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStatus, filterPlatform, filterRating, filterSearch, filterLocation, fetchReviews, loading]);
 
   async function handleRemoveClient() {
     if (!confirm(`Remover "${client?.name}" da agência? Os dados do cliente não serão deletados.`)) return;
@@ -290,6 +325,27 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
   }
 
   const { stats } = client;
+
+  const availablePlatforms = useMemo(() => {
+    const set = new Set<string>();
+    for (const loc of locations) {
+      if (loc.google_connected || loc.has_google_token) set.add("google");
+      if (loc.tripadvisor_connected)  set.add("tripadvisor");
+      if (loc.reclame_aqui_connected) set.add("reclame_aqui");
+    }
+    return Array.from(set);
+  }, [locations]);
+
+  const taLocs = locations
+    .filter((l) => l.tripadvisor_connected)
+    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: l.tripadvisor_url, reclame_aqui_url: null }));
+  const raLocs = locations
+    .filter((l) => l.reclame_aqui_connected)
+    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: null, reclame_aqui_url: l.reclame_aqui_url }));
+
+  function refreshReviews() {
+    fetchReviews(filterStatus, filterPlatform, filterRating, filterSearch, filterLocation);
+  }
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -364,32 +420,108 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
 
       {/* Reviews tab */}
       {tab === "reviews" && (
-        <div>
-          {/* Botão Adicionar avaliação manual (TripAdvisor / Reclame Aqui) */}
-          {(() => {
-            const taLocs = locations
-              .filter((l) => l.tripadvisor_connected)
-              .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: l.tripadvisor_url, reclame_aqui_url: null }));
-            const raLocs = locations
-              .filter((l) => l.reclame_aqui_connected)
-              .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: null, reclame_aqui_url: l.reclame_aqui_url }));
-            if (taLocs.length === 0 && raLocs.length === 0) return null;
-            return (
-              <div className="flex items-center gap-2 mb-4 flex-wrap">
-                {taLocs.length > 0 && (
-                  <AddManualReviewButton platform="tripadvisor" locations={taLocs} />
-                )}
-                {raLocs.length > 0 && (
-                  <AddManualReviewButton platform="reclame_aqui" locations={raLocs} />
-                )}
-              </div>
-            );
-          })()}
-          {reviews.length === 0 ? (
+        <div className="space-y-4">
+
+          {/* Toolbar: search + add buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[180px]">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                value={filterSearch}
+                onChange={(e) => setFilterSearch(e.target.value)}
+                placeholder="Buscar por autor ou texto…"
+                className="w-full h-9 pl-9 pr-3 text-sm bg-white dark:bg-[#18181f] border border-gray-200 dark:border-[#2a2a35] rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            {taLocs.length > 0 && <AddManualReviewButton platform="tripadvisor" locations={taLocs} />}
+            {raLocs.length > 0 && <AddManualReviewButton platform="reclame_aqui" locations={raLocs} />}
+          </div>
+
+          {/* Platform filter */}
+          {availablePlatforms.length > 1 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[{ key: "", label: "Todos" }, ...availablePlatforms.map((p) => ({ key: p, label: PLATFORM_META[p]?.label ?? p }))].map(({ key, label }) => (
+                <button
+                  key={key || "all"}
+                  onClick={() => setFilterPlatform(key)}
+                  className={cn(
+                    "px-3 py-1 rounded-lg text-xs font-medium transition-colors border",
+                    filterPlatform === key
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white dark:bg-[#18181f] border-gray-200 dark:border-[#2a2a35] text-gray-600 dark:text-gray-400 hover:border-indigo-300 hover:text-indigo-600",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Status + Rating filters */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-1 flex-wrap">
+              {[
+                { key: "all",       label: "Todos" },
+                { key: "open",      label: "Pendentes" },
+                { key: "draft",     label: "Rascunho" },
+                { key: "published", label: "Publicados" },
+                { key: "ignored",   label: "Ignorados" },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setFilterStatus(key)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-xs font-medium transition-colors",
+                    filterStatus === key
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1 flex-wrap">
+              {["", "1", "2", "3", "4", "5"].map((r) => (
+                <button
+                  key={r || "all"}
+                  onClick={() => setFilterRating(r)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-xs font-medium transition-colors",
+                    filterRating === r
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10",
+                  )}
+                >
+                  {r === "" ? "Todas" : `${r}★`}
+                </button>
+              ))}
+            </div>
+            {locations.length > 1 && (
+              <select
+                value={filterLocation}
+                onChange={(e) => setFilterLocation(e.target.value)}
+                className="h-7 px-2 text-xs bg-white dark:bg-[#18181f] border border-gray-200 dark:border-[#2a2a35] rounded-lg text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              >
+                <option value="">Todos os locais</option>
+                {locations.map((l) => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Review list */}
+          {reviewsLoading ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => <div key={i} className="card h-16 animate-pulse" />)}
+            </div>
+          ) : reviews.length === 0 ? (
             <div className="card p-10 text-center">
               <CheckCircle2 size={24} className="text-green-400 mx-auto mb-3" />
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Nenhum review pendente</p>
-              <p className="text-xs text-gray-400 mt-1">Todos os reviews deste cliente já foram respondidos.</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Nenhum review encontrado</p>
+              <p className="text-xs text-gray-400 mt-1">Tente ajustar os filtros ou aguarde novos reviews.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -398,7 +530,7 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
                   key={r.id}
                   review={r}
                   clientId={clientId}
-                  onUpdate={fetchData}
+                  onUpdate={refreshReviews}
                 />
               ))}
             </div>
