@@ -50,19 +50,18 @@ export class GoogleMyBusinessClient {
   }) {
     this._accessToken = opts.accessToken;
     this.refreshToken = opts.refreshToken;
-    // Reviews API requires "locations/{id}" — strip "accounts/{id}/" prefix if present
+    // Reviews API requires the FULL path "accounts/{id}/locations/{id}"
     this.locationName = GoogleMyBusinessClient.normalizeLocationName(opts.locationName);
   }
 
   /**
    * Normaliza o location name para o formato aceito pela Reviews API.
-   * A Account Management API retorna "accounts/{id}/locations/{id}",
-   * mas a Reviews API aceita apenas "locations/{id}".
+   * A Reviews API requer o caminho COMPLETO: "accounts/{id}/locations/{id}".
+   * Se vier apenas "locations/{id}" (formato antigo), mantém como está.
    */
   static normalizeLocationName(name: string): string {
-    // "accounts/123/locations/456" → "locations/456"
-    const match = name.match(/locations\/\d+$/)
-    return match ? match[0] : name
+    // Mantém o caminho completo — a Reviews API requer "accounts/{id}/locations/{id}"
+    return name;
   }
 
   /**
@@ -114,9 +113,8 @@ export class GoogleMyBusinessClient {
    * @param comment    - texto da resposta
    */
   async replyToReview(reviewName: string, comment: string): Promise<void> {
-    // Normalize: "accounts/x/locations/y/reviews/z" → "locations/y/reviews/z"
-    const normalized = reviewName.replace(/^accounts\/\d+\//, '')
-    const url = `${REVIEWS_BASE}/${normalized}/reply`;
+    // reviewName is the full resource path e.g. "accounts/x/locations/y/reviews/z"
+    const url = `${REVIEWS_BASE}/${reviewName}/reply`;
     const res = await this.doFetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
