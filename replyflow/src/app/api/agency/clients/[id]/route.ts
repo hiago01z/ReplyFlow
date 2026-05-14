@@ -53,7 +53,7 @@ export async function GET(
   // Busca locais do cliente com stats
   const { data: locations } = await serviceClient
     .from("locations")
-    .select("id, name, niche, active, google_location_name, google_access_token, auto_publish, tripadvisor_connected, tripadvisor_url, reclame_aqui_connected, reclame_aqui_url")
+    .select("id, name, niche, active, google_location_name, google_access_token, auto_publish, tripadvisor_connected, tripadvisor_url, reclame_aqui_connected, reclame_aqui_url, booking_connected, booking_url, ifood_connected, ifood_url")
     .eq("organization_id", id)
     .order("name");
 
@@ -90,10 +90,14 @@ export async function GET(
       auto_publish:    l.auto_publish,
       google_connected:      !!l.google_location_name,
       has_google_token:      !!l.google_access_token,
-      tripadvisor_connected: !!l.tripadvisor_connected,
-      tripadvisor_url:       l.tripadvisor_url  ?? null,
+      tripadvisor_connected:  !!l.tripadvisor_connected,
+      tripadvisor_url:        l.tripadvisor_url   ?? null,
       reclame_aqui_connected: !!l.reclame_aqui_connected,
-      reclame_aqui_url:       l.reclame_aqui_url ?? null,
+      reclame_aqui_url:       l.reclame_aqui_url  ?? null,
+      booking_connected:      !!l.booking_connected,
+      booking_url:            l.booking_url       ?? null,
+      ifood_connected:        !!l.ifood_connected,
+      ifood_url:              l.ifood_url         ?? null,
     })),
   });
 }

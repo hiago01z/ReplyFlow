@@ -18,6 +18,8 @@ interface ClientLocation {
   active: boolean; google_connected: boolean; has_google_token: boolean; auto_publish: boolean;
   tripadvisor_connected: boolean; tripadvisor_url: string | null;
   reclame_aqui_connected: boolean; reclame_aqui_url: string | null;
+  booking_connected: boolean; booking_url: string | null;
+  ifood_connected: boolean; ifood_url: string | null;
 }
 
 interface ClientDetail {
@@ -42,6 +44,8 @@ const PLATFORM_META: Record<string, { label: string; badge: string }> = {
   google:       { label: "Google",       badge: "bg-blue-50 text-blue-600 border-blue-200" },
   tripadvisor:  { label: "TripAdvisor",  badge: "bg-[#00AF87]/10 text-[#00AF87] border-[#00AF87]/20" },
   reclame_aqui: { label: "Reclame Aqui", badge: "bg-red-50 text-red-600 border-red-200" },
+  booking:      { label: "Booking.com",  badge: "bg-[#003580]/10 text-[#003580] border-[#003580]/20" },
+  ifood:        { label: "iFood",        badge: "bg-[#EA1D2C]/10 text-[#EA1D2C] border-[#EA1D2C]/20" },
 };
 
 const STAR_COLORS: Record<number, string> = {
@@ -277,16 +281,24 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
       if (loc.google_connected || loc.has_google_token) set.add("google");
       if (loc.tripadvisor_connected)  set.add("tripadvisor");
       if (loc.reclame_aqui_connected) set.add("reclame_aqui");
+      if (loc.booking_connected)      set.add("booking");
+      if (loc.ifood_connected)        set.add("ifood");
     }
     return Array.from(set);
   }, [locations]);
 
   const taLocs = locations
     .filter((l) => l.tripadvisor_connected)
-    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: l.tripadvisor_url, reclame_aqui_url: null }));
+    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: l.tripadvisor_url, reclame_aqui_url: null, booking_url: null, ifood_url: null }));
   const raLocs = locations
     .filter((l) => l.reclame_aqui_connected)
-    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: null, reclame_aqui_url: l.reclame_aqui_url }));
+    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: null, reclame_aqui_url: l.reclame_aqui_url, booking_url: null, ifood_url: null }));
+  const bookLocs = locations
+    .filter((l) => l.booking_connected)
+    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: null, reclame_aqui_url: null, booking_url: l.booking_url, ifood_url: null }));
+  const ifoodLocs = locations
+    .filter((l) => l.ifood_connected)
+    .map((l) => ({ id: l.id, name: l.name, tripadvisor_url: null, reclame_aqui_url: null, booking_url: null, ifood_url: l.ifood_url }));
 
   function refreshReviews() {
     fetchReviews(filterStatus, filterPlatform, filterRating, filterSearch, filterLocation);
@@ -435,8 +447,10 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
                 className="w-full h-9 pl-9 pr-3 text-sm bg-white dark:bg-[#18181f] border border-gray-200 dark:border-[#2a2a35] rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
-            {taLocs.length > 0 && <AddManualReviewButton platform="tripadvisor" locations={taLocs} />}
-            {raLocs.length > 0 && <AddManualReviewButton platform="reclame_aqui" locations={raLocs} />}
+            {taLocs.length    > 0 && <AddManualReviewButton platform="tripadvisor"  locations={taLocs}    />}
+            {raLocs.length    > 0 && <AddManualReviewButton platform="reclame_aqui" locations={raLocs}    />}
+            {bookLocs.length  > 0 && <AddManualReviewButton platform="booking"      locations={bookLocs}  />}
+            {ifoodLocs.length > 0 && <AddManualReviewButton platform="ifood"        locations={ifoodLocs} />}
           </div>
 
           {/* Platform filter */}

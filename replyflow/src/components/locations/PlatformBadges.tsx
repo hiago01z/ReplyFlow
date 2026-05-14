@@ -1,13 +1,19 @@
 "use client";
 
 /**
- * PlatformBadges — exibe o status de conexão das 3 plataformas
+ * PlatformBadges — exibe o status de conexão de todas as plataformas
  * em cada card de local na lista de locais.
  *
  * Props:
- *  - loc: dados do local (campos de conexão)
- *  - plan: plano da org (para verificar limite de plataformas)
+ *  - loc:     dados do local (campos de conexão)
+ *  - plan:    plano da org (para verificar limite de plataformas)
  *  - compact: layout menor para uso inline nos cards da lista
+ *
+ * Limites por plano:
+ *  - free:    2 plataformas
+ *  - starter: 3 plataformas
+ *  - pro:     todas (ilimitado)
+ *  - agency:  todas (ilimitado)
  */
 
 interface LocationPlatformData {
@@ -16,10 +22,14 @@ interface LocationPlatformData {
   google_location_name:    string | null;
   tripadvisor_connected:   boolean;
   tripadvisor_url:         string | null;
-  facebook_connected:      boolean;
-  facebook_page_name:      string | null;
   reclame_aqui_connected:  boolean;
   reclame_aqui_url:        string | null;
+  booking_connected:       boolean;
+  booking_url:             string | null;
+  ifood_connected:         boolean;
+  ifood_url:               string | null;
+  facebook_connected:      boolean;
+  facebook_page_name:      string | null;
 }
 
 interface Props {
@@ -28,8 +38,9 @@ interface Props {
   compact?: boolean;
 }
 
+// 99 = "unlimited" (pro / agency)
 const PLATFORM_LIMIT: Record<string, number> = {
-  free: 2, starter: 3, pro: 3, agency: 3,
+  free: 2, starter: 3, pro: 99, agency: 99,
 };
 
 function GoogleIcon({ size = 14 }: { size?: number }) {
@@ -51,21 +62,15 @@ function TripAdvisorIcon({ size = 14 }: { size?: number }) {
   );
 }
 
-function FacebookIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="#1877F2">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-    </svg>
-  );
-}
-
 export function PlatformBadges({ loc, plan, compact = false }: Props) {
-  const platformLimit = PLATFORM_LIMIT[plan] ?? 3;
+  const platformLimit  = PLATFORM_LIMIT[plan] ?? 3;
   const connectedCount =
     (loc.google_access_token ? 1 : 0) +
     (loc.tripadvisor_connected ? 1 : 0) +
-    (loc.reclame_aqui_connected ? 1 : 0);
-    // facebook_connected omitted — integration hidden pending Meta approval
+    (loc.reclame_aqui_connected ? 1 : 0) +
+    (loc.booking_connected ? 1 : 0) +
+    (loc.ifood_connected ? 1 : 0);
+    // facebook_connected omitted — integration hidden pending Meta CNPJ approval
   const atPlatformLimit = connectedCount >= platformLimit;
 
   const googleConnected = !!loc.google_access_token && !!loc.google_location_name;
@@ -90,7 +95,7 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
       pending:   false,
       href:      `/locations/${loc.id}#tripadvisor`,
       isLink:    false,
-      available: platformLimit >= 2,
+      available: true,
     },
     {
       key:       "reclame_aqui",
@@ -100,11 +105,31 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
       pending:   false,
       href:      `/locations/${loc.id}#reclame-aqui`,
       isLink:    false,
-      available: platformLimit >= 2,
+      available: true,
+    },
+    {
+      key:       "booking",
+      label:     "Booking.com",
+      icon:      <span style={{ fontSize: compact ? 10 : 11, lineHeight: 1 }}>🏨</span>,
+      connected: loc.booking_connected,
+      pending:   false,
+      href:      `/locations/${loc.id}#booking`,
+      isLink:    false,
+      available: true,
+    },
+    {
+      key:       "ifood",
+      label:     "iFood",
+      icon:      <span style={{ fontSize: compact ? 10 : 11, lineHeight: 1 }}>🍔</span>,
+      connected: loc.ifood_connected,
+      pending:   false,
+      href:      `/locations/${loc.id}#ifood`,
+      isLink:    false,
+      available: true,
     },
     // TODO: Facebook — integração planejada para sprint futuro.
-    // Requer aprovação de permissões avançadas pelo Meta (pages_manage_engagement).
-    // Remova este comentário e restaure o bloco abaixo quando a revisão Meta for aprovada:
+    // Requer aprovação de permissões avançadas pelo Meta (pages_manage_engagement) + CNPJ.
+    // Remova este comentário e restaure o bloco abaixo quando o App Review Meta for aprovado:
     // {
     //   key:       "facebook",
     //   label:     "Facebook",
@@ -113,7 +138,7 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
     //   pending:   false,
     //   href:      `/api/facebook/auth?locationId=${loc.id}`,
     //   isLink:    true,
-    //   available: platformLimit >= 3,
+    //   available: true,
     // },
   ];
 
@@ -153,7 +178,7 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
             <span
               key={p.key}
               className={`inline-flex items-center gap-1 font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-full cursor-not-allowed ${compact ? "text-[10px] px-1.5 py-0.5" : "text-[11px] px-2 py-0.5"}`}
-              title={`${p.label} — disponível no plano Starter ou superior`}
+              title={`${p.label} — disponível no plano Pro ou superior`}
             >
               {p.icon}
               <span className="hidden sm:inline">{p.label}</span>
