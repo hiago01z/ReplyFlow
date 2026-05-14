@@ -53,9 +53,11 @@ export function ReviewList({ reviews, locations, total, page, pageSize, currentF
   const [bulkLoading, setBulkLoading] = useState<"generate" | "publish" | null>(null);
   const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 });
 
-  // Only pending/draft reviews are selectable for generate, only draft for publish
+  // Apenas plataformas com API podem ser selecionadas em lote.
+  // Plataformas manuais (TripAdvisor, Reclame Aqui, Booking, iFood) têm fluxo próprio no modal.
+  const API_PLATFORMS = new Set(["google", "facebook"]);
   const selectableIds = reviews
-    .filter((r) => r.status === "pending" || r.status === "draft")
+    .filter((r) => API_PLATFORMS.has(r.platform) && (r.status === "pending" || r.status === "draft"))
     .map((r) => r.id);
 
   function toggleSelect(id: string) {
@@ -342,7 +344,7 @@ export function ReviewList({ reviews, locations, total, page, pageSize, currentF
       ) : (
         <div className="space-y-3">
           {reviews.map((review) => {
-            const isSelectable = selectMode && (review.status === "pending" || review.status === "draft");
+            const isSelectable = selectMode && API_PLATFORMS.has(review.platform) && (review.status === "pending" || review.status === "draft");
             return (
               <ReviewCard
                 key={review.id}

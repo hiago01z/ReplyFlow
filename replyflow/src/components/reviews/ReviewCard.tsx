@@ -80,8 +80,9 @@ export function ReviewCard({
   const publishedDate = review.platform_published_at
     ? new Date(review.platform_published_at).toLocaleDateString(undefined, { day: "2-digit", month: "short" })
     : null;
-  const isNegative = (review.rating ?? 5) <= 2;
-  const isEditable = review.status !== "published" && review.status !== "ignored";
+  const isNegative     = (review.rating ?? 5) <= 2;
+  const isEditable     = review.status !== "published" && review.status !== "ignored";
+  const isManualPlatform = ["tripadvisor", "reclame_aqui", "booking", "ifood"].includes(review.platform);
 
   async function handleGenerate() {
     setGenerating(true);
@@ -171,12 +172,17 @@ export function ReviewCard({
     }
   }
 
-  async function handleCopyResponse() {
-    if (!responseText) return;
+  async function handleCopyResponse(text?: string) {
+    const toCopy = text ?? responseText;
+    if (!toCopy) return;
     try {
-      await navigator.clipboard.writeText(responseText);
+      await navigator.clipboard.writeText(toCopy);
       setCopied(true);
-      const platformLabel = review.platform === "reclame_aqui" ? "Reclame Aqui" : "TripAdvisor";
+      const labels: Record<string, string> = {
+        tripadvisor: "TripAdvisor", reclame_aqui: "Reclame Aqui",
+        booking: "Booking.com", ifood: "iFood",
+      };
+      const platformLabel = labels[review.platform] ?? review.platform;
       success("Resposta copiada!", `Cole a resposta diretamente no ${platformLabel}.`);
       setTimeout(() => setCopied(false), 3000);
     } catch {
@@ -258,6 +264,16 @@ export function ReviewCard({
                   Facebook
                 </span>
               )}
+              {review.platform === "booking" && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#003580] bg-[#003580]/10 border border-[#003580]/30 px-1.5 py-0.5 rounded-full">
+                  🏨 Booking.com
+                </span>
+              )}
+              {review.platform === "ifood" && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#EA1D2C] bg-[#EA1D2C]/10 border border-[#EA1D2C]/30 px-1.5 py-0.5 rounded-full">
+                  🍔 iFood
+                </span>
+              )}
               {publishedDate && (
                 <span className="text-xs text-gray-400">{publishedDate}</span>
               )}
@@ -298,15 +314,14 @@ export function ReviewCard({
             </div>
           )}
 
-          {/* Response area */}
-          {isEditable && (
+          {/* Response area — apenas para plataformas com API (Google, Facebook) */}
+          {isEditable && !isManualPlatform && (
             <div className="mt-4 space-y-3">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                     Resposta {responseText ? "— editável" : ""}
                   </span>
-                  {/* Template picker — only visible when editing */}
                   {(responseText !== undefined) && (
                     <TemplatePicker
                       niche={(review.location as { niche?: string } | undefined)?.niche ?? "outro"}
@@ -339,64 +354,50 @@ export function ReviewCard({
 
               {responseText && (
                 <div className="flex items-center gap-2 flex-wrap">
-                  {review.platform === "tripadvisor" || review.platform === "reclame_aqui" ? (
-                    // TripAdvisor e Reclame Aqui não têm API — botão de copiar + link externo
-                    <>
-                      <Button size="sm" onClick={handleCopyResponse} className={cn("gap-1.5", copied ? "bg-green-600 hover:bg-green-700" : "bg-indigo-600 hover:bg-indigo-700")}>
-                        {copied ? <CheckCircle2 size={13} /> : <Copy size={13} />}
-                        {copied ? "Copiado!" : "Copiar resposta"}
-                      </Button>
-                      {review.platform === "tripadvisor" && (review.location as { tripadvisor_url?: string } | undefined)?.tripadvisor_url && (
-                        <a
-                          href={(review.location as { tripadvisor_url?: string }).tripadvisor_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#00AF87] hover:underline"
-                        >
-                          <ExternalLink size={12} />
-                          Abrir no TripAdvisor
-                        </a>
-                      )}
-                      {review.platform === "reclame_aqui" && (review.location as { reclame_aqui_url?: string } | undefined)?.reclame_aqui_url && (
-                        <a
-                          href={(review.location as { reclame_aqui_url?: string }).reclame_aqui_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#E8281C] hover:underline"
-                        >
-                          <ExternalLink size={12} />
-                          Abrir no Reclame Aqui
-                        </a>
-                      )}
-                      <Button size="sm" variant="ghost" onClick={handleIgnore} className="gap-1.5 text-gray-500">
-                        <EyeOff size={13} />
-                        Ignorar
-                      </Button>
-                    </>
-                  ) : (
-                    // Google e Facebook — publicar via API
-                    <>
-                      <Button size="sm" onClick={handlePublish} loading={publishing} className="gap-1.5 bg-green-600 hover:bg-green-700">
-                        <Send size={13} />
-                        Publicar resposta
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={handleIgnore} className="gap-1.5 text-gray-500">
-                        <EyeOff size={13} />
-                        Ignorar
-                      </Button>
-                    </>
-                  )}
+                  <Button size="sm" onClick={handlePublish} loading={publishing} className="gap-1.5 bg-green-600 hover:bg-green-700">
+                    <Send size={13} />
+                    Publicar resposta
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleIgnore} className="gap-1.5 text-gray-500">
+                    <EyeOff size={13} />
+                    Ignorar
+                  </Button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Plataformas manuais em status editável (pending/draft legacy) — aviso */}
+          {isEditable && isManualPlatform && (
+            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+              Esta avaliação foi adicionada manualmente. Use o botão <strong>Adicionar avaliação</strong> para gerar e salvar a resposta de forma integrada.
             </div>
           )}
 
           {/* Published response */}
           {review.status === "published" && review.response && (
             <div className="mt-4 bg-green-50 border border-green-100 rounded-xl px-4 py-3.5">
-              <div className="flex items-center gap-1.5 mb-2">
-                <CheckCircle2 size={14} className="text-green-600" />
-                <span className="text-xs font-semibold text-green-700">Resposta publicada</span>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 size={14} className="text-green-600" />
+                  <span className="text-xs font-semibold text-green-700">Resposta publicada</span>
+                </div>
+                {/* Botão de copiar — apenas plataformas manuais */}
+                {isManualPlatform && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopyResponse(review.response!.content)}
+                    className={cn(
+                      "inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full transition-colors",
+                      copied
+                        ? "bg-green-200 text-green-800"
+                        : "bg-green-100 text-green-700 hover:bg-green-200",
+                    )}
+                  >
+                    {copied ? <CheckCircle2 size={10} /> : <Copy size={10} />}
+                    {copied ? "Copiado!" : "Copiar"}
+                  </button>
+                )}
               </div>
               <p className="text-sm text-green-900 leading-relaxed">{review.response.content}</p>
             </div>
