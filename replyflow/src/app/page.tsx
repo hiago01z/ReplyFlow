@@ -170,7 +170,7 @@ export default async function LandingPage() {
           </h1>
 
           <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            <span translate="no">ReplyFlow</span> responde reviews do Google com IA personalizada para o seu negócio —
+            <span translate="no">ReplyFlow</span> responde reviews do Google e de outras plataformas com IA personalizada para o seu negócio —
             em segundos, no tom certo, sem você fazer nada.
           </p>
 
