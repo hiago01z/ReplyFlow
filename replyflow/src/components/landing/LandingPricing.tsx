@@ -10,6 +10,8 @@ export type LandingPlan = {
   annualMonthlyEquiv: number;
   description: string;
   features: string[];
+  /** Se definido, exibe "Tudo do [parentLabel] +" antes das features exclusivas */
+  parentLabel?: string;
   cta: string;
   highlight: boolean;
 };
@@ -125,6 +127,18 @@ export function LandingPricing({ symbol, plans }: LandingPricingProps) {
               </p>
 
               <ul className="space-y-3 mb-8">
+                {/* Herança de plano inferior */}
+                {plan.parentLabel && (
+                  <>
+                    <li className={`flex items-center gap-2 text-sm font-semibold ${
+                      plan.highlight ? "text-indigo-200" : "text-indigo-600 dark:text-indigo-400"
+                    }`}>
+                      <span>✦</span>
+                      {plan.parentLabel}
+                    </li>
+                    <li aria-hidden className={`border-t ${plan.highlight ? "border-indigo-500" : "border-gray-100 dark:border-[#2a2a35]"}`} />
+                  </>
+                )}
                 {plan.features.map((feature) => (
                   <li
                     key={feature}

@@ -219,7 +219,7 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* AI responses usage card — Free/Starter only */}
+      {/* AI responses usage card — Free only (Starter/Pro/Agency = ilimitado) */}
       {showAiUsage && aiMonthLimit !== null && (
         <div className={`card p-4 mb-6 flex items-center gap-4 ${
           aiRemaining === 0 ? "border-red-200 bg-red-50/50" :

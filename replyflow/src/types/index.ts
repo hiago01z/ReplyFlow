@@ -109,8 +109,8 @@ export interface Alert {
 
 // Limites por plano (espelho de src/lib/plan-limits.ts — manter sincronizado)
 export const PLAN_LIMITS: Record<Plan, { locations: number; platforms: number; responsesPerMonth: number | null }> = {
-  free:    { locations: 1, platforms: 2, responsesPerMonth: 10 },
-  starter: { locations: 1, platforms: 3, responsesPerMonth: 100 },
-  pro:     { locations: 3, platforms: 3, responsesPerMonth: null },
-  agency:  { locations: 3, platforms: 3, responsesPerMonth: null },
+  free:    { locations: 1, platforms: 2,  responsesPerMonth: 30   },
+  starter: { locations: 1, platforms: 3,  responsesPerMonth: null },
+  pro:     { locations: 3, platforms: 99, responsesPerMonth: null },
+  agency:  { locations: 3, platforms: 99, responsesPerMonth: null },
 }

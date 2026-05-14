@@ -13,8 +13,8 @@ export interface UpgradeModalProps {
 
 const REASON_COPY: Record<NonNullable<UpgradeModalProps["reason"]>, { title: string; subtitle: string }> = {
   response_limit: {
-    title:    "Você atingiu o limite de respostas do plano Free",
-    subtitle: "Faça upgrade para continuar respondendo reviews com IA sem limitações.",
+    title:    "Você atingiu o limite de 30 respostas do plano Free",
+    subtitle: "Faça upgrade para o Starter ou Pro e tenha respostas IA ilimitadas.",
   },
   trial_expired: {
     title:    "Seu período de avaliação expirou",
@@ -47,9 +47,9 @@ const PLANS = [
     color:    "blue",
     features: [
       "1 local",
-      "Respostas ilimitadas",
-      "Alerta de review negativo por e-mail",
-      "Sem limitação mensal",
+      "Respostas IA ilimitadas",
+      "3 plataformas conectadas",
+      "Alerta por e-mail",
     ],
     highlight: false,
   },
@@ -60,10 +60,10 @@ const PLANS = [
     icon:     <Crown size={18} className="text-indigo-500" />,
     color:    "indigo",
     features: [
+      "Tudo do Starter +",
       "Até 3 locais",
-      "Respostas ilimitadas",
+      "Todas as plataformas",
       "Alertas via WhatsApp",
-      "Aprovação 1 clique no WhatsApp",
       "Relatório PDF mensal",
     ],
     highlight: true,
@@ -124,7 +124,11 @@ export function UpgradeModal({ open, onClose, reason = "response_limit" }: Upgra
                   {plan.price}<span className="text-xs font-normal text-gray-400">/mês</span>
                 </p>
                 <ul className="space-y-1.5 flex-1">
-                  {plan.features.map((f) => (
+                  {plan.features.map((f) => f.endsWith(" +") ? (
+                    <li key={f} className="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                      <span>✦</span>{f}
+                    </li>
+                  ) : (
                     <li key={f} className="flex items-start gap-1.5 text-xs text-gray-600 dark:text-gray-300">
                       <CheckCircle2 size={12} className="text-indigo-400 shrink-0 mt-0.5" />
                       {f}

@@ -112,7 +112,11 @@ export function BillingPlanSelector({ plans, annualEnabled, currency }: BillingP
               </div>
 
               <ul className="space-y-2 mb-5 flex-1">
-                {plan.features.map((f) => (
+                {plan.features.map((f) => f.endsWith(" +") ? (
+                  <li key={f} className="flex items-center gap-1 text-xs font-semibold text-indigo-600">
+                    <span>✦</span>{f}
+                  </li>
+                ) : (
                   <li key={f} className="flex items-center gap-2 text-xs text-gray-600">
                     <CheckCircle2 size={13} className="text-indigo-400 shrink-0" />
                     {f}

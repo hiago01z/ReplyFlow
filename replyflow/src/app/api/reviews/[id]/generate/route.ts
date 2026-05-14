@@ -107,7 +107,7 @@ export async function POST(
   if (!allowed) {
     return NextResponse.json({
       error:   'plan_limit',
-      message: `Seu plano ${plan === 'free' ? 'Free' : 'Starter'} permite ${aiLimit} respostas por mês. Faça upgrade para continuar.`,
+      message: `Seu plano Free permite ${aiLimit} respostas por mês. Faça upgrade para continuar com respostas ilimitadas.`,
       limit:   aiLimit,
       used:    countThisMonth,
       upgrade: true,

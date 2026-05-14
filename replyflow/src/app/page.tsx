@@ -78,7 +78,7 @@ export default async function LandingPage() {
       annualPrice: annual.starter.price,
       annualMonthlyEquiv: annual.starter.monthlyEquiv,
       description: "Para autônomos e pequenos negócios",
-      features: ["1 local", "3 plataformas", "100 respostas IA/mês", "Alerta por e-mail", "Tom personalizado"],
+      features: ["1 local", "3 plataformas", "Respostas IA ilimitadas", "Alerta por e-mail", "Tom personalizado"],
       cta: "Assinar Starter",
       highlight: false,
     },
@@ -88,7 +88,8 @@ export default async function LandingPage() {
       annualPrice: annual.pro.price,
       annualMonthlyEquiv: annual.pro.monthlyEquiv,
       description: "Para negócios com múltiplas unidades",
-      features: ["Até 3 locais", "Todas as plataformas", "Respostas ilimitadas", "Alerta via WhatsApp", "Aprovação em 1 clique", "Relatório mensal PDF"],
+      parentLabel: "Tudo do Starter +",
+      features: ["Até 3 locais", "Todas as plataformas", "Alerta via WhatsApp", "Aprovação em 1 clique", "Relatório mensal PDF"],
       cta: "Assinar Pro",
       highlight: true,
     },
@@ -98,7 +99,8 @@ export default async function LandingPage() {
       annualPrice: annual.agency.price,
       annualMonthlyEquiv: annual.agency.monthlyEquiv,
       description: "Para agências gerenciando múltiplos clientes",
-      features: ["Até 10 clientes no painel", "3 locais por cliente", "IA ilimitada", "Alerta WhatsApp + aprovação 1 clique", "Relatório mensal PDF"],
+      parentLabel: "Tudo do Pro +",
+      features: ["Até 10 clientes no painel", "3 locais por cliente", "Relatório mensal PDF"],
       cta: "Assinar Agência",
       highlight: false,
     },
@@ -183,7 +185,7 @@ export default async function LandingPage() {
           <div className="flex items-center justify-center gap-4 text-xs text-gray-400 dark:text-gray-500 mb-12">
             <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Sem cartão de crédito</span>
             <span className="w-px h-3 bg-gray-200 dark:bg-gray-700" />
-            <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> 10 respostas grátis/mês</span>
+            <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> 7 dias com IA ilimitada</span>
             <span className="w-px h-3 bg-gray-200 dark:bg-gray-700" />
             <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Cancele quando quiser</span>
           </div>

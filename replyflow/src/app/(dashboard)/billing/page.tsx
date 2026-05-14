@@ -17,10 +17,10 @@ export const dynamic = "force-dynamic";
 // ── Static data maps ──────────────────────────────────────────────────────────
 
 const PLAN_FEATURES: Record<string, string[]> = {
-  free:    ["1 local", "2 plataformas", "10 respostas/mês", "Sem cartão"],
-  starter: ["1 local", "3 plataformas", "50 respostas IA/mês", "Alerta por e-mail"],
-  pro:     ["Até 3 locais", "Todas as plataformas", "Alerta via WhatsApp", "Aprovação 1 clique", "Relatório mensal"],
-  agency:  ["Até 10 clientes no painel", "3 locais por cliente", "IA ilimitada", "Alerta WhatsApp + aprovação 1 clique", "Relatório mensal PDF"],
+  free:    ["1 local", "2 plataformas", "30 respostas IA/mês", "Sem cartão"],
+  starter: ["1 local", "3 plataformas", "Respostas IA ilimitadas", "Alerta por e-mail", "Tom personalizado"],
+  pro:     ["Tudo do Starter +", "Até 3 locais", "Todas as plataformas", "Alerta via WhatsApp", "Aprovação 1 clique", "Relatório mensal PDF"],
+  agency:  ["Tudo do Pro +", "Até 10 clientes no painel", "3 locais por cliente", "Alerta WhatsApp + aprovação 1 clique"],
 };
 
 const PLAN_LABEL: Record<string, string> = {
@@ -314,7 +314,11 @@ export default async function BillingPage({
                       </div>
                     </div>
                     <ul className="space-y-1">
-                      {(PLAN_FEATURES[key] ?? []).map((f) => (
+                      {(PLAN_FEATURES[key] ?? []).map((f) => f.endsWith(" +") ? (
+                        <li key={f} className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 mt-1">
+                          <span>✦</span>{f}
+                        </li>
+                      ) : (
                         <li key={f} className="flex items-start gap-1.5 text-[11px] text-gray-600">
                           <CheckCircle2 size={10} className="text-indigo-400 mt-0.5 shrink-0" />
                           {f}
@@ -346,7 +350,11 @@ export default async function BillingPage({
             <p className="font-semibold text-gray-900 text-sm">Plano Agência — recursos incluídos</p>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {PLAN_FEATURES.agency.map((f) => (
+            {PLAN_FEATURES.agency.map((f) => f.endsWith(" +") ? (
+              <div key={f} className="col-span-2 flex items-center gap-1 text-xs font-semibold text-purple-600">
+                <span>✦</span>{f}
+              </div>
+            ) : (
               <div key={f} className="flex items-center gap-2 text-xs text-gray-700">
                 <CheckCircle2 size={13} className="text-purple-500 shrink-0" />
                 {f}
@@ -364,7 +372,11 @@ export default async function BillingPage({
             <p className="font-semibold text-gray-900 text-sm">Plano Pro — recursos incluídos</p>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {PLAN_FEATURES.pro.map((f) => (
+            {PLAN_FEATURES.pro.map((f) => f.endsWith(" +") ? (
+              <div key={f} className="col-span-2 flex items-center gap-1 text-xs font-semibold text-indigo-600">
+                <span>✦</span>{f}
+              </div>
+            ) : (
               <div key={f} className="flex items-center gap-2 text-xs text-gray-700">
                 <CheckCircle2 size={13} className="text-indigo-500 shrink-0" />
                 {f}
