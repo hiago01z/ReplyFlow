@@ -24,6 +24,9 @@ const updateSchema = z.object({
   // Booking.com
   booking_url:       z.string().url().nullable().optional(),
   booking_connected: z.boolean().optional(),
+  // iFood
+  ifood_url:       z.string().url().nullable().optional(),
+  ifood_connected: z.boolean().optional(),
   // Facebook (set by callback; disconnect via false)
   facebook_page_id:      z.string().nullable().optional(),
   facebook_page_name:    z.string().nullable().optional(),
@@ -232,11 +235,12 @@ export async function PATCH(
   const connectingFacebook     = parsed.data.facebook_connected === true;
   const connectingReclamaAqui  = parsed.data.reclame_aqui_connected === true;
   const connectingBooking      = parsed.data.booking_connected === true;
+  const connectingIFood        = parsed.data.ifood_connected === true;
 
-  if (connectingTripAdvisor || connectingFacebook || connectingReclamaAqui || connectingBooking) {
+  if (connectingTripAdvisor || connectingFacebook || connectingReclamaAqui || connectingBooking || connectingIFood) {
     const { data: locFull } = await serviceClient
       .from("locations")
-      .select("google_access_token, tripadvisor_connected, facebook_connected, reclame_aqui_connected, booking_connected")
+      .select("google_access_token, tripadvisor_connected, facebook_connected, reclame_aqui_connected, booking_connected, ifood_connected")
       .eq("id", id)
       .single();
 
@@ -250,7 +254,8 @@ export async function PATCH(
         (connectingTripAdvisor  && locFull.tripadvisor_connected) ||
         (connectingFacebook     && locFull.facebook_connected) ||
         (connectingReclamaAqui  && locFull.reclame_aqui_connected) ||
-        (connectingBooking      && locFull.booking_connected);
+        (connectingBooking      && locFull.booking_connected) ||
+        (connectingIFood        && locFull.ifood_connected);
 
       if (!alreadyConnected && currentCount >= platformLimit) {
         return NextResponse.json(

@@ -5,10 +5,11 @@ import { X, Loader2, ExternalLink, Info } from "lucide-react";
 
 interface Props {
   locationId:       string;
-  platform:         "tripadvisor" | "facebook" | "reclame_aqui" | "booking";
+  platform:         "tripadvisor" | "facebook" | "reclame_aqui" | "booking" | "ifood";
   tripadvisorUrl?:  string | null;
   reclamaAquiUrl?:  string | null;
   bookingUrl?:      string | null;
+  ifoodUrl?:        string | null;
   onClose:          () => void;
   onAdded:          () => void;
 }
@@ -18,9 +19,10 @@ const PLATFORM_LABEL: Record<string, string> = {
   facebook:     "Facebook",
   reclame_aqui: "Reclame Aqui",
   booking:      "Booking.com",
+  ifood:        "iFood",
 };
 
-export function AddManualReviewModal({ locationId, platform, tripadvisorUrl, reclamaAquiUrl, bookingUrl, onClose, onAdded }: Props) {
+export function AddManualReviewModal({ locationId, platform, tripadvisorUrl, reclamaAquiUrl, bookingUrl, ifoodUrl, onClose, onAdded }: Props) {
   const [authorName,  setAuthorName]  = useState("");
   const [rating,      setRating]      = useState(5);
   const [content,     setContent]     = useState("");
@@ -151,6 +153,33 @@ export function AddManualReviewModal({ locationId, platform, tripadvisorUrl, rec
                 >
                   <ExternalLink size={11} />
                   Abrir minha propriedade no Booking.com
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Instrução para iFood */}
+        {platform === "ifood" && (
+          <div className="mb-4 bg-[#EA1D2C]/10 border border-[#EA1D2C]/30 rounded-xl px-4 py-3 flex items-start gap-3">
+            <Info size={15} className="text-[#EA1D2C] mt-0.5 shrink-0" />
+            <div className="text-xs text-[#b81520] space-y-1">
+              <p className="font-semibold">Como importar do iFood:</p>
+              <ol className="list-decimal list-inside space-y-0.5">
+                <li>Acesse o Gestor iFood (portal.ifood.com.br)</li>
+                <li>Vá em Avaliações do seu restaurante</li>
+                <li>Copie o texto da avaliação que deseja responder</li>
+                <li>Cole no campo abaixo e gere a resposta com IA</li>
+              </ol>
+              {ifoodUrl && (
+                <a
+                  href={ifoodUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-semibold mt-1.5 hover:underline"
+                >
+                  <ExternalLink size={11} />
+                  Abrir meu restaurante no iFood
                 </a>
               )}
             </div>

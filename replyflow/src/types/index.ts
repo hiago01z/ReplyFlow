@@ -5,7 +5,7 @@ export type ReviewStatus = 'pending' | 'draft' | 'approved' | 'published' | 'ign
 export type LocationNiche = 'clinica' | 'restaurante' | 'academia' | 'petshop' | 'barbearia' | 'outro'
 export type LocationTone = 'formal' | 'amigavel' | 'descontraido'
 export type AlertChannel = 'whatsapp' | 'email'
-export type ReviewPlatform = 'google' | 'tripadvisor' | 'facebook' | 'reclame_aqui' | 'booking'
+export type ReviewPlatform = 'google' | 'tripadvisor' | 'facebook' | 'reclame_aqui' | 'booking' | 'ifood'
 
 export interface Organization {
   id: string
@@ -55,6 +55,9 @@ export interface Location {
   // Booking.com (manual import)
   booking_url: string | null
   booking_connected: boolean
+  // iFood (manual import)
+  ifood_url: string | null
+  ifood_connected: boolean
   // Facebook (Graph API OAuth)
   facebook_page_id: string | null
   facebook_page_name: string | null
