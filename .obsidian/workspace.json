@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "replyflow/README.md",
+                "file": "_contextos/16_CONEXOES_E_SERVICOS.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "16_CONEXOES_E_SERVICOS"
             }
           }
         ]
@@ -183,8 +183,12 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "5de7bd0960b0d045",
+  "active": "b33f56191cc9bc79",
   "lastOpenFiles": [
+    "replyflow/src/app/api/feedback/route.ts",
+    "replyflow/src/app/api/feedback",
+    "replyflow/src/components/landing/FeedbackSection.tsx",
+    "replyflow/README.md",
     "replyflow/src/components/analytics/AnalyticsDashboardClient.tsx",
     "replyflow/src/components/locations/NewLocationForm.tsx",
     "replyflow/src/app/api/reviews/[id]/save-manual/route.ts",
@@ -206,14 +210,10 @@
     "_contextos/09_DESIGN_SYSTEM.md",
     "replyflow/instagram/carrossel/TEXTOS-E-LEGENDA.md",
     "replyflow/src/components/locations/BookingLinkWizard.tsx",
-    "replyflow/supabase/migrations/018_booking.sql",
     "_contextos/12_SPRINT_PLATAFORMAS.md",
     "_contextos/12_INTEGRACAO_PLATAFORMAS.md",
-    "replyflow/src/lib/i18n/strings-report.ts",
-    "replyflow/src/lib/i18n/strings-digest.ts",
     "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
     "_contextos/01_ETAPA1_DEFINICAO_ESTRATEGICA.md",
-    "replyflow/README.md",
     "README.md"
   ]
 }

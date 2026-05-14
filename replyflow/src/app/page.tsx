@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { CheckCircle2, Star, Zap, Sparkles, MessageSquare, Bell, FileText, RefreshCw, Building2, Send } from "lucide-react";
 import { CountUp } from "@/components/landing/CountUp";
 import { LandingPricing, type LandingPlan } from "@/components/landing/LandingPricing";
+import { FeedbackSection } from "@/components/landing/FeedbackSection";
 import { getCurrencyFromCountry, CURRENCY_PLANS, CURRENCY_ANNUAL_PLANS, type SupportedCurrency } from "@/lib/stripe/client";
 
 const TESTIMONIALS = [
@@ -279,24 +280,30 @@ export default async function LandingPage() {
             <div className="bg-white dark:bg-[#18181f] rounded-2xl p-8 shadow-sm dark:shadow-none border border-transparent dark:border-[#2a2a35] text-center">
               <div className="text-4xl mb-4">🔗</div>
               <div className="text-xs font-bold text-indigo-400 dark:text-indigo-500 mb-2 tracking-widest">PASSO 01</div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Conecte seu Google</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Autorize o <span translate="no">ReplyFlow</span> a acessar seus reviews do Google Meu Negócio em 1 clique. Leva menos de 2 minutos.</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Conecte o <span translate="no">Google Meu Negócio</span></h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                Integração direta via <span translate="no">API</span> oficial do <span translate="no">Google</span> — autorize em 1 clique e seus reviews são importados automaticamente, em tempo real. Sem planilhas.
+              </p>
             </div>
 
             {/* Passo 02 */}
             <div className="bg-white dark:bg-[#18181f] rounded-2xl p-8 shadow-sm dark:shadow-none border border-transparent dark:border-[#2a2a35] text-center">
               <div className="text-4xl mb-4">🤖</div>
               <div className="text-xs font-bold text-indigo-400 dark:text-indigo-500 mb-2 tracking-widest">PASSO 02</div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">IA gera as respostas</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Nosso sistema lê cada review e cria uma resposta personalizada para o nicho e tom do seu negócio — automático.</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">IA personaliza cada resposta</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                O sistema analisa o nicho e o tom do seu negócio e cria uma resposta única para cada review — em segundos, no estilo da sua marca.
+              </p>
             </div>
 
             {/* Passo 03 */}
             <div className="bg-white dark:bg-[#18181f] rounded-2xl p-8 shadow-sm dark:shadow-none border border-transparent dark:border-[#2a2a35] text-center">
               <div className="text-4xl mb-4">✅</div>
               <div className="text-xs font-bold text-indigo-400 dark:text-indigo-500 mb-2 tracking-widest">PASSO 03</div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Publique com 1 clique</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Aprove e publique direto do dashboard — ou ative o modo automático e esqueça. Você escolhe.</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Publica direto no <span translate="no">Google</span></h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                Aprove com 1 clique e a resposta vai direto para o <span translate="no">Google Meu Negócio</span> — ou ative o modo automático e deixe o <span translate="no">ReplyFlow</span> fazer tudo por você.
+              </p>
             </div>
 
           </div>
@@ -414,6 +421,9 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* ── Feedback ──────────────────────────────────────────────────────── */}
+      <FeedbackSection />
+
       {/* ── CTA Final ─────────────────────────────────────────────────────── */}
       <section className="bg-indigo-600 dark:bg-indigo-700 py-20 px-6 text-center">
         <div className="max-w-2xl mx-auto">
@@ -447,6 +457,7 @@ export default async function LandingPage() {
             <Link href="#como-funciona" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Como funciona</Link>
             <Link href="#precos" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Preços</Link>
             <Link href="#faq" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">FAQ</Link>
+            <Link href="#feedback" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Feedback</Link>
             <Link href="/login" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Entrar</Link>
             <span className="text-gray-200 dark:text-gray-700 select-none">·</span>
             <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Privacidade</Link>

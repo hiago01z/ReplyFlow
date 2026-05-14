@@ -146,8 +146,10 @@ STRIPE_PRICE_AGENCY_MONTHLY    → Price ID do produto Agência
 
 ### 4.2 Copiar credenciais
 ```
-RESEND_API_KEY    → API Keys → Create API Key
-RESEND_FROM_EMAIL → noreply@seudominio.com.br (ou onboarding@resend.dev)
+RESEND_API_KEY     → API Keys → Create API Key
+RESEND_FROM_EMAIL  → noreply@seudominio.com.br (ou onboarding@resend.dev)
+FEEDBACK_TO_EMAIL  → e-mail onde você quer receber os feedbacks da landing page (ex: seu@gmail.com)
+                     Se omitido, usa RESEND_FROM_EMAIL como destino
 ```
 
 ---
