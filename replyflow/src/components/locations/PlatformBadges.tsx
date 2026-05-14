@@ -94,7 +94,7 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
       connected: loc.tripadvisor_connected,
       pending:   false,
       href:      `/locations/${loc.id}#tripadvisor`,
-      isLink:    false,
+      isLink:    true,
       available: true,
     },
     {
@@ -104,7 +104,7 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
       connected: loc.reclame_aqui_connected,
       pending:   false,
       href:      `/locations/${loc.id}#reclame-aqui`,
-      isLink:    false,
+      isLink:    true,
       available: true,
     },
     {
@@ -114,7 +114,7 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
       connected: loc.booking_connected,
       pending:   false,
       href:      `/locations/${loc.id}#booking`,
-      isLink:    false,
+      isLink:    true,
       available: true,
     },
     {
@@ -124,7 +124,7 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
       connected: loc.ifood_connected,
       pending:   false,
       href:      `/locations/${loc.id}#ifood`,
-      isLink:    false,
+      isLink:    true,
       available: true,
     },
     // TODO: Facebook — integração planejada para sprint futuro.
