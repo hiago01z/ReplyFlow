@@ -185,6 +185,7 @@
   },
   "active": "b33f56191cc9bc79",
   "lastOpenFiles": [
+    "_contextos/17_MARKETING.md",
     "replyflow/src/app/api/feedback/route.ts",
     "replyflow/src/app/api/feedback",
     "replyflow/src/components/landing/FeedbackSection.tsx",
@@ -209,7 +210,6 @@
     "_contextos/11_SPRINT_LIMITES_E_LOCAIS_AGENCIA.md",
     "_contextos/09_DESIGN_SYSTEM.md",
     "replyflow/instagram/carrossel/TEXTOS-E-LEGENDA.md",
-    "replyflow/src/components/locations/BookingLinkWizard.tsx",
     "_contextos/12_SPRINT_PLATAFORMAS.md",
     "_contextos/12_INTEGRACAO_PLATAFORMAS.md",
     "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
