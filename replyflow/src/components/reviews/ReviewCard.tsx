@@ -201,7 +201,7 @@ export function ReviewCard({
       ref={cardRef}
       className={cn(
         "card transition-shadow hover:shadow-md",
-        isNegative && review.status === "pending" && "border-red-200",
+        isNegative && "border-red-100",
         highlighted && "ring-2 ring-indigo-400 ring-offset-1",
       )}
     >
@@ -291,7 +291,7 @@ export function ReviewCard({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {isNegative && review.status === "pending" && (
+          {isNegative && (
             <span className="hidden sm:inline text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
               Crítico
             </span>
