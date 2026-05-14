@@ -100,7 +100,7 @@ export default async function LandingPage() {
       annualMonthlyEquiv: annual.agency.monthlyEquiv,
       description: "Para agências gerenciando múltiplos clientes",
       parentLabel: "Tudo do Pro +",
-      features: ["Até 10 clientes no painel", "3 locais por cliente", "Relatório mensal PDF"],
+      features: ["Até 10 clientes no painel", "3 locais por cliente"],
       cta: "Assinar Agência",
       highlight: false,
     },

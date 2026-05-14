@@ -19,8 +19,8 @@ export const dynamic = "force-dynamic";
 const PLAN_FEATURES: Record<string, string[]> = {
   free:    ["1 local", "2 plataformas", "30 respostas IA/mês", "Sem cartão"],
   starter: ["1 local", "3 plataformas", "Respostas IA ilimitadas", "Alerta por e-mail", "Tom personalizado"],
-  pro:     ["Tudo do Starter +", "Até 3 locais", "Todas as plataformas", "Alerta via WhatsApp", "Aprovação 1 clique", "Relatório mensal PDF"],
-  agency:  ["Tudo do Pro +", "Até 10 clientes no painel", "3 locais por cliente", "Alerta WhatsApp + aprovação 1 clique"],
+  pro:     ["Tudo do Starter +", "Até 3 locais", "Todas as plataformas", "Alerta via WhatsApp", "Aprovação em 1 clique", "Relatório mensal PDF"],
+  agency:  ["Tudo do Pro +", "Até 10 clientes no painel", "3 locais por cliente"],
 };
 
 const PLAN_LABEL: Record<string, string> = {
