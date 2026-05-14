@@ -38,7 +38,7 @@ ReplyFlow é um SaaS que responde automaticamente reviews do Google, TripAdvisor
 | Cache / Rate Limit | Upstash Redis |
 | Email | Resend |
 | WhatsApp | UltraMsg / Z-API / Evolution API (multi-provider) |
-| Reviews | Google My Business API v1, Facebook Graph API v19.0, TripAdvisor (import manual) |
+| Reviews | Google My Business API v1, Facebook Graph API v22.0, TripAdvisor (import manual), Reclame Aqui (import manual), Booking.com (import manual) |
 | Analytics | Vercel Analytics |
 | Deploy | Vercel |
 
@@ -46,11 +46,11 @@ ReplyFlow é um SaaS que responde automaticamente reviews do Google, TripAdvisor
 
 ## Planos e Preços
 
-| Plano   | Preço          | Locais                 | Plataformas | Destaque                                                                         |
-| ------- | -------------- | ---------------------- | ----------- | -------------------------------------------------------------------------------- |
-| Free    | Grátis         | 1                      | 2           | 10 respostas IA/mês · Google + 1 extra                                           |
-| Starter | R$ 97/mês      | 1                      | 3           | 100 respostas IA/mês · Google + TripAdvisor + Facebook · add-on +R$49/local      |
-| **Pro** | **R$ 197/mês** | **3**                  | **3**       | **IA ilimitada · Alerta WhatsApp · aprovação 1 clique · +R$49/local**            |
+| Plano   | Preço          | Locais                 | Plataformas | Destaque                                                                          |
+| ------- | -------------- | ---------------------- | ----------- | --------------------------------------------------------------------------------- |
+| Free    | Grátis         | 1                      | 2           | 30 respostas IA/mês · trial 7 dias ilimitado · Google + 1 extra                   |
+| Starter | R$ 97/mês      | 1                      | 3           | IA ilimitada · Google + TripAdvisor + Booking + Reclame Aqui · add-on +R$49/local |
+| **Pro** | **R$ 197/mês** | **3**                  | **3**       | **IA ilimitada · Alerta WhatsApp · aprovação 1 clique · +R$49/local**             |
 | Agência | R$ 497/mês     | 10 clientes × 3 locais | 3/local     | Painel multi-cliente · IA ilimitada · WhatsApp + aprovação 1 clique · +R$49/local |
 
 ---
@@ -190,6 +190,15 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | Etapa 6 — Sprint 46 (i18n: IA responde no idioma do review; locale dinâmico na landing) | ✅ Concluída |
 | Etapa 6 — Sprint 47 (Landing page: toggle preços mensal/anual + correção Starter features) | ✅ Concluída |
 | Etapa 6 — Sprint 48 (Multi-moeda: BRL/USD/EUR — detecção automática por país via Vercel geo) | ✅ Concluída |
+| Etapa 6 — Sprint 49 (Locale dinâmico: datas/números no idioma do usuário — remove pt-BR hardcoded) | ✅ Concluída |
+| Etapa 6 — Sprint 50 (i18n completo: emails + WhatsApp + PDF em PT/EN/ES · 6 fases) | ✅ Concluída |
+| Etapa 6 — Sprint 51 (Compatibilidade Google Translate: translate="no" + suppressHydrationWarning) | ✅ Concluída |
+| Etapa 6 — Sprint 52 (Booking.com: importação manual de avaliações + migration 018) | ✅ Concluída |
+| Etapa 6 — Sprint 53 (Analytics gate plano pago + AnalyticsDashboardClient SSR fix) | ✅ Concluída |
+| Etapa 6 — Sprint 54 (TemplatesManager gate plano pago: Lock icon + upgrade banner) | ✅ Concluída |
+| Etapa 6 — Sprint 55 (Landing page: Como funciona, FeedbackSection, hero copy, links sociais) | ✅ Concluída |
+| Etapa 6 — Sprint 56 (Bug audit: Facebook tokens URL→cookie HTTP-only, billing null guard, FB API v22.0) | ✅ Concluída |
+| Etapa 6 — Sprint 57 (Email forwarding: ImprovMX + Vercel CLI · suporte/privacidade/legal@replyflow-hivi.com) | ✅ Concluída |
 
 ---
 
@@ -225,6 +234,14 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/agency/clients/[id]/locations` | POST | Criar local para cliente da agência (máx 3) |
 | `/api/billing/extra-locations` | POST | Ajustar quantidade de locais extras no Stripe |
 | `/api/agency/clients/[id]/extra-location` | POST | Comprar +1 local extra para cliente da agência |
+| `/api/facebook/pending-pages` | GET | Servir dados de páginas Facebook pós-OAuth (cookie HTTP-only, uso único) |
+| `/api/facebook/data-deletion` | POST | Endpoint de exclusão de dados Meta (confirmação HMAC) |
+| `/api/feedback` | POST | Receber feedback de usuários da landing page (Resend → email) |
+| `/api/cron/weekly-digest` | GET | Cron job — digest semanal por email (resumo da semana em PT/EN/ES) |
+| `/api/settings/whatsapp` | PATCH | Salvar número WhatsApp isoladamente |
+| `/api/settings/whatsapp-test` | POST | Testar envio WhatsApp com o provider configurado |
+| `/api/reviews/[id]/save-manual` | POST | Salvar rascunho de resposta manual |
+| `/api/locations/[id]/gmb-relink` | POST | Forçar re-detecção automática do google_location_name |
 
 ---
 
@@ -249,9 +266,12 @@ Todo o planejamento estratégico e técnico está documentado em `_contextos/`:
 | `11_SPRINT_LIMITES_E_LOCAIS_AGENCIA.md` | Limites de plano, locais por cliente agência, add-on (BRL/USD/EUR) |
 | `12_SPRINT_PLATAFORMAS.md` | Integração multi-plataforma: Facebook OAuth + TripAdvisor manual import |
 | `13_SPRINT_PLATAFORMAS_SYNC.md` | Planejamento sync Facebook + melhorias TripAdvisor (6 tarefas com checklists) |
+| `14_SPRINT_LOCALE_DINAMICO.md` | Sprint locale dinâmico — remoção de pt-BR hardcoded |
+| `15_PLANEJAMENTO_I18N.md` | i18n completo: emails, WhatsApp e PDF em PT/EN/ES — 6 fases |
+| `16_CONEXOES_E_SERVICOS.md` | Todas as conexões externas: env vars, endpoints, arquivos-chave |
 
 ---
 
 ## Licença
 
-Proprietário — todos os direitos reservados.
+Proprietário — todos os direitos reservados. © 2024 HIVI Tecnologia Ltda.
