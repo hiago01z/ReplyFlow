@@ -495,7 +495,7 @@ export default async function LandingPage() {
               </a>
             </div>
 
-            <p className="text-xs text-gray-400 dark:text-gray-500">© 2026 <span translate="no">ReplyFlow</span>. Todos os direitos reservados.</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">© 2024 HIVI Tecnologia Ltda. Todos os direitos reservados.</p>
           </div>
 
         </div>

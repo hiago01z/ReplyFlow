@@ -198,7 +198,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">10. Propriedade intelectual</h2>
             <p>
               Todo o software, design, marca, logotipo e conteúdo do ReplyFlow são de propriedade exclusiva
-              da ReplyFlow Tecnologia Ltda. É vedada a reprodução, distribuição ou uso comercial sem
+              da HIVI Tecnologia Ltda. (operadora do ReplyFlow). É vedada a reprodução, distribuição ou uso comercial sem
               autorização expressa por escrito.
             </p>
             <p className="mt-3">
@@ -285,7 +285,7 @@ export default function TermsPage() {
               Para dúvidas, sugestões ou notificações legais:
             </p>
             <div className="mt-3 bg-gray-50 dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a35] rounded-xl p-5 text-sm space-y-1">
-              <p className="font-semibold text-gray-900 dark:text-gray-100">ReplyFlow Tecnologia Ltda.</p>
+              <p className="font-semibold text-gray-900 dark:text-gray-100">HIVI Tecnologia Ltda.</p>
               <p>Suporte: <a href="mailto:suporte@replyflow-hivi.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">suporte@replyflow-hivi.com</a></p>
               <p>Jurídico: <a href="mailto:legal@replyflow-hivi.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">legal@replyflow-hivi.com</a></p>
               <p>Site: <a href="https://replyflow-hivi.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">replyflow-hivi.com</a></p>
@@ -296,7 +296,7 @@ export default function TermsPage() {
 
         {/* Footer divider */}
         <div className="mt-14 pt-8 border-t border-gray-100 dark:border-[#2a2a35] flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400 dark:text-gray-500">
-          <p>© 2026 ReplyFlow. Todos os direitos reservados.</p>
+          <p>© 2024 HIVI Tecnologia Ltda. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Política de Privacidade</Link>
             <Link href="/data-deletion" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Exclusão de dados</Link>

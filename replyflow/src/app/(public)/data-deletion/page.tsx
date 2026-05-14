@@ -226,7 +226,7 @@ export default async function DataDeletionPage({
               Para dúvidas sobre este processo ou sobre o tratamento dos seus dados pessoais:
             </p>
             <div className="bg-gray-50 dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a35] rounded-xl p-5 text-sm space-y-1">
-              <p className="font-semibold text-gray-900 dark:text-gray-100">ReplyFlow Tecnologia Ltda.</p>
+              <p className="font-semibold text-gray-900 dark:text-gray-100">HIVI Tecnologia Ltda.</p>
               <p>Privacidade / DPO: <a href="mailto:privacidade@replyflow-hivi.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">privacidade@replyflow-hivi.com</a></p>
               <p>Suporte: <a href="mailto:suporte@replyflow-hivi.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">suporte@replyflow-hivi.com</a></p>
               <p>Site: <a href="https://replyflow-hivi.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">replyflow-hivi.com</a></p>
@@ -237,7 +237,7 @@ export default async function DataDeletionPage({
 
         {/* Footer divider */}
         <div className="mt-14 pt-8 border-t border-gray-100 dark:border-[#2a2a35] flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400 dark:text-gray-500">
-          <p>© 2026 ReplyFlow. Todos os direitos reservados.</p>
+          <p>© 2024 HIVI Tecnologia Ltda. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Política de Privacidade</Link>
             <Link href="/terms" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Termos de Serviço</Link>

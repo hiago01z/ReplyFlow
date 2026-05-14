@@ -50,7 +50,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">1. Quem somos</h2>
             <p>
               O ReplyFlow é um serviço de Software as a Service (SaaS) desenvolvido e operado por{" "}
-              <strong className="text-gray-800 dark:text-gray-200">ReplyFlow Tecnologia Ltda.</strong> ("nós",
+              <strong className="text-gray-800 dark:text-gray-200">HIVI Tecnologia Ltda.</strong> ("nós",
               "nosso"), com domínio principal em{" "}
               <strong className="text-gray-800 dark:text-gray-200">replyflow-hivi.com</strong>. O serviço
               automatiza respostas a avaliações online de negócios locais usando inteligência artificial.
@@ -306,7 +306,7 @@ export default function PrivacyPage() {
               Para dúvidas sobre privacidade ou para exercer seus direitos, entre em contato:
             </p>
             <div className="mt-3 bg-gray-50 dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a35] rounded-xl p-5 text-sm space-y-1">
-              <p className="font-semibold text-gray-900 dark:text-gray-100">ReplyFlow Tecnologia Ltda.</p>
+              <p className="font-semibold text-gray-900 dark:text-gray-100">HIVI Tecnologia Ltda.</p>
               <p>E-mail: <a href="mailto:privacidade@replyflow-hivi.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">privacidade@replyflow-hivi.com</a></p>
               <p>Site: <a href="https://replyflow-hivi.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">replyflow-hivi.com</a></p>
             </div>
@@ -316,7 +316,7 @@ export default function PrivacyPage() {
 
         {/* Divider */}
         <div className="mt-14 pt-8 border-t border-gray-100 dark:border-[#2a2a35] flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400 dark:text-gray-500">
-          <p>© 2026 ReplyFlow. Todos os direitos reservados.</p>
+          <p>© 2024 HIVI Tecnologia Ltda. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/terms" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Termos de Serviço</Link>
             <Link href="/data-deletion" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Exclusão de dados</Link>
