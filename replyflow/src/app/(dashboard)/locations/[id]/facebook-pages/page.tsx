@@ -1,8 +1,8 @@
 "use client";
 
-import { useSearchParams, useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { CheckCircle2, ChevronLeft } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { CheckCircle2, ChevronLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 interface FacebookPage {
@@ -12,22 +12,31 @@ interface FacebookPage {
 }
 
 export default function FacebookPagesPage() {
-  const params       = useParams<{ id: string }>();
-  const searchParams = useSearchParams();
-  const router       = useRouter();
-  const [saving, setSaving] = useState(false);
-  const [error,  setError]  = useState("");
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
 
   const locationId = params.id;
-  const expiresAt  = searchParams.get("expires_at") ?? null;
 
-  let pages: FacebookPage[] = [];
-  try {
-    const raw = searchParams.get("pages");
-    if (raw) pages = JSON.parse(decodeURIComponent(raw));
-  } catch {
-    pages = [];
-  }
+  const [pages,     setPages]     = useState<FacebookPage[]>([]);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [loading,   setLoading]   = useState(true);
+  const [saving,    setSaving]    = useState(false);
+  const [error,     setError]     = useState("");
+
+  // Fetch pages from server-side cookie (tokens never exposed in URL)
+  useEffect(() => {
+    fetch("/api/facebook/pending-pages")
+      .then(async (res) => {
+        if (!res.ok) throw new Error("no_data");
+        const data = await res.json() as { pages: FacebookPage[]; expiresAt: string | null };
+        setPages(data.pages ?? []);
+        setExpiresAt(data.expiresAt ?? null);
+      })
+      .catch(() => {
+        setError("Sessão expirada. Reconecte o Facebook e tente novamente.");
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   async function handleSelect(page: FacebookPage) {
     setSaving(true);
@@ -50,6 +59,26 @@ export default function FacebookPagesPage() {
       setError("Erro ao salvar. Tente novamente.");
       setSaving(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="animate-fade-in max-w-xl flex items-center gap-2 py-8 text-gray-400">
+        <Loader2 size={16} className="animate-spin" />
+        <span className="text-sm">Carregando páginas...</span>
+      </div>
+    );
+  }
+
+  if (error && pages.length === 0) {
+    return (
+      <div className="animate-fade-in max-w-xl">
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">{error}</p>
+        <Link href={`/locations/${locationId}`} className="text-indigo-600 text-sm inline-block">
+          ← Voltar para o local
+        </Link>
+      </div>
+    );
   }
 
   if (pages.length === 0) {

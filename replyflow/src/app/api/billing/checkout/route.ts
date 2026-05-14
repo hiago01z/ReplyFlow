@@ -55,5 +55,9 @@ export async function POST(request: Request) {
     subscription_data: { metadata: { organizationId: org.id } },
   });
 
-  return NextResponse.redirect(session.url!, { status: 303 });
+  if (!session.url) {
+    return NextResponse.json({ error: "Stripe não retornou URL de checkout." }, { status: 502 });
+  }
+
+  return NextResponse.redirect(session.url, { status: 303 });
 }

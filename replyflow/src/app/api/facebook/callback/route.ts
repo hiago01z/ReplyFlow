@@ -9,6 +9,8 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 
+const FB_API_VERSION = "v22.0";
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code       = searchParams.get("code");
@@ -34,7 +36,7 @@ export async function GET(request: Request) {
 
   // Trocar code por user access token
   const tokenRes = await fetch(
-    `https://graph.facebook.com/v19.0/oauth/access_token?` +
+    `https://graph.facebook.com/${FB_API_VERSION}/oauth/access_token?` +
     new URLSearchParams({
       client_id:     appId,
       client_secret: appSecret,
@@ -53,7 +55,7 @@ export async function GET(request: Request) {
   // Trocar short-lived token por long-lived token (válido 60 dias)
   // Os page_access_tokens obtidos a partir de um long-lived token são permanentes.
   const llRes = await fetch(
-    `https://graph.facebook.com/v19.0/oauth/access_token?` +
+    `https://graph.facebook.com/${FB_API_VERSION}/oauth/access_token?` +
     new URLSearchParams({
       grant_type:       "fb_exchange_token",
       client_id:        appId,
@@ -77,7 +79,7 @@ export async function GET(request: Request) {
 
   // Buscar as páginas gerenciadas pelo usuário
   const pagesRes = await fetch(
-    `https://graph.facebook.com/v19.0/me/accounts?fields=id,name,access_token&access_token=${userToken}`,
+    `https://graph.facebook.com/${FB_API_VERSION}/me/accounts?fields=id,name,access_token&access_token=${userToken}`,
   );
 
   if (!pagesRes.ok) {
@@ -128,14 +130,25 @@ export async function GET(request: Request) {
   }
 
   // Múltiplas páginas → redirecionar para seletor
-  // Passamos as páginas via query param (serializado, máx seguro para poucos itens)
-  const pagesParam = encodeURIComponent(JSON.stringify(pages.map(p => ({
-    id: p.id, name: p.name, token: p.access_token,
-  }))));
+  // Os tokens são passados via cookie HTTP-only (nunca na URL) para evitar exposição
+  // em logs, histórico do navegador ou cabeçalhos Referer.
+  const pendingData = JSON.stringify({
+    locationId,
+    expiresAt: tokenExpiry,
+    pages: pages.map(p => ({ id: p.id, name: p.name, token: p.access_token })),
+  });
 
-  const expiryParam = tokenExpiry ? `&expires_at=${encodeURIComponent(tokenExpiry)}` : "";
-
-  return NextResponse.redirect(
-    `${origin}/locations/${locationId}/facebook-pages?pages=${pagesParam}${expiryParam}`,
+  const redirectResponse = NextResponse.redirect(
+    `${origin}/locations/${locationId}/facebook-pages`,
   );
+
+  redirectResponse.cookies.set("fb_pending_pages", pendingData, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge:   300, // 5 minutos — tempo suficiente para o usuário selecionar a página
+    path:     "/",
+  });
+
+  return redirectResponse;
 }

@@ -5,6 +5,8 @@ import { GoogleMyBusinessClient } from '@/lib/google/myBusiness'
 import { rateLimit } from '@/lib/ratelimit'
 import { z } from 'zod'
 
+const FB_API_VERSION = 'v22.0'
+
 const publishSchema = z.object({
   responseContent: z.string().min(10).max(4000),
 })
@@ -94,7 +96,7 @@ export async function POST(
     }
 
     const fbRes = await fetch(
-      `https://graph.facebook.com/v19.0/${review.external_id}/comments`,
+      `https://graph.facebook.com/${FB_API_VERSION}/${review.external_id}/comments`,
       {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
