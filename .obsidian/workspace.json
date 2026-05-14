@@ -185,6 +185,7 @@
   },
   "active": "5de7bd0960b0d045",
   "lastOpenFiles": [
+    "replyflow/src/components/analytics/AnalyticsDashboardClient.tsx",
     "replyflow/src/components/locations/NewLocationForm.tsx",
     "replyflow/src/app/api/reviews/[id]/save-manual/route.ts",
     "replyflow/src/app/api/reviews/[id]/save-manual",
@@ -210,7 +211,6 @@
     "_contextos/12_INTEGRACAO_PLATAFORMAS.md",
     "replyflow/src/lib/i18n/strings-report.ts",
     "replyflow/src/lib/i18n/strings-digest.ts",
-    "replyflow/src/lib/i18n/strings-email.ts",
     "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
     "_contextos/01_ETAPA1_DEFINICAO_ESTRATEGICA.md",
     "replyflow/README.md",
