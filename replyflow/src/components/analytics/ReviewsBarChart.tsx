@@ -63,6 +63,7 @@ export function ReviewsBarChart({ data, days }: Props) {
         />
         <YAxis
           allowDecimals={false}
+          domain={[0, (dataMax: number) => Math.max(dataMax, 1)]}
           tick={{ fontSize: 11, fill: "#9ca3af" }}
           axisLine={false}
           tickLine={false}
