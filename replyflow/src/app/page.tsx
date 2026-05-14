@@ -421,9 +421,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── Feedback ──────────────────────────────────────────────────────── */}
-      <FeedbackSection />
-
       {/* ── CTA Final ─────────────────────────────────────────────────────── */}
       <section className="bg-indigo-600 dark:bg-indigo-700 py-20 px-6 text-center">
         <div className="max-w-2xl mx-auto">
@@ -444,6 +441,9 @@ export default async function LandingPage() {
           </p>
         </div>
       </section>
+
+      {/* ── Feedback ──────────────────────────────────────────────────────── */}
+      <FeedbackSection />
 
       {/* ── Footer ────────────────────────────────────────────────────────── */}
       <footer className="border-t border-gray-100 dark:border-[#2a2a35] bg-white dark:bg-[#0f0f13] py-10 px-6">

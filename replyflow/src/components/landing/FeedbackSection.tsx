@@ -114,7 +114,6 @@ export function FeedbackSection() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Seu nome"
                     maxLength={100}
                     className="w-full rounded-xl border border-gray-200 dark:border-[#2a2a35] bg-gray-50 dark:bg-[#111118] text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition"
                   />
@@ -127,22 +126,24 @@ export function FeedbackSection() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Para retorno da equipe"
                     maxLength={254}
                     className="w-full rounded-xl border border-gray-200 dark:border-[#2a2a35] bg-gray-50 dark:bg-[#111118] text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition"
                   />
+                  <p className="mt-1 text-[11px] text-gray-400">Para que possamos responder</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                   Mensagem <span className="text-red-400">*</span>
                 </label>
+                <p className="text-[11px] text-gray-400 mb-1.5">
+                  Sugestão, elogio ou crítica — toda mensagem é bem-vinda.
+                </p>
                 <textarea
                   required
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Conte o que você pensa sobre o ReplyFlow — sugestões, dificuldades ou elogios são bem-vindos!"
                   rows={5}
                   maxLength={2000}
                   className="w-full rounded-xl border border-gray-200 dark:border-[#2a2a35] bg-gray-50 dark:bg-[#111118] text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition resize-none"
