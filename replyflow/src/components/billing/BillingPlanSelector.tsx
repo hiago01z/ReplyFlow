@@ -79,7 +79,7 @@ export function BillingPlanSelector({ plans, annualEnabled, currency }: BillingP
           const useAnnual    = annual && !!plan.annualPriceId;
           const priceId      = useAnnual ? plan.annualPriceId : plan.priceId;
           const displayPrice = useAnnual ? plan.annualMonthly : plan.price;
-          const suffix       = useAnnual ? "/mês*" : "/mês";
+          const suffix       = "/mês";
 
           return (
             <div
@@ -144,12 +144,6 @@ export function BillingPlanSelector({ plans, annualEnabled, currency }: BillingP
           );
         })}
       </div>
-
-      {annual && (
-        <p className="text-xs text-center text-gray-400 mb-2">
-          * Cobrado como {plans.map((p) => fmtCurrency(p.annualPrice, currency)).join(" / ")} por ano, de uma vez.
-        </p>
-      )}
     </div>
   );
 }

@@ -84,7 +84,7 @@ export default async function SettingsPage() {
       />
 
       <div className="max-w-xl mt-5">
-        <TemplatesManager />
+        <TemplatesManager plan={org.plan} />
       </div>
 
       <div className="max-w-xl mt-5">

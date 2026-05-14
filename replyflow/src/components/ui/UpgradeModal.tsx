@@ -158,7 +158,7 @@ export function UpgradeModal({ open, onClose, reason = "response_limit" }: Upgra
           {/* Footer */}
           <div className="px-6 pb-5 flex items-center justify-between">
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              7 dias grátis · sem fidelidade · cancele quando quiser
+              Sem fidelidade · cancele quando quiser
             </p>
             <button
               onClick={onClose}

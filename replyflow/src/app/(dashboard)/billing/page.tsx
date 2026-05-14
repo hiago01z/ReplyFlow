@@ -287,9 +287,6 @@ export default async function BillingPage({
             <>
               <p className="text-sm font-semibold text-gray-700 mb-4">Escolha um plano</p>
               <BillingPlanSelector plans={selectorPlans} annualEnabled={annualEnabled} currency={currency} />
-              <p className="text-xs text-center text-gray-400 mt-2">
-                Todos os planos incluem 7 dias grátis. Sem fidelidade. Cancele quando quiser.
-              </p>
             </>
           );
         }

@@ -140,10 +140,10 @@ export function ReclamaAquiLinkWizard({ locationId, raUrl, raConnected }: Reclam
 
           {/* Passo a passo */}
           <div className="space-y-3">
-            <Step n={1} label="Acesse o Reclame Aqui e vá até a página da sua empresa:" />
+            <Step n={1} label="Acesse o Reclame Aqui e faça login como empresa:" />
             <div className="ml-8">
               <a
-                href="https://www.reclameaqui.com.br/empresa/login"
+                href="https://www.reclameaqui.com.br"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#E8281C] hover:text-[#c51f15] bg-[#E8281C]/10 border border-[#E8281C]/30 px-3 py-1.5 rounded-lg transition-colors"
@@ -153,11 +153,11 @@ export function ReclamaAquiLinkWizard({ locationId, raUrl, raConnected }: Reclam
               </a>
             </div>
 
-            <Step n={2} label='Após fazer login, acesse "Minha Empresa" e clique em "Ver página pública":' />
+            <Step n={2} label='No menu superior, clique em "Para empresas" → "Entrar" para acessar o painel:' />
             <div className="ml-8">
               <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#2a2a35] rounded-lg px-3 py-2.5 text-xs text-gray-600 dark:text-gray-400 space-y-1.5">
-                <p>Login → <strong>Minha Empresa</strong> → <strong>Ver página pública</strong></p>
-                <p className="text-gray-400 dark:text-gray-500">Você será redirecionado para a página pública da empresa.</p>
+                <p><strong>Para empresas</strong> → <strong>Entrar</strong> → <strong>Minha Empresa</strong> → <strong>Ver página pública</strong></p>
+                <p className="text-gray-400 dark:text-gray-500">A URL da sua página pública aparecerá na barra de endereço.</p>
               </div>
             </div>
 

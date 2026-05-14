@@ -76,12 +76,17 @@ export async function POST(request: Request) {
   const serviceClient = createServiceClient()
   const { data: userRecord } = await serviceClient
     .from('users')
-    .select('organization_id')
+    .select('organization_id, organization:organizations(plan)')
     .eq('id', user.id)
     .single()
 
   if (!userRecord?.organization_id) {
     return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
+  }
+
+  const plan = (userRecord.organization as unknown as { plan: string } | null)?.plan ?? 'free'
+  if (plan === 'free') {
+    return NextResponse.json({ error: 'Upgrade required', message: 'Modelos personalizados estão disponíveis nos planos pagos.' }, { status: 403 })
   }
 
   const { data, error } = await serviceClient

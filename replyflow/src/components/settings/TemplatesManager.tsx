@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { BookOpen, Plus, Trash2, Edit2, Check, X, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, Plus, Trash2, Edit2, Check, X, Loader2, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface Template {
   id:         string;
@@ -46,7 +47,8 @@ const EMPTY_FORM = {
   max_rating: 5,
 };
 
-export function TemplatesManager() {
+export function TemplatesManager({ plan }: { plan: string }) {
+  const isPaid = plan !== "free";
   const [templates, setTemplates]   = useState<Template[]>([]);
   const [loading,   setLoading]     = useState(true);
   const [showForm,  setShowForm]    = useState(false);
@@ -166,10 +168,16 @@ export function TemplatesManager() {
         </h2>
         <button
           type="button"
-          onClick={openNew}
-          className="ml-auto flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors"
+          onClick={isPaid ? openNew : undefined}
+          disabled={!isPaid}
+          className={cn(
+            "ml-auto flex items-center gap-1 text-xs font-medium transition-colors",
+            isPaid
+              ? "text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+              : "text-gray-300 dark:text-gray-600 cursor-not-allowed",
+          )}
         >
-          <Plus size={13} />
+          {isPaid ? <Plus size={13} /> : <Lock size={13} />}
           Novo modelo
         </button>
       </div>
@@ -182,8 +190,24 @@ export function TemplatesManager() {
         para inserir o nome do cliente automaticamente.
       </p>
 
+      {/* Free plan upgrade prompt */}
+      {!isPaid && (
+        <div className="mb-4 rounded-xl border border-indigo-100 dark:border-indigo-800/40 bg-indigo-50/60 dark:bg-indigo-900/10 px-4 py-3 flex items-center gap-3">
+          <Lock size={15} className="text-indigo-400 shrink-0" />
+          <p className="text-xs text-indigo-700 dark:text-indigo-300 flex-1">
+            Modelos personalizados estão disponíveis nos <strong>planos pagos</strong>.
+          </p>
+          <Link
+            href="/billing"
+            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 shrink-0 underline"
+          >
+            Fazer upgrade
+          </Link>
+        </div>
+      )}
+
       {/* Form */}
-      {showForm && (
+      {showForm && isPaid && (
         <div className="mb-4 rounded-xl border border-indigo-200 dark:border-indigo-800/50 bg-indigo-50/40 dark:bg-indigo-900/10 p-4 space-y-3">
           <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
             {editId ? "Editar modelo" : "Novo modelo"}
