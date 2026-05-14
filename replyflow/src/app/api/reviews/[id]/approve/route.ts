@@ -105,28 +105,57 @@ export async function GET(
       "#6366f1");
   }
 
-  // ── Publicar no Google My Business ───────────────────────────────────────
+  // ── Publicar na plataforma correta ───────────────────────────────────────
   const location = review.location as Record<string, unknown>;
 
-  if (
-    review.platform === "google" &&
-    review.external_id &&
-    location?.google_access_token &&
-    location?.google_location_name
-  ) {
-    try {
-      const gmb = new GoogleMyBusinessClient({
-        accessToken:  location.google_access_token as string,
-        refreshToken: (location.google_refresh_token as string) ?? null,
-        locationName: location.google_location_name as string,
-      });
-      const reviewName = `${location.google_location_name}/reviews/${review.external_id}`;
-      await gmb.replyToReview(reviewName, response.content);
-    } catch (err) {
-      console.error("[approve] GMB publish error:", err);
-      return htmlPage("Erro ao publicar", "❌",
-        "<p>Não foi possível publicar no Google. Acesse o dashboard para tentar novamente.</p>",
-        "#dc2626");
+  if (review.platform === "google") {
+    if (
+      review.external_id &&
+      location?.google_access_token &&
+      location?.google_location_name
+    ) {
+      try {
+        const gmb = new GoogleMyBusinessClient({
+          accessToken:  location.google_access_token as string,
+          refreshToken: (location.google_refresh_token as string) ?? null,
+          locationName: location.google_location_name as string,
+        });
+        const reviewName = `${location.google_location_name}/reviews/${review.external_id}`;
+        await gmb.replyToReview(reviewName, response.content);
+      } catch (err) {
+        console.error("[approve] GMB publish error:", err);
+        return htmlPage("Erro ao publicar", "❌",
+          "<p>Não foi possível publicar no Google. Acesse o dashboard para tentar novamente.</p>",
+          "#dc2626");
+      }
+    }
+  } else if (review.platform === "facebook") {
+    if (review.external_id && location?.facebook_access_token) {
+      try {
+        const fbRes = await fetch(
+          `https://graph.facebook.com/v19.0/${review.external_id}/comments`,
+          {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({
+              message:      response.content,
+              access_token: location.facebook_access_token as string,
+            }),
+          },
+        );
+        if (!fbRes.ok) {
+          const errText = await fbRes.text();
+          console.error("[approve] Facebook publish error:", errText);
+          return htmlPage("Erro ao publicar", "❌",
+            "<p>Não foi possível publicar no Facebook. Acesse o dashboard para tentar novamente.</p>",
+            "#dc2626");
+        }
+      } catch (err) {
+        console.error("[approve] Facebook publish error:", err);
+        return htmlPage("Erro ao publicar", "❌",
+          "<p>Não foi possível publicar no Facebook. Acesse o dashboard para tentar novamente.</p>",
+          "#dc2626");
+      }
     }
   }
 
@@ -144,7 +173,8 @@ export async function GET(
       .eq("id", reviewId),
   ]);
 
+  const platformLabel = review.platform === "facebook" ? "Facebook" : "Google";
   return htmlPage("Resposta publicada! 🎉", "✅",
-    "<p>Sua resposta foi publicada no Google com sucesso.<br>Obrigado por usar o ReplyFlow!</p>",
+    `<p>Sua resposta foi publicada no ${platformLabel} com sucesso.<br>Obrigado por usar o ReplyFlow!</p>`,
     "#16a34a");
 }

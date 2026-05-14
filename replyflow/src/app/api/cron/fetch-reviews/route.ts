@@ -3,7 +3,8 @@ import { waitUntil } from '@vercel/functions'
 import { createServiceClient } from '@/lib/supabase/server'
 import { GoogleMyBusinessClient } from '@/lib/google/myBusiness'
 import { generateReviewResponse } from '@/lib/openai/generateResponse'
-import { sendNegativeReviewAlert, sendWhatsAppAlert } from '@/lib/email/alerts'
+import { sendNegativeReviewAlert, sendWhatsAppAlert, sendWhatsAppApproval } from '@/lib/email/alerts'
+import { createApprovalToken } from '@/lib/approvalToken'
 import type { AppLocale } from '@/lib/i18n/locale'
 import { sendWebhook, type WebhookPayload } from '@/lib/webhooks/sendWebhook'
 import type { LocationNiche, LocationTone } from '@/types'
@@ -46,6 +47,8 @@ async function runSync() {
     const maxMs = 20 * 60 * 1000
     return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs
   }
+
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow-hivi.com'
 
   const results = {
     processed:              0,
@@ -186,39 +189,107 @@ async function runSync() {
 
         results.newReviews++
 
-        // ── Alerta para reviews negativos (1-2 estrelas) ─────────────────────
-        if (rating <= 2) {
-          const { data: directOwner } = await serviceClient
+        // ── Buscar owner/org uma vez por review novo ──────────────────────────
+        const { data: directOwner } = await serviceClient
+          .from('users')
+          .select('email, whatsapp, email_alerts, preferred_locale')
+          .eq('organization_id', location.organization_id)
+          .eq('role', 'owner')
+          .single()
+
+        const org = location.organization as unknown as {
+          plan: string; subscription_status: string; alert_email: string | null;
+          webhook_url: string | null; webhook_secret: string | null;
+          parent_agency_id: string | null;
+        } | null
+
+        // Agency client orgs have no users — fall back to agency owner
+        let orgUser = directOwner
+        if (!orgUser && org?.parent_agency_id) {
+          const { data: agencyOwner } = await serviceClient
             .from('users')
             .select('email, whatsapp, email_alerts, preferred_locale')
-            .eq('organization_id', location.organization_id)
+            .eq('organization_id', org.parent_agency_id)
             .eq('role', 'owner')
             .single()
+          orgUser = agencyOwner ?? null
+        }
 
-          const org = location.organization as unknown as {
-            plan: string; subscription_status: string; alert_email: string | null;
-            webhook_url: string | null; webhook_secret: string | null;
-            parent_agency_id: string | null;
-          } | null
+        const isProOrAgency = org?.plan === 'pro' || org?.plan === 'agency'
+        const alertTo       = org?.alert_email || orgUser?.email
+        const locale        = (orgUser?.preferred_locale ?? 'pt') as AppLocale
 
-          // Agency client orgs have no users — fall back to agency owner
-          let orgUser = directOwner
-          if (!orgUser && org?.parent_agency_id) {
-            const { data: agencyOwner } = await serviceClient
-              .from('users')
-              .select('email, whatsapp, email_alerts, preferred_locale')
-              .eq('organization_id', org.parent_agency_id)
-              .eq('role', 'owner')
+        // ── Fluxo de aprovação via WhatsApp (Pro/Agency, !auto_publish) ───────
+        // Gera rascunho com IA + envia link de aprovação 1 clique pelo WhatsApp.
+        // Só ativado quando o usuário não está no modo automático (auto_publish=false).
+        let approvalSent = false
+        if (isProOrAgency && orgUser?.whatsapp && !location.auto_publish) {
+          try {
+            const { content: draft, tokensUsed } = await generateReviewResponse({
+              reviewContent: gmbReview.comment ?? '',
+              rating,
+              authorName:   gmbReview.reviewer.displayName,
+              niche:        location.niche as LocationNiche,
+              tone:         location.tone as LocationTone,
+              businessName: location.name,
+            })
+
+            const { data: savedResponse } = await serviceClient
+              .from('responses')
+              .insert({
+                review_id:   inserted.id,
+                content:     draft,
+                ai_model:    process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
+                tokens_used: tokensUsed,
+              })
+              .select('id')
               .single()
-            orgUser = agencyOwner ?? null
+
+            if (savedResponse) {
+              const token      = createApprovalToken(inserted.id, savedResponse.id)
+              const approveUrl = `${APP_URL}/api/reviews/${inserted.id}/approve?token=${token}`
+
+              await sendWhatsAppApproval({
+                phone:         orgUser.whatsapp,
+                businessName:  location.name,
+                authorName:    gmbReview.reviewer.displayName,
+                rating,
+                responseDraft: draft,
+                approveUrl,
+                dashboardUrl:  `${APP_URL}/reviews?highlight=${inserted.id}`,
+                locale,
+              }).catch(() => null)
+
+              void serviceClient.from('alerts').insert({
+                review_id: inserted.id,
+                channel:   'whatsapp',
+                recipient: orgUser.whatsapp,
+              })
+
+              approvalSent = true
+
+              // Incrementar contador de respostas IA (rastreamento)
+              const currentMonth = new Date().toISOString().slice(0, 7)
+              const { data: orgNow } = await serviceClient
+                .from('organizations')
+                .select('ai_responses_count, ai_responses_month')
+                .eq('id', location.organization_id)
+                .single()
+              const prevMonth = orgNow?.ai_responses_month ?? ''
+              const prevCount = prevMonth === currentMonth ? (orgNow?.ai_responses_count ?? 0) : 0
+              void serviceClient
+                .from('organizations')
+                .update({ ai_responses_count: prevCount + 1, ai_responses_month: currentMonth })
+                .eq('id', location.organization_id)
+            }
+          } catch (err) {
+            console.warn(`[cron] WhatsApp approval failed for review ${inserted.id}:`, err instanceof Error ? err.message : err)
           }
+        }
 
-          // Use custom alert email if set, otherwise fall back to user's login email
-          const alertTo = org?.alert_email || orgUser?.email
-
+        // ── Alertas para reviews negativos (1-2 estrelas) ────────────────────
+        if (rating <= 2) {
           if (alertTo && orgUser?.email_alerts !== false) {
-            const isProOrAgency = org?.plan === 'pro' || org?.plan === 'agency'
-
             // E-mail para todos os planos
             await sendNegativeReviewAlert({
               to:           alertTo,
@@ -227,7 +298,7 @@ async function runSync() {
               rating,
               content:      gmbReview.comment ?? '',
               reviewId:     inserted.id,
-              locale:       (orgUser?.preferred_locale ?? 'pt') as AppLocale,
+              locale,
             }).catch(() => null)
 
             await serviceClient.from('alerts').insert({
@@ -236,8 +307,9 @@ async function runSync() {
               recipient: alertTo,
             })
 
-            // WhatsApp apenas para Pro/Agency com número cadastrado
-            if (isProOrAgency && orgUser?.whatsapp) {
+            // Alerta simples WA apenas se o fluxo de aprovação não foi disparado
+            // (evita mensagem duplicada: aprovação já inclui o alerta de review negativo)
+            if (!approvalSent && isProOrAgency && orgUser?.whatsapp) {
               await sendWhatsAppAlert({
                 phone:        orgUser.whatsapp,
                 businessName: location.name,
@@ -245,7 +317,7 @@ async function runSync() {
                 rating,
                 content:      gmbReview.comment ?? '',
                 reviewId:     inserted.id,
-                locale:       (orgUser.preferred_locale ?? 'pt') as AppLocale,
+                locale,
               }).catch(() => null)
 
               await serviceClient.from('alerts').insert({
@@ -258,8 +330,7 @@ async function runSync() {
             results.alertsSent++
           }
 
-          // ── Webhook personalizado (Pro/Agency) ───────────────────────────
-          const isProOrAgency = (org?.plan === 'pro' || org?.plan === 'agency')
+          // ── Webhook personalizado (Pro/Agency) ─────────────────────────────
           if (isProOrAgency && org?.webhook_url) {
             const webhookPayload: WebhookPayload = {
               event:         'review.negative',
@@ -270,7 +341,7 @@ async function runSync() {
               rating,
               content:       gmbReview.comment ?? null,
               platform:      'google',
-              review_url:    `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow-hivi.com'}/reviews?highlight=${inserted.id}`,
+              review_url:    `${APP_URL}/reviews?highlight=${inserted.id}`,
               timestamp:     new Date().toISOString(),
             }
             await sendWebhook(org.webhook_url, org.webhook_secret ?? null, webhookPayload)
@@ -306,7 +377,7 @@ async function runSync() {
   // ── PASS 2: Buscar novas avaliações do Facebook ──────────────────────────────
   const { data: facebookLocations, error: fbError } = await serviceClient
     .from('locations')
-    .select('id, name, niche, organization_id, facebook_page_id, facebook_access_token, organization:organizations(plan, alert_email, webhook_url, webhook_secret, parent_agency_id)')
+    .select('id, name, niche, tone, auto_publish, organization_id, facebook_page_id, facebook_access_token, organization:organizations(plan, alert_email, webhook_url, webhook_secret, parent_agency_id)')
     .eq('active', true)
     .eq('facebook_connected', true)
     .not('facebook_access_token', 'is', null)
@@ -367,76 +438,141 @@ async function runSync() {
 
         results.newFacebookReviews++
 
-        // ── Alerta para avaliações negativas (1-2 estrelas) ──────────────────
-        if (rating <= 2) {
-          const { data: directOwner } = await serviceClient
+        // ── Buscar owner/org uma vez por avaliação nova ───────────────────────
+        const { data: fbDirectOwner } = await serviceClient
+          .from('users')
+          .select('email, whatsapp, email_alerts, preferred_locale')
+          .eq('organization_id', location.organization_id)
+          .eq('role', 'owner')
+          .single()
+
+        const fbOrg = location.organization as unknown as {
+          plan: string; alert_email: string | null;
+          webhook_url: string | null; webhook_secret: string | null;
+          parent_agency_id: string | null;
+        } | null
+
+        let fbOrgUser = fbDirectOwner
+        if (!fbOrgUser && fbOrg?.parent_agency_id) {
+          const { data: agencyOwner } = await serviceClient
             .from('users')
             .select('email, whatsapp, email_alerts, preferred_locale')
-            .eq('organization_id', location.organization_id)
+            .eq('organization_id', fbOrg.parent_agency_id)
             .eq('role', 'owner')
             .single()
+          fbOrgUser = agencyOwner ?? null
+        }
 
-          const org = location.organization as unknown as {
-            plan: string; alert_email: string | null;
-            webhook_url: string | null; webhook_secret: string | null;
-            parent_agency_id: string | null;
-          } | null
+        const fbIsProOrAgency = fbOrg?.plan === 'pro' || fbOrg?.plan === 'agency'
+        const fbAlertTo       = fbOrg?.alert_email || fbOrgUser?.email
+        const fbLocale        = (fbOrgUser?.preferred_locale ?? 'pt') as AppLocale
 
-          // Agency client orgs have no users — fall back to agency owner
-          let orgUser = directOwner
-          if (!orgUser && org?.parent_agency_id) {
-            const { data: agencyOwner } = await serviceClient
-              .from('users')
-              .select('email, whatsapp, email_alerts, preferred_locale')
-              .eq('organization_id', org.parent_agency_id)
-              .eq('role', 'owner')
+        // ── Fluxo de aprovação via WhatsApp (Pro/Agency, !auto_publish) ───────
+        let fbApprovalSent = false
+        if (fbIsProOrAgency && fbOrgUser?.whatsapp && !location.auto_publish) {
+          try {
+            const { content: draft, tokensUsed } = await generateReviewResponse({
+              reviewContent: content ?? '',
+              rating,
+              authorName:   fbReview.reviewer.name,
+              niche:        location.niche as LocationNiche,
+              tone:         (location as unknown as { tone: LocationTone }).tone,
+              businessName: location.name,
+            })
+
+            const { data: savedResponse } = await serviceClient
+              .from('responses')
+              .insert({
+                review_id:   inserted.id,
+                content:     draft,
+                ai_model:    process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
+                tokens_used: tokensUsed,
+              })
+              .select('id')
               .single()
-            orgUser = agencyOwner ?? null
+
+            if (savedResponse) {
+              const token      = createApprovalToken(inserted.id, savedResponse.id)
+              const approveUrl = `${APP_URL}/api/reviews/${inserted.id}/approve?token=${token}`
+
+              await sendWhatsAppApproval({
+                phone:         fbOrgUser.whatsapp,
+                businessName:  location.name,
+                authorName:    fbReview.reviewer.name,
+                rating,
+                responseDraft: draft,
+                approveUrl,
+                dashboardUrl:  `${APP_URL}/reviews?highlight=${inserted.id}`,
+                locale:        fbLocale,
+              }).catch(() => null)
+
+              void serviceClient.from('alerts').insert({
+                review_id: inserted.id,
+                channel:   'whatsapp',
+                recipient: fbOrgUser.whatsapp,
+              })
+
+              fbApprovalSent = true
+
+              const currentMonth = new Date().toISOString().slice(0, 7)
+              const { data: orgNow } = await serviceClient
+                .from('organizations')
+                .select('ai_responses_count, ai_responses_month')
+                .eq('id', location.organization_id)
+                .single()
+              const prevMonth = orgNow?.ai_responses_month ?? ''
+              const prevCount = prevMonth === currentMonth ? (orgNow?.ai_responses_count ?? 0) : 0
+              void serviceClient
+                .from('organizations')
+                .update({ ai_responses_count: prevCount + 1, ai_responses_month: currentMonth })
+                .eq('id', location.organization_id)
+            }
+          } catch (err) {
+            console.warn(`[cron] WhatsApp approval (Facebook) failed for review ${inserted.id}:`, err instanceof Error ? err.message : err)
           }
+        }
 
-          const alertTo = org?.alert_email || orgUser?.email
-
-          if (alertTo && orgUser?.email_alerts !== false) {
-            const isProOrAgency = org?.plan === 'pro' || org?.plan === 'agency'
-
+        // ── Alertas para avaliações negativas (1-2 estrelas) ─────────────────
+        if (rating <= 2) {
+          if (fbAlertTo && fbOrgUser?.email_alerts !== false) {
             await sendNegativeReviewAlert({
-              to:           alertTo,
+              to:           fbAlertTo,
               businessName: location.name,
               authorName:   fbReview.reviewer.name,
               rating,
               content:      content ?? '',
               reviewId:     inserted.id,
-              locale:       (orgUser?.preferred_locale ?? 'pt') as AppLocale,
+              locale:       fbLocale,
             }).catch(() => null)
 
             await serviceClient.from('alerts').insert({
               review_id: inserted.id,
               channel:   'email',
-              recipient: alertTo,
+              recipient: fbAlertTo,
             })
 
-            if (isProOrAgency && orgUser?.whatsapp) {
+            if (!fbApprovalSent && fbIsProOrAgency && fbOrgUser?.whatsapp) {
               await sendWhatsAppAlert({
-                phone:        orgUser.whatsapp,
+                phone:        fbOrgUser.whatsapp,
                 businessName: location.name,
                 authorName:   fbReview.reviewer.name,
                 rating,
                 content:      content ?? '',
                 reviewId:     inserted.id,
-                locale:       (orgUser.preferred_locale ?? 'pt') as AppLocale,
+                locale:       fbLocale,
               }).catch(() => null)
 
               await serviceClient.from('alerts').insert({
                 review_id: inserted.id,
                 channel:   'whatsapp',
-                recipient: orgUser.whatsapp,
+                recipient: fbOrgUser.whatsapp,
               })
             }
 
             results.alertsSent++
 
-            // Webhook personalizado (Pro/Agency)
-            if (isProOrAgency && org?.webhook_url) {
+            // ── Webhook personalizado (Pro/Agency) ───────────────────────────
+            if (fbIsProOrAgency && fbOrg?.webhook_url) {
               const webhookPayload: WebhookPayload = {
                 event:         'review.negative',
                 review_id:     inserted.id,
@@ -446,10 +582,10 @@ async function runSync() {
                 rating,
                 content,
                 platform:      'facebook',
-                review_url:    `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://replyflow-hivi.com'}/reviews?highlight=${inserted.id}`,
+                review_url:    `${APP_URL}/reviews?highlight=${inserted.id}`,
                 timestamp:     new Date().toISOString(),
               }
-              await sendWebhook(org.webhook_url, org.webhook_secret ?? null, webhookPayload)
+              await sendWebhook(fbOrg.webhook_url, fbOrg.webhook_secret ?? null, webhookPayload)
                 .catch((err) => console.warn(`[cron] Facebook webhook failed for org ${location.organization_id}:`, err instanceof Error ? err.message : err))
             }
           }
