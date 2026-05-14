@@ -8,7 +8,7 @@ export interface UpgradeModalProps {
   open:         boolean;
   onClose:      () => void;
   /** Razão do bloqueio — exibida no topo do modal */
-  reason?:      "response_limit" | "location_limit" | "whatsapp" | "report" | "bulk" | "trial_expired";
+  reason?:      "response_limit" | "location_limit" | "whatsapp" | "report" | "bulk" | "trial_expired" | "tone";
 }
 
 const REASON_COPY: Record<NonNullable<UpgradeModalProps["reason"]>, { title: string; subtitle: string }> = {
@@ -35,6 +35,10 @@ const REASON_COPY: Record<NonNullable<UpgradeModalProps["reason"]>, { title: str
   bulk: {
     title:    "Ações em lote disponíveis no plano Starter+",
     subtitle: "Gere e publique respostas para múltiplos reviews de uma vez.",
+  },
+  tone: {
+    title:    "Tom personalizado disponível no plano Starter+",
+    subtitle: "Escolha entre Amigável, Formal ou Descontraído para personalizar a voz da IA.",
   },
 };
 

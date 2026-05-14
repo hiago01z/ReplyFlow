@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw, PowerOff, X, AlertTriangle, Link2 } from "lucide-react";
+import { MapPin, Zap, Trash2, CheckCircle2, Globe, Copy, ExternalLink, RefreshCw, PowerOff, X, AlertTriangle, Link2, Lock } from "lucide-react";
+import { UpgradeModal } from "@/components/ui/UpgradeModal";
+import type { UpgradeModalProps } from "@/components/ui/UpgradeModal";
 import type { Location } from "@/types";
 import { GmbLinkWizard } from "@/components/locations/GmbLinkWizard";
 import { TripAdvisorLinkWizard } from "@/components/locations/TripAdvisorLinkWizard";
@@ -32,15 +34,19 @@ const TONES = [
 interface LocationEditFormProps {
   location: Location;
   backHref?: string;
+  plan?: string;
 }
 
-export function LocationEditForm({ location, backHref = "/locations" }: LocationEditFormProps) {
+export function LocationEditForm({ location, backHref = "/locations", plan = "free" }: LocationEditFormProps) {
   const router = useRouter();
   const { success, error: toastError, info } = useToast();
 
+  const toneIsLocked = plan === "free";
+  const [upgradeModal, setUpgradeModal] = useState<{ open: boolean; reason: UpgradeModalProps["reason"] }>({ open: false, reason: "response_limit" });
+
   const [name,        setName]        = useState(location.name);
   const [niche,       setNiche]       = useState(location.niche);
-  const [tone,        setTone]        = useState(location.tone);
+  const [tone,        setTone]        = useState(toneIsLocked ? "formal" : location.tone);
   const [autoPublish,    setAutoPublish]    = useState(location.auto_publish);
   const [minRating,      setMinRating]      = useState(location.auto_publish_min_rating ?? 3);
   const [isPublic,       setIsPublic]       = useState(location.is_public ?? false);
@@ -125,7 +131,7 @@ export function LocationEditForm({ location, backHref = "/locations" }: Location
         body: JSON.stringify({
           name,
           niche,
-          tone,
+          tone: toneIsLocked ? "formal" : tone,
           auto_publish: autoPublish,
           auto_publish_min_rating: minRating,
           is_public: isPublic,
@@ -203,6 +209,12 @@ export function LocationEditForm({ location, backHref = "/locations" }: Location
   }
 
   return (
+    <>
+    <UpgradeModal
+      open={upgradeModal.open}
+      reason={upgradeModal.reason}
+      onClose={() => setUpgradeModal((s) => ({ ...s, open: false }))}
+    />
     <form onSubmit={handleSave} className="space-y-6">
       {/* Nome */}
       <div className="card p-6">
@@ -250,28 +262,59 @@ export function LocationEditForm({ location, backHref = "/locations" }: Location
 
       {/* Tom */}
       <div className="card p-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-1">Tom das respostas</h2>
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h2 className="text-sm font-semibold text-gray-900">Tom das respostas</h2>
+          {toneIsLocked && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+              <Lock size={9} />
+              Starter+
+            </span>
+          )}
+        </div>
         <p className="text-xs text-gray-500 mb-4">Define a personalidade da IA ao responder</p>
         <div className="space-y-2">
-          {TONES.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setTone(t.value)}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all",
-                tone === t.value ? "border-indigo-400 bg-indigo-50" : "border-gray-200 hover:bg-gray-50",
-              )}
-            >
-              <span className="text-xl shrink-0">{t.icon}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900">{t.label}</p>
-                <p className="text-xs text-gray-500">{t.desc}</p>
-              </div>
-              {tone === t.value && <CheckCircle2 size={16} className="text-indigo-500 shrink-0" />}
-            </button>
-          ))}
+          {TONES.map((t) => {
+            const isLocked   = toneIsLocked && t.value !== "formal";
+            const isSelected = toneIsLocked ? t.value === "formal" : tone === t.value;
+            return (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => {
+                  if (toneIsLocked) { setUpgradeModal({ open: true, reason: "tone" }); }
+                  else { setTone(t.value); }
+                }}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all",
+                  isSelected ? "border-indigo-400 bg-indigo-50" :
+                  isLocked   ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed" :
+                               "border-gray-200 hover:bg-gray-50",
+                )}
+              >
+                <span className={cn("text-xl shrink-0", isLocked && "grayscale")}>{t.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className={cn("text-sm font-semibold", isLocked ? "text-gray-400" : "text-gray-900")}>{t.label}</p>
+                  <p className="text-xs text-gray-500">{t.desc}</p>
+                </div>
+                {isSelected && !isLocked && <CheckCircle2 size={16} className="text-indigo-500 shrink-0" />}
+                {isSelected && toneIsLocked  && <CheckCircle2 size={16} className="text-indigo-500 shrink-0" />}
+                {isLocked                    && <Lock size={14} className="text-gray-300 shrink-0" />}
+              </button>
+            );
+          })}
         </div>
+        {toneIsLocked && (
+          <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            Tom personalizado disponível no plano Starter ou superior.{" "}
+            <button
+              type="button"
+              onClick={() => setUpgradeModal({ open: true, reason: "tone" })}
+              className="font-semibold underline hover:no-underline"
+            >
+              Ver planos
+            </button>
+          </p>
+        )}
       </div>
 
       {/* Auto-publicar */}
@@ -654,6 +697,8 @@ export function LocationEditForm({ location, backHref = "/locations" }: Location
         </div>
       )}
 
+      {/* ── Modal Upgrade (tom bloqueado) ── já gerenciado por UpgradeModal acima */}
+
       {/* ── Modal Excluir ── */}
       {showDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
@@ -689,5 +734,6 @@ export function LocationEditForm({ location, backHref = "/locations" }: Location
         </div>
       )}
     </form>
+    </>
   );
 }

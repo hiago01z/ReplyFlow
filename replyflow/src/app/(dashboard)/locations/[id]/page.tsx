@@ -19,11 +19,13 @@ export default async function LocationEditPage({ params }: LocationEditPageProps
   // Verificar que o local pertence à org do usuário
   const { data: userRecord } = await serviceClient
     .from("users")
-    .select("organization_id")
+    .select("organization_id, organization:organizations(plan)")
     .eq("id", user.id)
     .single();
 
   if (!userRecord?.organization_id) redirect("/onboarding");
+
+  const plan = (userRecord.organization as unknown as { plan?: string } | null)?.plan ?? "free";
 
   const { data: location } = await serviceClient
     .from("locations")
@@ -49,7 +51,7 @@ export default async function LocationEditPage({ params }: LocationEditPageProps
         <p className="text-sm text-gray-500 mt-1">Atualize as configurações de <strong>{location.name}</strong>.</p>
       </div>
 
-      <LocationEditForm location={location} />
+      <LocationEditForm location={location} plan={plan} />
     </div>
   );
 }
