@@ -183,8 +183,11 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "b33f56191cc9bc79",
+  "active": "5de7bd0960b0d045",
   "lastOpenFiles": [
+    "replyflow/src/components/locations/NewLocationForm.tsx",
+    "replyflow/src/app/api/reviews/[id]/save-manual/route.ts",
+    "replyflow/src/app/api/reviews/[id]/save-manual",
     "_contextos/02_ETAPA2_MODELO_DE_NEGOCIO.md",
     "_contextos/12_INTEGRACAO_PLATAFORMAS.md.tmp.12136.a4975ebf7e8d",
     "_contextos/03_ETAPA3_ARQUITETURA_TECNICA.md",
@@ -208,8 +211,6 @@
     "replyflow/src/lib/i18n/strings-report.ts",
     "replyflow/src/lib/i18n/strings-digest.ts",
     "replyflow/src/lib/i18n/strings-email.ts",
-    "replyflow/src/lib/i18n/strings-whatsapp.ts",
-    "replyflow/src/lib/i18n/locale.ts",
     "_contextos/13_SPRINT_PLATAFORMAS_SYNC.md",
     "_contextos/01_ETAPA1_DEFINICAO_ESTRATEGICA.md",
     "replyflow/README.md",

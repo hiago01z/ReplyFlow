@@ -30,7 +30,7 @@ interface PlatformTabsProps {
 }
 
 function PlatformTabs({ activePlatforms, counts, currentPlatform, baseHref }: PlatformTabsProps) {
-  if (activePlatforms.length <= 1) return null; // só mostra se tem 2+ plataformas
+  if (activePlatforms.length === 0) return null;
 
   const all = [null, ...activePlatforms] as (PlatformKey | null)[];
 
@@ -196,7 +196,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
   // Contar reviews por plataforma (para badges nas tabs)
   const platformCounts: Record<string, number> = {};
-  if (activePlatforms.length > 1 && locationIds.length > 0) {
+  if (activePlatforms.length >= 1 && locationIds.length > 0) {
     for (const p of activePlatforms) {
       const { count: pCount } = await serviceClient
         .from("reviews")
@@ -261,7 +261,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         <UpgradeBanner used={monthlyUsed} limit={monthlyLimit} />
       )}
 
-      {activePlatforms.length > 1 && (
+      {activePlatforms.length >= 1 && (
         <PlatformTabs
           activePlatforms={activePlatforms}
           counts={platformCounts}
