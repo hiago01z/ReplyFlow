@@ -272,21 +272,31 @@ export default async function LandingPage() {
             3 passos para ter sua reputação gerenciada por IA
           </p>
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { step:"01", icon:"🔗", title:"Conecte seu Google",
-                description:"Autorize o ReplyFlow a acessar seus reviews do Google Meu Negócio em 1 clique. Leva menos de 2 minutos." },
-              { step:"02", icon:"🤖", title:"IA gera as respostas",
-                description:"Nosso sistema lê cada review e cria uma resposta personalizada para o nicho e tom do seu negócio — automático." },
-              { step:"03", icon:"✅", title:"Publique com 1 clique",
-                description:"Aprove e publique direto do dashboard — ou ative o modo automático e esqueça. Você escolhe." },
-            ].map((item) => (
-              <div key={item.step} className="bg-white dark:bg-[#18181f] rounded-2xl p-8 shadow-sm dark:shadow-none border border-transparent dark:border-[#2a2a35] text-center">
-                <div className="text-4xl mb-4">{item.icon}</div>
-                <div className="text-xs font-bold text-indigo-400 dark:text-indigo-500 mb-2 tracking-widest">PASSO {item.step}</div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{item.description}</p>
-              </div>
-            ))}
+
+            {/* Passo 01 */}
+            <div className="bg-white dark:bg-[#18181f] rounded-2xl p-8 shadow-sm dark:shadow-none border border-transparent dark:border-[#2a2a35] text-center">
+              <div className="text-4xl mb-4">🔗</div>
+              <div className="text-xs font-bold text-indigo-400 dark:text-indigo-500 mb-2 tracking-widest">PASSO 01</div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Conecte seu Google</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Autorize o <span translate="no">ReplyFlow</span> a acessar seus reviews do Google Meu Negócio em 1 clique. Leva menos de 2 minutos.</p>
+            </div>
+
+            {/* Passo 02 */}
+            <div className="bg-white dark:bg-[#18181f] rounded-2xl p-8 shadow-sm dark:shadow-none border border-transparent dark:border-[#2a2a35] text-center">
+              <div className="text-4xl mb-4">🤖</div>
+              <div className="text-xs font-bold text-indigo-400 dark:text-indigo-500 mb-2 tracking-widest">PASSO 02</div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">IA gera as respostas</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Nosso sistema lê cada review e cria uma resposta personalizada para o nicho e tom do seu negócio — automático.</p>
+            </div>
+
+            {/* Passo 03 */}
+            <div className="bg-white dark:bg-[#18181f] rounded-2xl p-8 shadow-sm dark:shadow-none border border-transparent dark:border-[#2a2a35] text-center">
+              <div className="text-4xl mb-4">✅</div>
+              <div className="text-xs font-bold text-indigo-400 dark:text-indigo-500 mb-2 tracking-widest">PASSO 03</div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Publique com 1 clique</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Aprove e publique direto do dashboard — ou ative o modo automático e esqueça. Você escolhe.</p>
+            </div>
+
           </div>
         </div>
       </section>
