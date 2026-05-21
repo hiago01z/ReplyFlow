@@ -18,6 +18,10 @@
 
 interface LocationPlatformData {
   id:                      string;
+  // Google manual mode
+  google_connected:        boolean;
+  google_url:              string | null;
+  // Google API (preserved for future activation)
   google_access_token:     string | null;
   google_location_name:    string | null;
   tripadvisor_connected:   boolean;
@@ -65,7 +69,7 @@ function TripAdvisorIcon({ size = 14 }: { size?: number }) {
 export function PlatformBadges({ loc, plan, compact = false }: Props) {
   const platformLimit  = PLATFORM_LIMIT[plan] ?? 3;
   const connectedCount =
-    (loc.google_access_token ? 1 : 0) +
+    (loc.google_connected ? 1 : 0) +
     (loc.tripadvisor_connected ? 1 : 0) +
     (loc.reclame_aqui_connected ? 1 : 0) +
     (loc.booking_connected ? 1 : 0) +
@@ -73,17 +77,14 @@ export function PlatformBadges({ loc, plan, compact = false }: Props) {
     // facebook_connected omitted — integration hidden pending Meta CNPJ approval
   const atPlatformLimit = connectedCount >= platformLimit;
 
-  const googleConnected = !!loc.google_access_token && !!loc.google_location_name;
-  const googlePending   = !!loc.google_access_token && !loc.google_location_name;
-
   const platforms = [
     {
       key:       "google",
       label:     "Google",
       icon:      <GoogleIcon size={compact ? 12 : 13} />,
-      connected: googleConnected,
-      pending:   googlePending,
-      href:      googleConnected ? null : `/api/google/auth?locationId=${loc.id}`,
+      connected: loc.google_connected,
+      pending:   false,
+      href:      `/locations/${loc.id}#google`,
       isLink:    true,
       available: true,
     },

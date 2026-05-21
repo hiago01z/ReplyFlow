@@ -13,6 +13,9 @@ const updateSchema = z.object({
   active:                  z.boolean().optional(),
   google_location_name: z.string().nullable().optional(),
   google_account_id:    z.string().nullable().optional(),
+  // Google manual mode
+  google_url:       z.string().url().nullable().optional(),
+  google_connected: z.boolean().optional(),
   is_public:   z.boolean().optional(),
   public_slug: z.string().regex(/^[a-z0-9-]{3,60}$/).nullable().optional(),
   // TripAdvisor

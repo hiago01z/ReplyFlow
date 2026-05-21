@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { UpgradeModal } from "@/components/ui/UpgradeModal";
 import { cn } from "@/lib/utils";
-import { MapPin, ChevronLeft, CheckCircle2, Zap, Lock } from "lucide-react";
+import { MapPin, ChevronLeft, CheckCircle2, Lock } from "lucide-react";
 
 const NICHES = [
   { value: "clinica",      label: "Clínica / Saúde",    icon: "🏥" },
@@ -38,7 +38,8 @@ export function NewLocationForm({ plan }: NewLocationFormProps) {
   const [name,         setName]        = useState("");
   const [niche,        setNiche]       = useState<string>("outro");
   const [tone,         setTone]        = useState<string>(toneIsLocked ? "formal" : "amigavel");
-  const [autoPublish,  setAutoPublish] = useState(false);
+  // auto_publish reservado para quando Google API for ativado (sprint futuro)
+  // const [autoPublish, setAutoPublish] = useState(false);
   const [loading,       setLoading]      = useState(false);
   const [upgradeOpen,   setUpgradeOpen]  = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<"location_limit" | "tone">("location_limit");
@@ -55,7 +56,7 @@ export function NewLocationForm({ plan }: NewLocationFormProps) {
           name,
           niche,
           tone: toneIsLocked ? "formal" : tone,
-          auto_publish: autoPublish,
+          auto_publish: false,
         }),
       });
       const data = await res.json();
@@ -197,46 +198,6 @@ export function NewLocationForm({ plan }: NewLocationFormProps) {
                 <button type="button" onClick={() => { setUpgradeReason("tone"); setUpgradeOpen(true); }} className="font-semibold underline hover:no-underline">
                   Ver planos
                 </button>
-              </p>
-            )}
-          </div>
-
-          {/* Auto-publicar */}
-          <div className="card p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-                  <Zap size={16} className="text-amber-500" />
-                </div>
-                <div>
-                  <h2 className="text-sm font-semibold text-gray-900">Publicação automática</h2>
-                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                    Quando ativado, a IA publica respostas no Google automaticamente — sem revisão manual.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAutoPublish((v) => !v)}
-                className={cn(
-                  "relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none",
-                  autoPublish ? "bg-indigo-600" : "bg-gray-200",
-                )}
-                role="switch"
-                aria-checked={autoPublish}
-              >
-                <span
-                  className={cn(
-                    "absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200",
-                    autoPublish ? "translate-x-5" : "translate-x-0",
-                  )}
-                />
-              </button>
-            </div>
-            {autoPublish && (
-              <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                ⚠️ Com auto-publicação ativa, respostas serão postadas no Google imediatamente.
-                Certifique-se de que o tom escolhido está correto.
               </p>
             )}
           </div>

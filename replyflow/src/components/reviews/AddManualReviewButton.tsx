@@ -8,6 +8,7 @@ import { AddManualReviewModal } from "@/components/reviews/AddManualReviewModal"
 interface LocationData {
   id: string;
   name: string;
+  google_url?: string | null;
   tripadvisor_url?: string | null;
   reclame_aqui_url?: string | null;
   booking_url?: string | null;
@@ -15,7 +16,7 @@ interface LocationData {
 }
 
 interface Props {
-  platform: "tripadvisor" | "reclame_aqui" | "booking" | "ifood";
+  platform: "google" | "tripadvisor" | "reclame_aqui" | "booking" | "ifood";
   locations: LocationData[];
 }
 
@@ -29,14 +30,12 @@ export function AddManualReviewButton({ platform, locations }: Props) {
   if (!selected) return null;
 
   const label =
-    platform === "tripadvisor" ? "Adicionar avaliação" :
-    platform === "booking"     ? "Adicionar avaliação" :
-    platform === "ifood"       ? "Adicionar avaliação" :
-    "Adicionar reclamação";
+    platform === "reclame_aqui" ? "Adicionar reclamação" : "Adicionar avaliação";
   const colorClass =
-    platform === "tripadvisor" ? "bg-[#00AF87] hover:bg-[#009975]" :
-    platform === "booking"     ? "bg-[#003580] hover:bg-[#002a66]" :
-    platform === "ifood"       ? "bg-[#EA1D2C] hover:bg-[#c51722]" :
+    platform === "google"       ? "bg-[#4285F4] hover:bg-[#2b6cb0]" :
+    platform === "tripadvisor"  ? "bg-[#00AF87] hover:bg-[#009975]" :
+    platform === "booking"      ? "bg-[#003580] hover:bg-[#002a66]" :
+    platform === "ifood"        ? "bg-[#EA1D2C] hover:bg-[#c51722]" :
     "bg-[#E8281C] hover:bg-[#c51f15]";
 
   return (
@@ -67,6 +66,7 @@ export function AddManualReviewButton({ platform, locations }: Props) {
         <AddManualReviewModal
           locationId={selected.id}
           platform={platform}
+          googleUrl={selected.google_url}
           tripadvisorUrl={selected.tripadvisor_url}
           reclamaAquiUrl={selected.reclame_aqui_url}
           bookingUrl={selected.booking_url}

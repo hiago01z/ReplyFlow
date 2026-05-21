@@ -39,6 +39,9 @@ export interface Location {
   google_location_name: string | null
   google_access_token: string | null
   google_refresh_token: string | null
+  // Google manual mode (active while Reviews API awaits Google approval)
+  google_url: string | null
+  google_connected: boolean
   niche: LocationNiche
   tone: LocationTone
   auto_publish: boolean

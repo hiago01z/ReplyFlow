@@ -5,7 +5,8 @@ import { X, Loader2, ExternalLink, Info, Sparkles, RotateCcw, CheckCircle2, Copy
 
 interface Props {
   locationId:       string;
-  platform:         "tripadvisor" | "facebook" | "reclame_aqui" | "booking" | "ifood";
+  platform:         "google" | "tripadvisor" | "facebook" | "reclame_aqui" | "booking" | "ifood";
+  googleUrl?:       string | null;
   tripadvisorUrl?:  string | null;
   reclamaAquiUrl?:  string | null;
   bookingUrl?:      string | null;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 const PLATFORM_LABEL: Record<string, string> = {
+  google:       "Google",
   tripadvisor:  "TripAdvisor",
   facebook:     "Facebook",
   reclame_aqui: "Reclame Aqui",
@@ -23,6 +25,7 @@ const PLATFORM_LABEL: Record<string, string> = {
 };
 
 const PLATFORM_COLOR: Record<string, { bg: string; border: string; text: string; icon: string }> = {
+  google:       { bg: "bg-[#4285F4]/10", border: "border-[#4285F4]/30", text: "text-[#2b6cb0]", icon: "text-[#4285F4]" },
   tripadvisor:  { bg: "bg-[#00AF87]/10", border: "border-[#00AF87]/30", text: "text-[#007a62]", icon: "text-[#00AF87]" },
   reclame_aqui: { bg: "bg-[#E8281C]/10", border: "border-[#E8281C]/30", text: "text-[#a31a12]", icon: "text-[#E8281C]" },
   booking:      { bg: "bg-[#003580]/10", border: "border-[#003580]/30", text: "text-[#002a66]", icon: "text-[#003580]" },
@@ -31,6 +34,11 @@ const PLATFORM_COLOR: Record<string, { bg: string; border: string; text: string;
 };
 
 const PLATFORM_INSTRUCTIONS: Record<string, { title: string; steps: string[]; linkLabel: string }> = {
+  google: {
+    title: "Como importar do Google:",
+    steps: ["Abra seu perfil no Google Maps", "Vá em Avaliações do negócio", "Copie o texto da avaliação", "Cole no campo abaixo"],
+    linkLabel: "Abrir meu perfil no Google Maps",
+  },
   tripadvisor: {
     title: "Como importar do TripAdvisor:",
     steps: ["Abra sua página no TripAdvisor", "Copie o texto da avaliação", "Cole no campo abaixo"],
@@ -57,7 +65,7 @@ type Phase = "form" | "generating" | "response" | "saving";
 
 export function AddManualReviewModal({
   locationId, platform,
-  tripadvisorUrl, reclamaAquiUrl, bookingUrl, ifoodUrl,
+  googleUrl, tripadvisorUrl, reclamaAquiUrl, bookingUrl, ifoodUrl,
   onClose, onAdded,
 }: Props) {
   // ── Form state ────────────────────────────────────────────────────────────
@@ -75,7 +83,8 @@ export function AddManualReviewModal({
 
   const colors = PLATFORM_COLOR[platform] ?? PLATFORM_COLOR.tripadvisor;
   const instructions = PLATFORM_INSTRUCTIONS[platform];
-  const platformUrl = platform === "tripadvisor" ? tripadvisorUrl
+  const platformUrl = platform === "google"       ? googleUrl
+    : platform === "tripadvisor"  ? tripadvisorUrl
     : platform === "reclame_aqui" ? reclamaAquiUrl
     : platform === "booking"      ? bookingUrl
     : platform === "ifood"        ? ifoodUrl

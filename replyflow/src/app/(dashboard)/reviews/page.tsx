@@ -89,7 +89,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
   const { data: locations } = await serviceClient
     .from("locations")
-    .select("id, name, google_access_token, tripadvisor_connected, tripadvisor_url, facebook_connected, reclame_aqui_connected, reclame_aqui_url, booking_connected, booking_url, ifood_connected, ifood_url")
+    .select("id, name, google_connected, google_url, google_access_token, tripadvisor_connected, tripadvisor_url, facebook_connected, reclame_aqui_connected, reclame_aqui_url, booking_connected, booking_url, ifood_connected, ifood_url")
     .eq("organization_id", userRecord!.organization_id)
     .eq("active", true);
 
@@ -98,7 +98,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   // Determinar quais plataformas estão conectadas (para mostrar as tabs corretas)
   const connectedPlatforms = new Set<PlatformKey>();
   for (const loc of locations ?? []) {
-    if (loc.google_access_token)    connectedPlatforms.add("google");
+    if (loc.google_connected)       connectedPlatforms.add("google");
     if (loc.tripadvisor_connected)  connectedPlatforms.add("tripadvisor");
     if (loc.reclame_aqui_connected) connectedPlatforms.add("reclame_aqui");
     if (loc.booking_connected)      connectedPlatforms.add("booking");
@@ -108,7 +108,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   const activePlatforms = Array.from(connectedPlatforms);
 
   // Locations connected to the currently selected manual platform (for the add button)
-  const MANUAL_PLATFORMS = ["tripadvisor", "reclame_aqui", "booking", "ifood"] as const;
+  const MANUAL_PLATFORMS = ["google", "tripadvisor", "reclame_aqui", "booking", "ifood"] as const;
   type ManualPlatform = typeof MANUAL_PLATFORMS[number];
 
   // Active manual platforms from connected locations
@@ -129,16 +129,19 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
   const manualLocations = effectiveManualPlatform
     ? (locations ?? []).filter((loc) =>
-        effectiveManualPlatform === "tripadvisor"
-          ? loc.tripadvisor_connected
-          : effectiveManualPlatform === "booking"
-            ? loc.booking_connected
-            : effectiveManualPlatform === "ifood"
-              ? loc.ifood_connected
-              : loc.reclame_aqui_connected
+        effectiveManualPlatform === "google"
+          ? loc.google_connected
+          : effectiveManualPlatform === "tripadvisor"
+            ? loc.tripadvisor_connected
+            : effectiveManualPlatform === "booking"
+              ? loc.booking_connected
+              : effectiveManualPlatform === "ifood"
+                ? loc.ifood_connected
+                : loc.reclame_aqui_connected
       ).map((loc) => ({
         id:               loc.id,
         name:             loc.name,
+        google_url:       (loc as unknown as { google_url?: string | null }).google_url ?? null,
         tripadvisor_url:  loc.tripadvisor_url  ?? null,
         reclame_aqui_url: loc.reclame_aqui_url ?? null,
         booking_url:      loc.booking_url      ?? null,
