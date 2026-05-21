@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
-import { CheckCircle2, Star, Zap, Sparkles, MessageSquare, Bell, FileText, RefreshCw, Building2, Send } from "lucide-react";
+import { CheckCircle2, Star, Zap, Sparkles, MessageSquare, Bell, FileText, RefreshCw, Building2, Send, TrendingUp } from "lucide-react";
 import { CountUp } from "@/components/landing/CountUp";
 import { LandingPricing, type LandingPlan } from "@/components/landing/LandingPricing";
 import { FeedbackSection } from "@/components/landing/FeedbackSection";
@@ -160,14 +160,14 @@ export default async function LandingPage() {
           </div>
 
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-gray-100 leading-[1.1] tracking-tight mb-6">
-            Sua reputação em<br />
+            Gestão de Reviews<br />
             <span className="text-transparent bg-clip-text" style={{backgroundImage:"linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7)"}}>
-              boas mãos
+              com Inteligência
             </span>
           </h1>
 
           <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            <span translate="no">ReplyFlow</span> usa IA para responder reviews do Google, TripAdvisor, Booking e mais —
+            Responda avaliações do Google, TripAdvisor, Booking e mais com IA personalizada —
             no tom certo, em segundos, do jeito que o seu negócio fala.
           </p>
 
@@ -188,10 +188,11 @@ export default async function LandingPage() {
             <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Cancele quando quiser</span>
           </div>
 
-          {/* Product mockup */}
+          {/* Analytics mockup — fiel ao painel real */}
           <div className="relative mx-auto max-w-3xl">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-[#0f0f13] z-10 pointer-events-none" style={{top:"70%"}} />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-[#0f0f13] z-10 pointer-events-none" style={{top:"65%"}} />
             <div className="rounded-2xl border border-gray-200 dark:border-[#2a2a35] shadow-2xl shadow-gray-200 dark:shadow-black/40 overflow-hidden">
+
               {/* Browser chrome */}
               <div className="bg-gray-100 dark:bg-[#1a1a24] px-4 py-2.5 flex items-center gap-2 border-b border-gray-200 dark:border-[#2a2a35]">
                 <div className="flex gap-1.5">
@@ -200,43 +201,150 @@ export default async function LandingPage() {
                   <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
                 </div>
                 <div className="flex-1 bg-white dark:bg-[#18181f] rounded-md px-3 py-1 text-xs text-gray-400 dark:text-gray-500 mx-2">
-                  replyflow-hivi.com/reviews
+                  replyflow-hivi.com/analytics
                 </div>
               </div>
-              {/* Fake dashboard */}
-              <div className="bg-[#f5f5fa] dark:bg-[#13131a] p-4 text-left">
-                <div className="grid grid-cols-4 gap-2 mb-3">
+
+              {/* Analytics dashboard */}
+              <div className="bg-[#f5f5fa] dark:bg-[#13131a] p-4 text-left space-y-3">
+
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[9px] font-bold text-indigo-600 uppercase tracking-widest mb-0.5">Analytics</div>
+                    <div className="text-sm font-bold text-gray-900 dark:text-gray-100">Relatório de Reputação</div>
+                  </div>
+                  <div className="flex items-center gap-0.5 bg-gray-200 dark:bg-[#1e1e28] rounded-lg p-0.5">
+                    {["7 dias","30 dias","90 dias"].map((p) => (
+                      <span key={p} className={`px-2 py-1 text-[9px] font-medium rounded-md transition-all ${p==="30 dias" ? "bg-white dark:bg-[#18181f] text-indigo-700 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-500"}`}>{p}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* KPI cards */}
+                <div className="grid grid-cols-4 gap-2">
                   {[
-                    {label:"Pendentes", v:"3",  c:"text-amber-600 bg-amber-50 dark:bg-amber-900/20"},
-                    {label:"Publicados",v:"47", c:"text-green-600 bg-green-50 dark:bg-green-900/20"},
-                    {label:"Críticos",  v:"1",  c:"text-red-600 bg-red-50 dark:bg-red-900/20"},
-                    {label:"Locais",    v:"2",  c:"text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"},
-                  ].map(s=>(
-                    <div key={s.label} className="bg-white dark:bg-[#18181f] rounded-xl p-2.5 border border-gray-100 dark:border-[#2a2a35] shadow-sm">
-                      <div className={`text-lg font-bold ${s.c.split(" ")[0]}`}>{s.v}</div>
-                      <div className="text-[10px] text-gray-400 dark:text-gray-500">{s.label}</div>
+                    { color:"bg-indigo-500", label:"Reviews recebidos", value:"47", sub:"nos últimos 30 dias" },
+                    { color:"bg-green-500",  label:"Taxa de resposta",  value:"89%", sub:"42 respondidos" },
+                    { color:"bg-amber-500",  label:"Nota média",        value:"4.3", sub:"média das estrelas" },
+                    { color:"bg-rose-500",   label:"Pendentes",         value:"5",   sub:"aguardando resposta" },
+                  ].map((k) => (
+                    <div key={k.label} className="bg-white dark:bg-[#18181f] rounded-xl p-2.5 border border-gray-100 dark:border-[#2a2a35] shadow-sm">
+                      <div className={`w-6 h-6 ${k.color} rounded-lg mb-1.5`} />
+                      <div className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">{k.value}</div>
+                      <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">{k.label}</div>
                     </div>
                   ))}
                 </div>
-                {[
-                  {name:"Maria S.",stars:5,text:"Atendimento excelente!",status:"Pendente",sc:"bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400"},
-                  {name:"João P.",stars:2,text:"Esperei mais de uma hora.",status:"Pendente",sc:"bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"},
-                  {name:"Ana C.",stars:4,text:"Muito bom de forma geral.",status:"Publicado",sc:"bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"},
-                ].map((r,i)=>(
-                  <div key={i} className="bg-white dark:bg-[#18181f] rounded-xl border border-gray-100 dark:border-[#2a2a35] shadow-sm px-3 py-2.5 mb-2 flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">{r.name[0]}</div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">{r.name}</span>
-                          <div className="flex gap-0.5">{[1,2,3,4,5].map(n=><Star key={n} size={8} className={n<=r.stars?"fill-amber-400 text-amber-400":"fill-gray-200 dark:fill-gray-700 text-gray-200 dark:text-gray-700"}/>)}</div>
-                        </div>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{r.text}</p>
+
+                {/* Charts row */}
+                <div className="grid grid-cols-3 gap-2">
+
+                  {/* Bar chart reviews — col 2/3 */}
+                  <div className="col-span-2 bg-white dark:bg-[#18181f] rounded-xl border border-gray-100 dark:border-[#2a2a35] shadow-sm p-3">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <div className="w-3 h-3 rounded bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-sm" />
                       </div>
+                      <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-300">Reviews por semana</span>
                     </div>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${r.sc}`}>{r.status}</span>
+                    {/* Bars */}
+                    <div className="flex items-end gap-1" style={{height:"52px"}}>
+                      {[
+                        {t:5, p:4},{t:7, p:6},{t:6, p:5},{t:9, p:8},{t:11, p:10},{t:9, p:8}
+                      ].map(({t,p},i)=>(
+                        <div key={i} className="flex-1 flex items-end gap-px">
+                          {/* total (light) + published (dark) as stacked visual */}
+                          <div className="w-full relative rounded-t-sm overflow-hidden" style={{height:`${(t/11)*52}px`, background:"rgba(99,102,241,0.15)"}}>
+                            <div className="absolute bottom-0 w-full rounded-t-sm bg-indigo-500" style={{height:`${(p/11)*52}px`}} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-1 mt-1">
+                      {["Sem 1","Sem 2","Sem 3","Sem 4","Sem 5","Sem 6"].map(s=>(
+                        <div key={s} className="flex-1 text-center text-[7px] text-gray-400">{s}</div>
+                      ))}
+                    </div>
+                    {/* Legend */}
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <span className="flex items-center gap-1 text-[8px] text-gray-400"><span className="w-2 h-2 rounded-sm bg-indigo-200 dark:bg-indigo-800 inline-block" />Total</span>
+                      <span className="flex items-center gap-1 text-[8px] text-gray-400"><span className="w-2 h-2 rounded-sm bg-indigo-500 inline-block" />Respondidos</span>
+                    </div>
                   </div>
-                ))}
+
+                  {/* Rating distribution — col 1/3 */}
+                  <div className="bg-white dark:bg-[#18181f] rounded-xl border border-gray-100 dark:border-[#2a2a35] shadow-sm p-3">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Star size={10} className="text-amber-500 fill-amber-500" />
+                      <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-300">Distribuição</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {[
+                        {stars:5, count:22, pct:47},
+                        {stars:4, count:12, pct:26},
+                        {stars:3, count:7,  pct:15},
+                        {stars:2, count:4,  pct:9 },
+                        {stars:1, count:2,  pct:4 },
+                      ].map((r)=>(
+                        <div key={r.stars} className="flex items-center gap-1.5">
+                          <span className="text-[8px] text-amber-500 font-bold w-4 shrink-0 text-right">{r.stars}★</span>
+                          <div className="flex-1 bg-gray-100 dark:bg-[#2a2a35] rounded-full overflow-hidden" style={{height:"5px"}}>
+                            <div className="h-full bg-amber-400 rounded-full" style={{width:`${r.pct}%`}} />
+                          </div>
+                          <span className="text-[8px] text-gray-400 w-4 text-right shrink-0">{r.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rating evolution line chart */}
+                <div className="bg-white dark:bg-[#18181f] rounded-xl border border-gray-100 dark:border-[#2a2a35] shadow-sm p-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <TrendingUp size={10} className="text-amber-500" />
+                      <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-300">Evolução da nota média</span>
+                    </div>
+                    <span className="flex items-center gap-0.5 text-[9px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 px-1.5 py-0.5 rounded-full">
+                      <Star size={8} className="fill-amber-400 text-amber-400" /> 4.3 média geral
+                    </span>
+                  </div>
+                  {/* SVG line chart */}
+                  <svg viewBox="0 0 280 44" className="w-full" style={{height:"44px"}} preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="heroLineGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.18" />
+                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    {/* Grid lines */}
+                    {[0,14,28,42].map(y=>(
+                      <line key={y} x1="0" y1={y} x2="280" y2={y} stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray="3,3" />
+                    ))}
+                    {/* Area fill */}
+                    <path d="M0,36 L56,28 L112,32 L168,18 L224,8 L280,6 L280,44 L0,44 Z" fill="url(#heroLineGrad)" />
+                    {/* Line */}
+                    <polyline
+                      points="0,36 56,28 112,32 168,18 224,8 280,6"
+                      fill="none" stroke="#f59e0b" strokeWidth="1.8"
+                      strokeLinecap="round" strokeLinejoin="round"
+                    />
+                    {/* Dots */}
+                    {([[0,36],[56,28],[112,32],[168,18],[224,8],[280,6]] as [number,number][]).map(([x,y],i)=>(
+                      <circle key={i} cx={x} cy={y} r="2.5" fill="#f59e0b" />
+                    ))}
+                    {/* Y labels */}
+                    {[["3.8",36],["4.0",28],["4.2",18],["4.4",6]].map(([v,y])=>(
+                      <text key={String(v)} x="0" y={Number(y)+1} fontSize="5" fill="#9ca3af" dominantBaseline="middle">{v}</text>
+                    ))}
+                    {/* X labels */}
+                    {[["Jan",0],["Fev",56],["Mar",112],["Abr",168],["Mai",224],["Jun",280]].map(([v,x])=>(
+                      <text key={String(v)} x={Number(x)} y="43" fontSize="5" fill="#9ca3af" textAnchor="middle">{v}</text>
+                    ))}
+                  </svg>
+                </div>
+
               </div>
             </div>
           </div>
