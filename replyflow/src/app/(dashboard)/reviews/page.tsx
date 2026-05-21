@@ -108,14 +108,32 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   const activePlatforms = Array.from(connectedPlatforms);
 
   // Locations connected to the currently selected manual platform (for the add button)
-  const isManualPlatform = params.platform === "tripadvisor" || params.platform === "reclame_aqui" || params.platform === "booking" || params.platform === "ifood";
-  const manualLocations = isManualPlatform
+  const MANUAL_PLATFORMS = ["tripadvisor", "reclame_aqui", "booking", "ifood"] as const;
+  type ManualPlatform = typeof MANUAL_PLATFORMS[number];
+
+  // Active manual platforms from connected locations
+  const activeManualPlatforms = activePlatforms.filter((p): p is ManualPlatform =>
+    (MANUAL_PLATFORMS as readonly string[]).includes(p)
+  );
+
+  // Effective platform for the add button:
+  // — if a manual platform tab is selected → use it
+  // — if "Todos" and exactly 1 manual platform is connected → auto-select it
+  // — otherwise → null (don't show button)
+  const effectiveManualPlatform: ManualPlatform | null =
+    params.platform && (MANUAL_PLATFORMS as readonly string[]).includes(params.platform)
+      ? (params.platform as ManualPlatform)
+      : !params.platform && activeManualPlatforms.length === 1
+        ? activeManualPlatforms[0]
+        : null;
+
+  const manualLocations = effectiveManualPlatform
     ? (locations ?? []).filter((loc) =>
-        params.platform === "tripadvisor"
+        effectiveManualPlatform === "tripadvisor"
           ? loc.tripadvisor_connected
-          : params.platform === "booking"
+          : effectiveManualPlatform === "booking"
             ? loc.booking_connected
-            : params.platform === "ifood"
+            : effectiveManualPlatform === "ifood"
               ? loc.ifood_connected
               : loc.reclame_aqui_connected
       ).map((loc) => ({
@@ -246,9 +264,9 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {isManualPlatform && manualLocations.length > 0 && (
+          {effectiveManualPlatform && manualLocations.length > 0 && (
             <AddManualReviewButton
-              platform={params.platform as "tripadvisor" | "reclame_aqui" | "booking" | "ifood"}
+              platform={effectiveManualPlatform}
               locations={manualLocations}
             />
           )}
