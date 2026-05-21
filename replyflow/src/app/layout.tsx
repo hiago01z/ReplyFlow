@@ -12,18 +12,19 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://replyflow-hivi.com";
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "ReplyFlow — Sua reputação no piloto automático",
+    default: "ReplyFlow — Respostas com IA para seus reviews",
     template: "%s | ReplyFlow",
   },
   description:
-    "ReplyFlow responde todos os seus reviews no Google com IA personalizada — em segundos, no tom certo, sem você precisar fazer nada.",
+    "Responda reviews do Google, TripAdvisor, Booking e mais com IA personalizada — no tom certo, em segundos.",
   keywords: [
     "responder reviews google",
-    "gerenciar avaliações google",
+    "responder avaliações tripadvisor",
+    "gerenciar avaliações online",
     "reputação online",
     "google meu negócio",
     "inteligência artificial reviews",
-    "automação respostas google",
+    "responder reviews com ia",
   ],
   authors: [{ name: "ReplyFlow" }],
   creator: "ReplyFlow",
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     url: APP_URL,
     siteName: "ReplyFlow",
-    title: "ReplyFlow — Sua reputação no piloto automático",
+    title: "ReplyFlow — Respostas com IA para seus reviews",
     description:
       "Responda avaliações do Google com IA em segundos. Aumente sua nota, fidelize clientes e economize horas toda semana.",
     images: [

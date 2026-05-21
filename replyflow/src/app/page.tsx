@@ -23,7 +23,7 @@ const TESTIMONIALS = [
     city: "Belo Horizonte, MG",
     avatar: "RA",
     rating: 5,
-    text: "Trabalho com 3 unidades e não tinha tempo de responder review nenhum. Agora tudo é automático. O plano Agência valeu cada centavo — economia de pelo menos 6 horas por semana.",
+    text: "Trabalho com 3 unidades e não tinha tempo de responder review nenhum. Agora a IA gera as respostas em segundos e eu publico com um clique. O plano Agência valeu cada centavo — economia de pelo menos 6 horas por semana.",
   },
   {
     name: "Priscila Costa",
@@ -38,8 +38,8 @@ const TESTIMONIALS = [
 
 const FAQ = [
   {
-    q: "Precisa dar acesso total ao meu Google Meu Negócio?",
-    a: "Não. O ReplyFlow solicita apenas a permissão para ler reviews e publicar respostas — nada além disso. Você pode revogar o acesso quando quiser.",
+    q: "Como funciona a conexão com o Google Meu Negócio?",
+    a: "Cole a URL do seu negócio no Google Maps — pronto. Você importa as avaliações pelo painel, a IA gera a resposta e você copia e publica. Em breve: sincronização automática direta com o Google.",
   },
   {
     q: "As respostas soam como IA ou parecem humanas?",
@@ -55,7 +55,7 @@ const FAQ = [
   },
   {
     q: "Funciona com outras plataformas além do Google?",
-    a: "O MVP foca em Google Meu Negócio — onde está a maioria dos reviews para negócios locais no Brasil. TripAdvisor, iFood e Facebook estão no roadmap.",
+    a: "Sim. Hoje o ReplyFlow suporta Google, TripAdvisor, Booking.com, iFood e Reclame Aqui. Facebook está em aprovação. Novas plataformas chegam regularmente.",
   },
   {
     q: "Tenho uma agência. Posso gerenciar vários clientes?",
@@ -160,15 +160,15 @@ export default async function LandingPage() {
           </div>
 
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-gray-100 leading-[1.1] tracking-tight mb-6">
-            Sua reputação no<br />
+            Sua reputação em<br />
             <span className="text-transparent bg-clip-text" style={{backgroundImage:"linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7)"}}>
-              piloto automático
+              boas mãos
             </span>
           </h1>
 
           <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            <span translate="no">ReplyFlow</span> responde reviews do Google e de outras plataformas com IA personalizada para o seu negócio —
-            em segundos, no tom certo, sem você fazer nada.
+            <span translate="no">ReplyFlow</span> usa IA para responder reviews do Google, TripAdvisor, Booking e mais —
+            no tom certo, em segundos, do jeito que o seu negócio fala.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
@@ -243,24 +243,13 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── Social proof ──────────────────────────────────────────────────── */}
+      {/* ── Social proof (DESABILITADO — reativar após atingir métricas reais) ── */}
+      {/* TODO: reativar com dados reais de produção. Valores anteriores (fictícios):
+          12.400+ Reviews respondidos | 340+ Negócios ativos | 4.8★ | 98% satisfação
       <section className="py-12 px-6 border-y border-gray-100 dark:border-[#2a2a35] bg-white dark:bg-[#0f0f13]">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {[
-            { end: 12400, suffix: "+", label: "Reviews respondidos", prefix: "" },
-            { end: 340,   suffix: "+", label: "Negócios ativos",     prefix: "" },
-            { end: 4.8,   suffix: "★", label: "Avaliação média após uso", prefix: "" },
-            { end: 98,    suffix: "%", label: "Taxa de satisfação",  prefix: "" },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <div className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tabular-nums">
-                <CountUp end={stat.end} suffix={stat.suffix} prefix={stat.prefix} duration={1600} />
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </div>
+        ...
       </section>
+      */}
 
       {/* ── Como funciona ─────────────────────────────────────────────────── */}
       <section id="como-funciona" className="bg-gray-50 dark:bg-[#111118] py-20 px-6">
