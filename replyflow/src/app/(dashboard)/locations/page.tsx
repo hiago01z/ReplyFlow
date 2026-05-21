@@ -265,8 +265,8 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
             <span className="text-indigo-600 text-[10px] font-bold">i</span>
           </div>
           <p className="text-xs text-indigo-700 leading-relaxed">
-            Após conectar o Google, o ReplyFlow busca reviews automaticamente a cada 30 minutos.
-            Use o botão <strong>Sincronizar</strong> em cada local para buscar agora sem esperar.
+            Vincule suas plataformas em cada local e importe avaliações pelo botão <strong>Adicionar avaliação</strong> na página de Reviews.
+            A sincronização automática com o Google será ativada em breve.
           </p>
         </div>
       )}

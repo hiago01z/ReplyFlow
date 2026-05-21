@@ -87,18 +87,35 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   const plan = (org?.plan ?? "free") as keyof typeof PLAN_LIMITS;
   const monthlyLimit = PLAN_LIMITS[plan]?.responsesPerMonth ?? null;
 
+  // Fetch locations — google_connected/google_url adicionados pela migration 020.
+  // A query usa google_access_token como fallback para compatibilidade antes da migration.
   const { data: locations } = await serviceClient
     .from("locations")
-    .select("id, name, google_connected, google_url, google_access_token, tripadvisor_connected, tripadvisor_url, facebook_connected, reclame_aqui_connected, reclame_aqui_url, booking_connected, booking_url, ifood_connected, ifood_url")
+    .select("id, name, google_access_token, tripadvisor_connected, tripadvisor_url, facebook_connected, reclame_aqui_connected, reclame_aqui_url, booking_connected, booking_url, ifood_connected, ifood_url")
     .eq("organization_id", userRecord!.organization_id)
     .eq("active", true);
+
+  // Fetch google_connected + google_url separately (migration 020 — may not exist yet)
+  let googleManualMap: Record<string, { google_connected: boolean; google_url: string | null }> = {};
+  try {
+    const { data: gData } = await serviceClient
+      .from("locations")
+      .select("id, google_connected, google_url")
+      .eq("organization_id", userRecord!.organization_id)
+      .eq("active", true);
+    for (const g of gData ?? []) {
+      googleManualMap[g.id] = { google_connected: g.google_connected ?? false, google_url: g.google_url ?? null };
+    }
+  } catch { /* migration 020 not yet applied — google_connected treated as false */ }
 
   const locationIds = (locations ?? []).map((l) => l.id);
 
   // Determinar quais plataformas estão conectadas (para mostrar as tabs corretas)
   const connectedPlatforms = new Set<PlatformKey>();
   for (const loc of locations ?? []) {
-    if (loc.google_connected)       connectedPlatforms.add("google");
+    const gManual = googleManualMap[loc.id];
+    // google: conectado pelo modo manual (migration 020) OU pelo OAuth legado
+    if (gManual?.google_connected || !!loc.google_access_token) connectedPlatforms.add("google");
     if (loc.tripadvisor_connected)  connectedPlatforms.add("tripadvisor");
     if (loc.reclame_aqui_connected) connectedPlatforms.add("reclame_aqui");
     if (loc.booking_connected)      connectedPlatforms.add("booking");
@@ -130,7 +147,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   const manualLocations = effectiveManualPlatform
     ? (locations ?? []).filter((loc) =>
         effectiveManualPlatform === "google"
-          ? loc.google_connected
+          ? (googleManualMap[loc.id]?.google_connected || !!loc.google_access_token)
           : effectiveManualPlatform === "tripadvisor"
             ? loc.tripadvisor_connected
             : effectiveManualPlatform === "booking"
@@ -141,7 +158,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
       ).map((loc) => ({
         id:               loc.id,
         name:             loc.name,
-        google_url:       (loc as unknown as { google_url?: string | null }).google_url ?? null,
+        google_url:       googleManualMap[loc.id]?.google_url ?? null,
         tripadvisor_url:  loc.tripadvisor_url  ?? null,
         reclame_aqui_url: loc.reclame_aqui_url ?? null,
         booking_url:      loc.booking_url      ?? null,
