@@ -47,14 +47,14 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "ReplyFlow — Respostas automáticas para reviews do Google",
+        alt: "ReplyFlow — Respostas com IA para reviews do Google e mais plataformas",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ReplyFlow — Sua reputação no piloto automático",
-    description: "Responda reviews do Google com IA personalizada. Automático, natural e em segundos.",
+    title: "ReplyFlow — Respostas com IA para seus reviews",
+    description: "Responda reviews do Google, TripAdvisor, Booking e mais com IA personalizada. No tom certo, em segundos.",
     images: ["/og-image.png"],
   },
   robots: {

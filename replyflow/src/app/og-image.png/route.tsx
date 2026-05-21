@@ -70,7 +70,7 @@ export async function GET() {
             lineHeight: 1.4,
           }}
         >
-          IA responde reviews do Google automaticamente — no tom certo, em segundos.
+          IA responde reviews do Google, TripAdvisor e mais — no tom certo, em segundos.
         </div>
 
         {/* Star row */}

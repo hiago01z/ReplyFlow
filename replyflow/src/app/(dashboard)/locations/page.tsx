@@ -138,9 +138,9 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
         <div className="flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 mb-5">
           <CheckCircle2 size={16} className="text-green-600 shrink-0" />
           <span>
-            <strong>Google Meu Negócio conectado com sucesso!</strong>{" "}
-            As avaliações serão importadas automaticamente em até 30 minutos.
-            Ou clique em <strong>Sincronizar</strong> para buscar agora.
+            <strong>Google vinculado com sucesso!</strong>{" "}
+            Importe avaliações pelo botão <strong>Adicionar avaliação</strong> na página de Reviews.
+            A sincronização automática chegará em breve.
           </span>
         </div>
       )}

@@ -312,7 +312,7 @@ export default async function DashboardPage() {
               Auto-resposta ativa em {autoPublishCount} {autoPublishCount === 1 ? "local" : "locais"}
             </p>
             <p className="text-xs text-indigo-700 mt-0.5">
-              A IA está respondendo reviews automaticamente a cada 30 minutos.
+              A IA gera respostas automáticas — publicação direta no Google em breve.
             </p>
           </div>
           <Link

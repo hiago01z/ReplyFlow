@@ -560,7 +560,7 @@ export function AgencyClientDetail({ clientId }: { clientId: string }) {
           {googleSuccess && (
             <div className="flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 mb-4">
               <CheckCircle2 size={15} className="text-green-600 shrink-0" />
-              <span><strong>Google Meu Negócio conectado!</strong> As avaliações serão importadas automaticamente.</span>
+              <span><strong>Google vinculado!</strong> Importe avaliações pelo botão "Adicionar avaliação" em Reviews. Auto-sync chegará em breve.</span>
             </div>
           )}
 

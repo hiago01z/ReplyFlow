@@ -44,8 +44,8 @@ export function OnboardingChecklist({
     },
     {
       id:    "google",
-      label: "Conectar Google Meu Negócio",
-      detail: "Permite ao ReplyFlow monitorar seus reviews automaticamente.",
+      label: "Vincular uma plataforma",
+      detail: "Cole a URL do seu negócio (Google, TripAdvisor, Booking...) para começar a importar avaliações.",
       href:  "/locations",
       cta:   "Ir para Locais →",
       done:  hasGoogleConnected,
@@ -60,8 +60,8 @@ export function OnboardingChecklist({
     },
     {
       id:    "autopublish",
-      label: "Ativar publicação automática (opcional)",
-      detail: "O ReplyFlow responde reviews automaticamente com delay natural.",
+      label: "Publicação automática (em breve)",
+      detail: "Em breve: o ReplyFlow publicará respostas direto no Google automaticamente.",
       href:  "/locations",
       cta:   "Configurar local →",
       done:  hasAutoPublish,

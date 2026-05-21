@@ -156,44 +156,22 @@ export default function AgencyNewLocationPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Auto-publicar */}
-        <div className="card p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-                <Zap size={16} className="text-amber-500" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-gray-900">Publicação automática</h2>
-                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                  Quando ativado, a IA publica respostas no Google automaticamente — sem revisão manual.
-                </p>
-              </div>
+        {/* Auto-publicar — em breve */}
+        <div className="card p-6 opacity-70">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+              <Zap size={16} className="text-gray-400" />
             </div>
-            <button
-              type="button"
-              onClick={() => setAutoPublish((v) => !v)}
-              className={cn(
-                "relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none",
-                autoPublish ? "bg-indigo-600" : "bg-gray-200",
-              )}
-              role="switch"
-              aria-checked={autoPublish}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200",
-                  autoPublish ? "translate-x-5" : "translate-x-0",
-                )}
-              />
-            </button>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-sm font-semibold text-gray-500">Publicação automática no Google</h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 tracking-wide">EM BREVE</span>
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                A IA publicará respostas direto no Google automaticamente. Disponível assim que a integração automática for ativada.
+              </p>
+            </div>
           </div>
-          {autoPublish && (
-            <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              ⚠️ Com auto-publicação ativa, respostas serão postadas no Google imediatamente.
-              Certifique-se de que o tom escolhido está correto.
-            </p>
-          )}
         </div>
 
         {/* Ações */}

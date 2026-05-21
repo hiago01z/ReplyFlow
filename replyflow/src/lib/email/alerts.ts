@@ -283,7 +283,7 @@ export async function sendWelcomeEmail({ to, name, locale }: WelcomeEmailParams)
                 <td style="padding-left:12px">
                   <p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#111827">${t.step1Title}</p>
                   <p style="margin:0 0 8px;font-size:14px;color:#6b7280;line-height:1.5">
-                    Autentique sua conta Google para o ReplyFlow começar a monitorar seus reviews automaticamente a cada 30 minutos.
+                    Cole a URL do seu negócio no Google Maps para começar a importar avaliações e gerar respostas com IA.
                   </p>
                   <a href="${locationsUrl}" style="font-size:13px;color:#6366f1;font-weight:600;text-decoration:none">
                     ${t.goToLocations}

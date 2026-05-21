@@ -361,9 +361,9 @@ function OnboardingContent() {
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-5">
               <Wifi size={22} className="text-indigo-500" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Conecte o Google Meu Negócio</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-1">Vincule o Google Meu Negócio</h2>
             <p className="text-sm text-gray-500 mb-6">
-              O ReplyFlow precisa de acesso para monitorar seus reviews e publicar respostas automaticamente.
+              Cole a URL do seu negócio no Google Maps para começar a importar avaliações e gerar respostas com IA.
             </p>
 
             <div className="space-y-3">

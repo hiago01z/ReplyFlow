@@ -319,84 +319,25 @@ export function LocationEditForm({ location, backHref = "/locations", plan = "fr
         )}
       </div>
 
-      {/* Auto-publicar */}
-      <div className="card p-6 space-y-4">
-        {/* Toggle */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-              <Zap size={16} className="text-amber-500" />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900">Publicação automática</h2>
-              <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                A IA responde e publica no Google automaticamente, com delay de 5-20 minutos para parecer natural.
-              </p>
-            </div>
+      {/* Auto-publicar — em breve */}
+      <div className="card p-6 opacity-70">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+            <Zap size={16} className="text-gray-400" />
           </div>
-          <button
-            type="button"
-            onClick={() => setAutoPublish((v) => !v)}
-            className={cn(
-              "relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none",
-              autoPublish ? "bg-indigo-600" : "bg-gray-200",
-            )}
-            role="switch"
-            aria-checked={autoPublish}
-          >
-            <span
-              className={cn(
-                "absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200",
-                autoPublish ? "translate-x-5" : "translate-x-0",
-              )}
-            />
-          </button>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-sm font-semibold text-gray-500">Publicação automática no Google</h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 tracking-wide">
+                EM BREVE
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              A IA publicará respostas direto no Google automaticamente, com delay natural para parecer humano.
+              Disponível assim que a integração automática com o Google for ativada.
+            </p>
+          </div>
         </div>
-
-        {/* Configuração de estrelas mínimas — só aparece quando ativo */}
-        {autoPublish && (
-          <div className="border-t border-gray-100 pt-4 space-y-3">
-            <div>
-              <p className="text-xs font-semibold text-gray-700 mb-1">
-                Publicar automaticamente reviews com:
-              </p>
-              <p className="text-xs text-gray-400 mb-3">
-                Reviews abaixo do mínimo ficam como rascunho para revisão manual.
-              </p>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setMinRating(star)}
-                    className={cn(
-                      "flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-all",
-                      minRating === star
-                        ? "border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm"
-                        : "border-gray-200 text-gray-500 hover:bg-gray-50",
-                    )}
-                  >
-                    <span className="text-base">{"★".repeat(star)}</span>
-                    <span>{star}★+</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={cn(
-              "rounded-lg px-3 py-2 text-xs",
-              minRating <= 2
-                ? "bg-red-50 border border-red-200 text-red-700"
-                : "bg-amber-50 border border-amber-200 text-amber-700",
-            )}>
-              {minRating === 1 && "⚠️ Todos os reviews serão respondidos automaticamente, incluindo críticas negativas."}
-              {minRating === 2 && "⚠️ Reviews com 2★ ou mais serão publicados automaticamente. Reviews de 1★ ficam para revisão."}
-              {minRating === 3 && "✅ Apenas reviews neutros e positivos (3★+) serão publicados automaticamente."}
-              {minRating === 4 && "✅ Apenas reviews positivos (4★+) serão publicados automaticamente."}
-              {minRating === 5 && "✅ Apenas reviews 5 estrelas serão publicados automaticamente."}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Perfil Público */}
