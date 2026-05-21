@@ -46,7 +46,7 @@ const PLANS = [
   {
     key:      "starter" as const,
     name:     "Starter",
-    price:    "R$ 97",
+    price:    "R$ 27",
     icon:     <Zap size={18} className="text-blue-500" />,
     color:    "blue",
     features: [
@@ -60,7 +60,7 @@ const PLANS = [
   {
     key:      "pro" as const,
     name:     "Pro",
-    price:    "R$ 197",
+    price:    "R$ 97",
     icon:     <Crown size={18} className="text-indigo-500" />,
     color:    "indigo",
     features: [

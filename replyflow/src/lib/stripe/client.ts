@@ -27,19 +27,19 @@ export const STRIPE_PLANS = {
   starter: {
     name: 'Starter',
     priceId: process.env.STRIPE_PRICE_STARTER_MONTHLY!,
-    price: 97,
+    price: 27,
     currency: 'brl',
   },
   pro: {
     name: 'Pro',
     priceId: process.env.STRIPE_PRICE_PRO_MONTHLY!,
-    price: 197,
+    price: 97,
     currency: 'brl',
   },
   agency: {
     name: 'Agência',
     priceId: process.env.STRIPE_PRICE_AGENCY_MONTHLY!,
-    price: 497,
+    price: 197,
     currency: 'brl',
   },
 } as const
@@ -50,22 +50,22 @@ export const STRIPE_ANNUAL_PLANS = {
   starter: {
     name: 'Starter',
     priceId: process.env.STRIPE_PRICE_STARTER_ANNUAL ?? '',
-    price: 970,          // R$970/ano (R$97 × 10)
-    monthlyEquiv: 81,    // ~R$81/mês
+    price: 270,          // R$270/ano (R$27 × 10)
+    monthlyEquiv: 23,    // ~R$23/mês
     currency: 'brl',
   },
   pro: {
     name: 'Pro',
     priceId: process.env.STRIPE_PRICE_PRO_ANNUAL ?? '',
-    price: 1970,         // R$1970/ano (R$197 × 10)
-    monthlyEquiv: 164,   // ~R$164/mês
+    price: 970,          // R$970/ano (R$97 × 10)
+    monthlyEquiv: 81,    // ~R$81/mês
     currency: 'brl',
   },
   agency: {
     name: 'Agência',
     priceId: process.env.STRIPE_PRICE_AGENCY_ANNUAL ?? '',
-    price: 4970,         // R$4970/ano (R$497 × 10)
-    monthlyEquiv: 414,   // ~R$414/mês
+    price: 1970,         // R$1970/ano (R$197 × 10)
+    monthlyEquiv: 164,   // ~R$164/mês
     currency: 'brl',
   },
 } as const
@@ -81,14 +81,14 @@ export const CURRENCY_PLANS: Record<SupportedCurrency, {
 }> = {
   brl: STRIPE_PLANS,
   usd: {
-    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_MONTHLY_USD ?? '', price: 19, currency: 'usd' },
-    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_MONTHLY_USD     ?? '', price: 39, currency: 'usd' },
-    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_MONTHLY_USD  ?? '', price: 99, currency: 'usd' },
+    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_MONTHLY_USD ?? '', price: 7,  currency: 'usd' },
+    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_MONTHLY_USD     ?? '', price: 17, currency: 'usd' },
+    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_MONTHLY_USD  ?? '', price: 47, currency: 'usd' },
   },
   eur: {
-    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_MONTHLY_EUR ?? '', price: 17, currency: 'eur' },
-    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_MONTHLY_EUR     ?? '', price: 35, currency: 'eur' },
-    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_MONTHLY_EUR  ?? '', price: 89, currency: 'eur' },
+    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_MONTHLY_EUR ?? '', price: 6,  currency: 'eur' },
+    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_MONTHLY_EUR     ?? '', price: 16, currency: 'eur' },
+    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_MONTHLY_EUR  ?? '', price: 36, currency: 'eur' },
   },
 }
 
@@ -99,14 +99,14 @@ export const CURRENCY_ANNUAL_PLANS: Record<SupportedCurrency, {
 }> = {
   brl: STRIPE_ANNUAL_PLANS,
   usd: {
-    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_ANNUAL_USD ?? '', price: 190, monthlyEquiv: 16, currency: 'usd' },
-    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_ANNUAL_USD     ?? '', price: 390, monthlyEquiv: 33, currency: 'usd' },
-    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_ANNUAL_USD  ?? '', price: 990, monthlyEquiv: 83, currency: 'usd' },
+    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_ANNUAL_USD ?? '', price: 70,  monthlyEquiv: 6,  currency: 'usd' },
+    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_ANNUAL_USD     ?? '', price: 170, monthlyEquiv: 14, currency: 'usd' },
+    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_ANNUAL_USD  ?? '', price: 470, monthlyEquiv: 39, currency: 'usd' },
   },
   eur: {
-    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_ANNUAL_EUR ?? '', price: 170, monthlyEquiv: 14, currency: 'eur' },
-    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_ANNUAL_EUR     ?? '', price: 350, monthlyEquiv: 29, currency: 'eur' },
-    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_ANNUAL_EUR  ?? '', price: 890, monthlyEquiv: 74, currency: 'eur' },
+    starter: { name: 'Starter', priceId: process.env.STRIPE_PRICE_STARTER_ANNUAL_EUR ?? '', price: 60,  monthlyEquiv: 5,  currency: 'eur' },
+    pro:     { name: 'Pro',     priceId: process.env.STRIPE_PRICE_PRO_ANNUAL_EUR     ?? '', price: 160, monthlyEquiv: 13, currency: 'eur' },
+    agency:  { name: 'Agência', priceId: process.env.STRIPE_PRICE_AGENCY_ANNUAL_EUR  ?? '', price: 360, monthlyEquiv: 30, currency: 'eur' },
   },
 }
 
@@ -127,7 +127,7 @@ export function getCurrencyFromCountry(country: string | null | undefined): Supp
 
 // ── Extra location add-on prices per currency ─────────────────────────────────
 export const EXTRA_LOCATION_PRICES: Record<SupportedCurrency, { priceId: string; price: number; currency: string }> = {
-  brl: { priceId: process.env.STRIPE_PRICE_EXTRA_LOCATION         ?? '', price: 49, currency: 'brl' },
-  usd: { priceId: process.env.STRIPE_PRICE_EXTRA_LOCATION_USD     ?? '', price: 9,  currency: 'usd' },
-  eur: { priceId: process.env.STRIPE_PRICE_EXTRA_LOCATION_EUR     ?? '', price: 8,  currency: 'eur' },
+  brl: { priceId: process.env.STRIPE_PRICE_EXTRA_LOCATION         ?? '', price: 15, currency: 'brl' },
+  usd: { priceId: process.env.STRIPE_PRICE_EXTRA_LOCATION_USD     ?? '', price: 4,  currency: 'usd' },
+  eur: { priceId: process.env.STRIPE_PRICE_EXTRA_LOCATION_EUR     ?? '', price: 3,  currency: 'eur' },
 }
