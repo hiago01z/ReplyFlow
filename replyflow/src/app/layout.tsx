@@ -4,6 +4,7 @@ import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
 import { themeScript } from "@/components/ui/ThemeToggle";
 import { Analytics } from "@vercel/analytics/react";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -85,6 +86,20 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <ToastProvider>{children}</ToastProvider>
         <Analytics />
+
+        {/* Google Ads tag — AW-18179897640 */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18179897640"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-18179897640');
+          `}
+        </Script>
       </body>
     </html>
   );
