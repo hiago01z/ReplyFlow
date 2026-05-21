@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReplyFlow — Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    /* Scale stage to fit screen */
+    .stage-wrapper {
+      width: 1280px;
+      height: 720px;
+      transform-origin: center center;
+    }
+
+    .stage {
+      width: 1280px;
+      height: 720px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 60px 160px rgba(0,0,0,0.9);
+    }
+
+    /* ─── SCENE: INTRO ─────────────────────────────────────── */
+    .intro {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 45%, #6d28d9 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: opacity 0.9s ease;
+    }
+
+    .intro-logo {
+      font-size: 64px;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -3px;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .intro-logo span { color: #a5b4fc; }
+
+    .intro-tag {
+      font-size: 22px;
+      color: rgba(255,255,255,0.65);
+      font-weight: 400;
+      margin-top: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s ease 0.35s, transform 0.7s ease 0.35s;
+    }
+
+    .intro-pill {
+      margin-top: 36px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 100px;
+      padding: 10px 24px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      opacity: 0;
+      transition: opacity 0.7s ease 0.7s;
+    }
+    .intro-pill-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #a5b4fc;
+      animation: pulse-dot 1.5s ease infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity:1; transform:scale(1); }
+      50% { opacity:0.5; transform:scale(0.7); }
+    }
+
+    /* ─── SCENE: DASHBOARD ─────────────────────────────────── */
+    .dashboard {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      background: #f1f5f9;
+      opacity: 0;
+      transition: opacity 0.9s ease;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 210px;
+      background: #18181f;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    .sb-logo {
+      padding: 22px 18px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sb-logo-text {
+      font-size: 20px; font-weight: 800;
+      color: white; letter-spacing: -0.5px;
+    }
+    .sb-logo-text span { color: #818cf8; }
+    .sb-subtitle {
+      font-size: 10px; color: rgba(255,255,255,0.3);
+      margin-top: 2px; font-weight: 500;
+    }
+    .sb-nav { padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      color: rgba(255,255,255,0.38); font-size: 13px; font-weight: 500;
+    }
+    .nav-item.active {
+      background: rgba(99,102,241,0.18);
+      color: #a5b4fc;
+    }
+    .nav-icon { font-size: 14px; }
+    .nav-badge {
+      margin-left: auto;
+      background: #ef4444;
+      color: white; font-size: 10px; font-weight: 700;
+      border-radius: 100px; padding: 1px 6px;
+    }
+
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Topbar */
+    .topbar {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 16px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .topbar-left {}
+    .topbar-title { font-size: 17px; font-weight: 700; color: #0f172a; }
+    .topbar-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
+    .topbar-filters { display: flex; gap: 6px; }
+    .f-btn {
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;
+      background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+    }
+    .f-btn.active { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
+
+    /* Reviews list */
+    .reviews-list { flex: 1; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+
+    /* Review card */
+    .rcard {
+      background: white; border-radius: 14px;
+      border: 1.5px solid #e2e8f0;
+      padding: 18px 20px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .rcard.dim { opacity: 0.35; }
+    .rcard.highlighted {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.1), 0 4px 20px rgba(99,102,241,0.08);
+    }
+
+    .rcard-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .reviewer { display: flex; align-items: center; gap: 12px; }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, #f97316, #ef4444);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 14px; font-weight: 700; flex-shrink: 0;
+    }
+    .reviewer-name { font-size: 14px; font-weight: 600; color: #0f172a; }
+    .reviewer-date { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+
+    .rcard-right { display: flex; align-items: center; gap: 12px; }
+    .stars { display: flex; gap: 2px; }
+    .star { width: 15px; height: 15px; }
+    .star-fill { fill: #f59e0b; }
+    .star-empty { fill: #e2e8f0; }
+
+    .platform-badge {
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 7px;
+      font-size: 11px; font-weight: 600;
+      background: #ecfdf5; color: #059669;
+    }
+
+    .review-body { font-size: 13px; color: #475569; line-height: 1.6; margin-bottom: 14px; }
+    .critical-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #fef2f2; color: #dc2626;
+      border: 1px solid #fecaca;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    /* Generate button */
+    .btn-generate {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white; border: none; border-radius: 9px;
+      padding: 9px 18px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s ease;
+      box-shadow: 0 2px 12px rgba(99,102,241,0.35);
+    }
+    .btn-generate.highlight-btn {
+      box-shadow: 0 0 0 5px rgba(99,102,241,0.25), 0 4px 16px rgba(99,102,241,0.4);
+      transform: scale(1.03);
+    }
+    .btn-generate.clicked {
+      transform: scale(0.96);
+      background: linear-gradient(135deg, #4338ca, #6d28d9);
+    }
+
+    /* Response area */
+    .response-area {
+      display: none;
+      margin-top: 14px;
+      background: linear-gradient(135deg, #fafafa, #f8f7ff);
+      border: 1.5px solid #e0e7ff;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .resp-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 700; color: #6366f1;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .resp-label-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #6366f1;
+      animation: pulse-dot 1s ease infinite;
+    }
+    .resp-text { font-size: 13px; color: #334155; line-height: 1.65; min-height: 20px; }
+
+    /* Typing cursor */
+    .type-cursor {
+      display: inline-block; width: 2px; height: 15px;
+      background: #6366f1; margin-left: 1px; vertical-align: middle;
+      animation: blink 0.65s steps(1) infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* Loading dots */
+    .loading { display: flex; gap: 6px; align-items: center; padding: 4px 0; }
+    .ldot {
+      width: 8px; height: 8px; border-radius: 50%; background: #818cf8;
+      animation: ldot 1.1s ease infinite;
+    }
+    .ldot:nth-child(2) { animation-delay: 0.18s; }
+    .ldot:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes ldot {
+      0%,80%,100% { transform: scale(0.55); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Copy button */
+    .copy-btn {
+      display: none; margin-top: 12px;
+      align-items: center; gap: 7px;
+      background: #f0fdf4; border: 1.5px solid #86efac;
+      color: #16a34a; border-radius: 8px;
+      padding: 8px 16px; font-size: 12px; font-weight: 600;
+      cursor: pointer; width: fit-content;
+      transition: all 0.3s ease;
+    }
+    .copy-btn.glow {
+      box-shadow: 0 0 0 5px rgba(34,197,94,0.18), 0 4px 14px rgba(34,197,94,0.2);
+    }
+
+    /* Animated cursor */
+    .cursor {
+      position: absolute;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(79,70,229,0.85);
+      border: 2px solid rgba(255,255,255,0.6);
+      pointer-events: none;
+      z-index: 100;
+      transform: translate(-50%, -50%);
+      transition: left 0.8s cubic-bezier(0.34,1.3,0.64,1), top 0.8s cubic-bezier(0.34,1.3,0.64,1);
+      display: none;
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.25);
+    }
+    .cursor.clicking { transform: translate(-50%,-50%) scale(0.75); }
+
+    /* End card */
+    .endcard {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #1e1b4b, #3730a3 50%, #6d28d9);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.9s ease; z-index: 20;
+    }
+    .end-logo { font-size: 58px; font-weight: 800; color: white; letter-spacing: -2.5px; margin-bottom: 10px; }
+    .end-logo span { color: #a5b4fc; }
+    .end-cta { font-size: 20px; color: rgba(255,255,255,0.7); margin-bottom: 32px; font-weight: 400; }
+    .end-url {
+      background: rgba(255,255,255,0.13);
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 100px;
+      padding: 12px 32px;
+      font-size: 16px; font-weight: 700; color: white;
+      letter-spacing: 0.3px;
+    }
+    .end-tagline {
+      margin-top: 14px;
+      font-size: 13px; color: rgba(255,255,255,0.4);
+    }
+
+    /* Progress bar */
+    .progress {
+      position: absolute; bottom: 0; left: 0;
+      height: 3px; background: rgba(165,180,252,0.7);
+      z-index: 50; transition: width 0.1s linear;
+    }
+  </style>
+</head>
+<body>
+<div class="stage-wrapper" id="wrapper">
+<div class="stage" id="stage">
+
+  <div class="progress" id="progress" style="width:0%"></div>
+
+  <!-- INTRO -->
+  <div class="intro" id="intro">
+    <div class="intro-logo" id="iLogo">Reply<span>Flow</span></div>
+    <div class="intro-tag" id="iTag">AI-powered review management</div>
+    <div class="intro-pill" id="iPill">
+      <div class="intro-pill-dot"></div>
+      Generate AI Responses in Seconds
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="dashboard" id="dashboard">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-text">Reply<span>Flow</span></div>
+        <div class="sb-subtitle">Review Management</div>
+      </div>
+      <div class="sb-nav">
+        <div class="nav-item"><span class="nav-icon">⊞</span> Dashboard</div>
+        <div class="nav-item active"><span class="nav-icon">★</span> Reviews <span class="nav-badge">3</span></div>
+        <div class="nav-item"><span class="nav-icon">⊙</span> Locations</div>
+        <div class="nav-item"><span class="nav-icon">↗</span> Analytics</div>
+        <div class="nav-item"><span class="nav-icon">⚙</span> Settings</div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Reviews</div>
+          <div class="topbar-sub">Bella Vista Restaurant · 3 pending replies</div>
+        </div>
+        <div class="topbar-filters">
+          <div class="f-btn">All (12)</div>
+          <div class="f-btn active">Pending (3)</div>
+          <div class="f-btn">Replied (9)</div>
+        </div>
+      </div>
+
+      <div class="reviews-list">
+
+        <!-- MAIN CARD -->
+        <div class="rcard" id="mainCard">
+          <div class="rcard-header">
+            <div class="reviewer">
+              <div class="avatar">MB</div>
+              <div>
+                <div class="reviewer-name">Marco Bianchi</div>
+                <div class="reviewer-date">2 days ago · TripAdvisor</div>
+              </div>
+            </div>
+            <div class="rcard-right">
+              <div class="stars">
+                <svg class="star" viewBox="0 0 24 24"><polygon class="star-fill" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+                <svg class="star" viewBox="0 0 24 24"><polygon class="star-fill" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+                <svg class="star" viewBox="0 0 24 24"><polygon class="star-empty" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+                <svg class="star" viewBox="0 0 24 24"><polygon class="star-empty" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+                <svg class="star" viewBox="0 0 24 24"><polygon class="star-empty" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+              </div>
+              <div class="platform-badge">🟢 TripAdvisor</div>
+            </div>
+          </div>
+
+          <div class="critical-tag">⚠ Critical Review</div>
+
+          <div class="review-body">
+            "The service was slow and the pasta was completely overcooked. We waited over 40 minutes on a quiet Tuesday evening. Very disappointing for the price."
+          </div>
+
+          <button class="btn-generate" id="genBtn">
+            <span>✦</span> Generate AI Response
+          </button>
+
+          <!-- Response area -->
+          <div class="response-area" id="respArea">
+            <div class="resp-label">
+              <div class="resp-label-dot"></div>
+              AI Response
+            </div>
+            <div class="resp-text" id="respText"></div>
+            <div class="copy-btn" id="copyBtn">✓ Copy &amp; Publish to TripAdvisor</div>
+          </div>
+        </div>
+
+        <!-- SECONDARY CARDS -->
+        <div class="rcard dim">
+          <div class="rcard-header">
+            <div class="reviewer">
+              <div class="avatar" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">SC</div>
+              <div>
+                <div class="reviewer-name">Sophie Chen</div>
+                <div class="reviewer-date">5 days ago · Google</div>
+              </div>
+            </div>
+            <div class="stars">
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-fill" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-fill" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-fill" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-empty" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-empty" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+            </div>
+          </div>
+          <div class="review-body">"Good location but the noise level was too high to have a proper conversation..."</div>
+        </div>
+
+        <div class="rcard dim">
+          <div class="rcard-header">
+            <div class="reviewer">
+              <div class="avatar" style="background:linear-gradient(135deg,#10b981,#0891b2)">JM</div>
+              <div>
+                <div class="reviewer-name">James Miller</div>
+                <div class="reviewer-date">1 week ago · Booking.com</div>
+              </div>
+            </div>
+            <div class="stars">
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-fill" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-empty" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-empty" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-empty" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+              <svg class="star" viewBox="0 0 24 24"><polygon class="star-empty" points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+            </div>
+          </div>
+          <div class="review-body">"Very disappointed with the room cleanliness. Will not be returning."</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Cursor -->
+  <div class="cursor" id="cursor"></div>
+
+  <!-- END CARD -->
+  <div class="endcard" id="endcard">
+    <div class="end-logo">Reply<span>Flow</span></div>
+    <div class="end-cta">Turn every review into an opportunity</div>
+    <div class="end-url">replyflow-hivi.com</div>
+    <div class="end-tagline">Start free · No credit card required · From €16/month</div>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // ── Scale stage to fit viewport ──────────────────────────
+  function scaleStage() {
+    const wrapper = document.getElementById('wrapper');
+    const scaleX = window.innerWidth  / 1280;
+    const scaleY = window.innerHeight / 720;
+    const scale  = Math.min(scaleX, scaleY) * 0.95;
+    wrapper.style.transform = `scale(${scale})`;
+  }
+  scaleStage();
+  window.addEventListener('resize', scaleStage);
+
+  // ── Helpers ─────────────────────────────────────────────
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  function moveCursor(el, dx = 0, dy = 0) {
+    const rect  = el.getBoundingClientRect();
+    const stage = document.getElementById('stage').getBoundingClientRect();
+    const scale = stage.width / 1280;
+    const cursor = document.getElementById('cursor');
+    cursor.style.left = ((rect.left - stage.left) / scale + rect.width  / scale / 2 + dx) + 'px';
+    cursor.style.top  = ((rect.top  - stage.top)  / scale + rect.height / scale / 2 + dy) + 'px';
+  }
+
+  // AI response text
+  const RESPONSE = "Dear Marco, thank you for sharing your experience at Bella Vista. We sincerely apologize for the long wait and the quality of the pasta — this is not the standard we hold ourselves to. We would love the opportunity to make it right. Please reach out to us and we will be happy to welcome you back.";
+
+  function typewriter(el, text, speed, done) {
+    const cur = document.createElement('span');
+    cur.className = 'type-cursor';
+    el.appendChild(cur);
+    let i = 0;
+    const iv = setInterval(() => {
+      if (i < text.length) { cur.before(text[i++]); }
+      else {
+        clearInterval(iv);
+        setTimeout(() => { cur.remove(); done && done(); }, 250);
+      }
+    }, speed);
+  }
+
+  // ── Progress bar ─────────────────────────────────────────
+  const TOTAL = 20000;
+  let startedAt;
+  function tick() {
+    const p = Math.min(100, (Date.now() - startedAt) / TOTAL * 100);
+    document.getElementById('progress').style.width = p + '%';
+    if (p < 100) requestAnimationFrame(tick);
+  }
+
+  // ── Main sequence ─────────────────────────────────────────
+  async function run() {
+    startedAt = Date.now();
+    requestAnimationFrame(tick);
+
+    // 0.1s — intro elements fade in
+    await sleep(100);
+    document.getElementById('iLogo').style.opacity = '1';
+    document.getElementById('iLogo').style.transform = 'translateY(0)';
+
+    await sleep(380);
+    document.getElementById('iTag').style.opacity = '1';
+    document.getElementById('iTag').style.transform = 'translateY(0)';
+
+    await sleep(380);
+    document.getElementById('iPill').style.opacity = '1';
+
+    // 2.2s — transition to dashboard
+    await sleep(1500);
+    document.getElementById('intro').style.opacity = '0';
+    await sleep(100);
+    document.getElementById('dashboard').style.opacity = '1';
+
+    // 3.4s — highlight main card
+    await sleep(900);
+    document.getElementById('mainCard').classList.add('highlighted');
+
+    // 4.2s — cursor appears, moves to button
+    await sleep(700);
+    const cursor = document.getElementById('cursor');
+    cursor.style.display = 'block';
+    cursor.style.left = '900px';
+    cursor.style.top  = '200px';
+
+    await sleep(200);
+    moveCursor(document.getElementById('genBtn'));
+
+    // 5.5s — highlight button
+    await sleep(900);
+    document.getElementById('genBtn').classList.add('highlight-btn');
+
+    // 6.0s — click
+    await sleep(500);
+    cursor.classList.add('clicking');
+    document.getElementById('genBtn').classList.add('clicked');
+    document.getElementById('genBtn').classList.remove('highlight-btn');
+
+    await sleep(250);
+    cursor.classList.remove('clicking');
+
+    // Show response area with loading dots
+    const respArea = document.getElementById('respArea');
+    const respText = document.getElementById('respText');
+    respArea.style.display = 'block';
+
+    const ldiv = document.createElement('div');
+    ldiv.className = 'loading';
+    ldiv.innerHTML = '<div class="ldot"></div><div class="ldot"></div><div class="ldot"></div>';
+    respText.appendChild(ldiv);
+
+    // Move cursor away while "loading"
+    cursor.style.transition = 'left 1.2s ease, top 1.2s ease';
+    cursor.style.left = '800px';
+    cursor.style.top  = '500px';
+
+    // 7.5s — remove loading, start typewriter
+    await sleep(1500);
+    ldiv.remove();
+    document.getElementById('genBtn').classList.remove('clicked');
+
+    typewriter(respText, RESPONSE, 30, async () => {
+      // Show copy button
+      const copyBtn = document.getElementById('copyBtn');
+      copyBtn.style.display = 'flex';
+      await sleep(150);
+      copyBtn.classList.add('glow');
+
+      // Move cursor to copy button
+      cursor.style.transition = 'left 0.8s cubic-bezier(0.34,1.3,0.64,1), top 0.8s cubic-bezier(0.34,1.3,0.64,1)';
+      moveCursor(copyBtn, 0, 0);
+
+      // 16.5s — click copy
+      await sleep(1200);
+      cursor.classList.add('clicking');
+      await sleep(200);
+      cursor.classList.remove('clicking');
+      copyBtn.textContent = '✓ Copied!';
+      copyBtn.style.background = '#dcfce7';
+
+      // 18s — end card
+      await sleep(1400);
+      cursor.style.display = 'none';
+      document.getElementById('endcard').style.opacity = '1';
+    });
+  }
+
+  window.addEventListener('load', run);
+
+  // Loop after full duration
+  setTimeout(() => window.location.reload(), TOTAL + 1500);
+</script>
+</body>
+</html>
